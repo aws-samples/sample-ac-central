@@ -1,0 +1,100 @@
+---
+slug: /
+title: AgentCore Central
+sidebar_label: Home
+sidebar_position: 1
+---
+
+import Link from '@docusaurus/Link';
+
+# The AgentCore Central
+
+Everything you need to position, design, and ship agents on Amazon Bedrock AgentCore. Reference architectures, multi-agent patterns, and agent archetype playbooks — in one place.
+
+<div className="tile-grid">
+  <Link to="/archetypes/conversational" className="tile-card">
+    <span className="tile-icon">💬</span>
+    <span className="tile-badge tile-badge--ready">Production-Ready</span>
+    <h3>Conversational Agents</h3>
+    <p>Customer-facing chat agents with memory, identity, and guardrails. Move from prototype to production with enterprise security built in.</p>
+  </Link>
+
+  <Link to="/archetypes/event-driven" className="tile-card">
+    <span className="tile-icon">⚡</span>
+    <span className="tile-badge tile-badge--soon">Coming Mid-July 2026</span>
+    <h3>Event-Driven Agents</h3>
+    <p>Async agents triggered by tickets, emails, webhooks, and system events. Automate workflows with confidence scoring and HITL escalation.</p>
+  </Link>
+
+  <Link to="/archetypes/coding" className="tile-card">
+    <span className="tile-icon">💻</span>
+    <span className="tile-badge tile-badge--soon">Coming Mid-July 2026</span>
+    <h3>Coding Agents</h3>
+    <p>IDE and CI-driven agents for code generation, refactor, and review. Long-running tasks in a sandboxed Code Interpreter runtime.</p>
+  </Link>
+</div>
+
+---
+
+## Cross-Cutting Reference
+
+Shared material that applies across every archetype.
+
+<div className="tile-grid">
+  <Link to="/patterns/overview" className="tile-card">
+    <span className="tile-icon">🔀</span>
+    <h3>Architectural Patterns</h3>
+    <p>12 multi-agent patterns — single agent, agents-as-tools, graph, swarm, workflow, A2A, HITL, and more. With selection guide and execution-path comparison.</p>
+  </Link>
+
+  <Link to="/reference-architectures" className="tile-card">
+    <span className="tile-icon">📐</span>
+    <h3>Reference Architectures</h3>
+    <p>Walkthroughs of complete agent architectures with annotated diagrams, component responsibilities, and customer examples.</p>
+  </Link>
+
+  <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html" className="tile-card" target="_blank" rel="noopener">
+    <span className="tile-icon">📖</span>
+    <h3>AgentCore Documentation</h3>
+    <p>Official AWS developer guide covering Runtime, Memory, Gateway, Identity, Code Interpreter, Browser Tool, and Observability.</p>
+  </a>
+
+  <a href="https://strandsagents.com" className="tile-card" target="_blank" rel="noopener">
+    <span className="tile-icon">🧊</span>
+    <h3>Strands SDK</h3>
+    <p>Official multi-agent SDK for AgentCore. Implements the patterns documented here with first-class support for tools, memory, and A2A.</p>
+  </a>
+</div>
+
+---
+
+## The AgentCore Stack at a Glance
+
+Six managed services that together form the agent platform.
+
+<div className="stack-grid">
+  <div className="stack-item">
+    <h4>Runtime</h4>
+    <p>Sandboxed container execution with long-running task support.</p>
+  </div>
+  <div className="stack-item">
+    <h4>Memory</h4>
+    <p>Short-term and long-term memory scoped per session, user, or project.</p>
+  </div>
+  <div className="stack-item">
+    <h4>Gateway</h4>
+    <p>Tool federation via MCP with inbound JWT auth and Lambda targets.</p>
+  </div>
+  <div className="stack-item">
+    <h4>Identity</h4>
+    <p>OAuth/OIDC token brokering — the agent never sees client secrets.</p>
+  </div>
+  <div className="stack-item">
+    <h4>Observability</h4>
+    <p>OTLP traces, metrics, and logs to CloudWatch with online evaluation.</p>
+  </div>
+  <div className="stack-item">
+    <h4>Tools</h4>
+    <p>Code Interpreter and Browser Tool as managed sandboxes.</p>
+  </div>
+</div>

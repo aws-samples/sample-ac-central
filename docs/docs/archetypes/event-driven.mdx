@@ -1,0 +1,65 @@
+---
+title: Event-Driven Agents
+sidebar_label: Event-Driven
+sidebar_position: 2
+---
+
+import Link from '@docusaurus/Link';
+
+# Build Production-Grade Event-Driven Agents on AgentCore
+
+Automate complex workflows triggered by emails, tickets, webhooks, and system events. AgentCore handles the infrastructure so you focus on business logic.
+
+:::caution Content Coming Mid-July 2026
+This page is a placeholder. Full content with reference architectures and detailed walkthroughs is coming mid-July 2026.
+:::
+
+---
+
+## Coming Soon
+
+<div className="tile-grid">
+  <div className="tile-card">
+    <span className="tile-icon">🎯</span>
+    <h3>Why AgentCore for Event-Driven</h3>
+    <p>Benefits of managed runtime for async, event-triggered agents including long timeouts, confidence scoring, and human-in-the-loop escalation.</p>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">📐</span>
+    <h3>Reference Architecture</h3>
+    <p>Architecture diagram showing event sources → AgentCore → downstream actions with full observability.</p>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">🔀</span>
+    <h3>Recommended Patterns</h3>
+    <p>Workflow (DAG), Agents-as-Tools, and HITL with confidence scoring. <Link to="/patterns/overview">View shared patterns page →</Link></p>
+  </div>
+</div>
+
+---
+
+## Event-Driven Configuration
+
+| Dimension | Event-Driven Setting |
+|-----------|---------------------|
+| **Identity** | Service identity |
+| **Memory** | Minimal / stateless |
+| **Runtime** | Longer timeouts acceptable |
+| **Guardrails** | Confidence thresholds |
+| **Observability** | Throughput + accuracy metrics |
+
+---
+
+## Customer Story: Rede Mater Dei
+
+Healthcare revenue cycle automation — 12 AI agents on event-driven architecture processing claims, authorizations, and billing.
+
+**Results:**
+- 517% ROI
+- 66% faster authorizations
+- 33% reduction in surgery start times
+- Full audit trail for regulatory compliance
+
+[Read the AWS blog →](https://aws.amazon.com/blogs/machine-learning/rede-mater-dei-de-saude-monitoring-ai-agents-in-the-revenue-cycle-with-amazon-bedrock-agentcore/)

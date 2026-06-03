@@ -1,0 +1,655 @@
+/**
+ * AgentCore Central - Custom Theme Styles
+ * Amazon Ember font family + clean professional dark/light theme
+ */
+
+/* ==========================================================================
+   @font-face declarations — Amazon Ember family
+   ========================================================================== */
+
+/* Amazon Ember — Thin (100) */
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_Th.eot');
+  src: url('/fonts/AmazonEmber_W_Th.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_Th.woff') format('woff');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_ThIt.eot');
+  src: url('/fonts/AmazonEmber_W_ThIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_ThIt.woff') format('woff');
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember — Light (300) */
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_Lt.eot');
+  src: url('/fonts/AmazonEmber_W_Lt.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_Lt.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_LtIt.eot');
+  src: url('/fonts/AmazonEmber_W_LtIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_LtIt.woff') format('woff');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember — Regular (400) */
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_Rg.eot');
+  src: url('/fonts/AmazonEmber_W_Rg.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_Rg.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_RgIt.eot');
+  src: url('/fonts/AmazonEmber_W_RgIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_RgIt.woff') format('woff');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember — Semi-Bold (600) */
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_SBd.eot');
+  src: url('/fonts/AmazonEmber_W_SBd.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_SBd.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_SBdIt.eot');
+  src: url('/fonts/AmazonEmber_W_SBdIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_SBdIt.woff') format('woff');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember — Bold (700) */
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_Bd.eot');
+  src: url('/fonts/AmazonEmber_W_Bd.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_Bd.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_BdIt.eot');
+  src: url('/fonts/AmazonEmber_W_BdIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_BdIt.woff') format('woff');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember — Heavy (900) */
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_He.eot');
+  src: url('/fonts/AmazonEmber_W_He.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_He.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_HeIt.eot');
+  src: url('/fonts/AmazonEmber_W_HeIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_HeIt.woff') format('woff');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember Display — Light (300) */
+@font-face {
+  font-family: 'Amazon Ember Display';
+  src: url('/fonts/AmazonEmberDisplay_W_Lt.eot');
+  src: url('/fonts/AmazonEmberDisplay_W_Lt.woff2') format('woff2'),
+       url('/fonts/AmazonEmberDisplay_W_Lt.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Amazon Ember Display — Regular (400) */
+@font-face {
+  font-family: 'Amazon Ember Display';
+  src: url('/fonts/AmazonEmberDisplay_W_Rg.eot');
+  src: url('/fonts/AmazonEmberDisplay_W_Rg.woff2') format('woff2'),
+       url('/fonts/AmazonEmberDisplay_W_Rg.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Amazon Ember Display — Medium (500) */
+@font-face {
+  font-family: 'Amazon Ember Display';
+  src: url('/fonts/AmazonEmberDisplay_W_Md.eot');
+  src: url('/fonts/AmazonEmberDisplay_W_Md.woff2') format('woff2'),
+       url('/fonts/AmazonEmberDisplay_W_Md.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Amazon Ember Display — Bold (700) */
+@font-face {
+  font-family: 'Amazon Ember Display';
+  src: url('/fonts/AmazonEmberDisplay_W_Bd.eot');
+  src: url('/fonts/AmazonEmberDisplay_W_Bd.woff2') format('woff2'),
+       url('/fonts/AmazonEmberDisplay_W_Bd.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Amazon Ember Display — Heavy (900) */
+@font-face {
+  font-family: 'Amazon Ember Display';
+  src: url('/fonts/AmazonEmberDisplay_W_He.eot');
+  src: url('/fonts/AmazonEmberDisplay_W_He.woff2') format('woff2'),
+       url('/fonts/AmazonEmberDisplay_W_He.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Amazon Ember Condensed — Thin (100) */
+@font-face {
+  font-family: 'Amazon Ember Condensed';
+  src: url('/fonts/AmazonEmberCd_W_Th.eot');
+  src: url('/fonts/AmazonEmberCd_W_Th.woff2') format('woff2'),
+       url('/fonts/AmazonEmberCd_W_Th.woff') format('woff');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember Condensed';
+  src: url('/fonts/AmazonEmberCd_W_ThIt.eot');
+  src: url('/fonts/AmazonEmberCd_W_ThIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmberCd_W_ThIt.woff') format('woff');
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember Condensed — Light (300) */
+@font-face {
+  font-family: 'Amazon Ember Condensed';
+  src: url('/fonts/AmazonEmberCd_W_Lt.eot');
+  src: url('/fonts/AmazonEmberCd_W_Lt.woff2') format('woff2'),
+       url('/fonts/AmazonEmberCd_W_Lt.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember Condensed';
+  src: url('/fonts/AmazonEmberCd_W_LtIt.eot');
+  src: url('/fonts/AmazonEmberCd_W_LtIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmberCd_W_LtIt.woff') format('woff');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember Condensed — Regular (400) */
+@font-face {
+  font-family: 'Amazon Ember Condensed';
+  src: url('/fonts/AmazonEmberCd_W_Rg.eot');
+  src: url('/fonts/AmazonEmberCd_W_Rg.woff2') format('woff2'),
+       url('/fonts/AmazonEmberCd_W_Rg.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember Condensed';
+  src: url('/fonts/AmazonEmberCd_W_RgIt.eot');
+  src: url('/fonts/AmazonEmberCd_W_RgIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmberCd_W_RgIt.woff') format('woff');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember Condensed — Bold (700) */
+@font-face {
+  font-family: 'Amazon Ember Condensed';
+  src: url('/fonts/AmazonEmberCd_W_Bd.eot');
+  src: url('/fonts/AmazonEmberCd_W_Bd.woff2') format('woff2'),
+       url('/fonts/AmazonEmberCd_W_Bd.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember Condensed';
+  src: url('/fonts/AmazonEmberCd_W_BdIt.eot');
+  src: url('/fonts/AmazonEmberCd_W_BdIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmberCd_W_BdIt.woff') format('woff');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember Mono — Regular (400) */
+@font-face {
+  font-family: 'Amazon Ember Mono';
+  src: url('/fonts/AmazonEmberMono_W_Rg.eot');
+  src: url('/fonts/AmazonEmberMono_W_Rg.woff2') format('woff2'),
+       url('/fonts/AmazonEmberMono_W_Rg.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Amazon Ember Mono — Bold (700) */
+@font-face {
+  font-family: 'Amazon Ember Mono';
+  src: url('/fonts/AmazonEmberMono_W_Bd.eot');
+  src: url('/fonts/AmazonEmberMono_W_Bd.woff2') format('woff2'),
+       url('/fonts/AmazonEmberMono_W_Bd.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Amazon Ember Duospace — Regular (400) */
+@font-face {
+  font-family: 'Amazon Ember Duospace';
+  src: url('/fonts/AmazonEmberDuospace_W_Rg.eot');
+  src: url('/fonts/AmazonEmberDuospace_W_Rg.woff2') format('woff2'),
+       url('/fonts/AmazonEmberDuospace_W_Rg.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Amazon Ember Duospace — Bold (700) */
+@font-face {
+  font-family: 'Amazon Ember Duospace';
+  src: url('/fonts/AmazonEmberDuospace_W_Bd.eot');
+  src: url('/fonts/AmazonEmberDuospace_W_Bd.woff2') format('woff2'),
+       url('/fonts/AmazonEmberDuospace_W_Bd.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ==========================================================================
+   CSS Custom Properties — Theme tokens
+   ========================================================================== */
+
+:root {
+  /* Font stacks */
+  --ifm-font-family-base: 'Amazon Ember', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --ifm-font-family-monospace: 'Amazon Ember Mono', 'Amazon Ember Duospace', SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  --font-family-display: 'Amazon Ember Display', 'Amazon Ember', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family-condensed: 'Amazon Ember Condensed', 'Amazon Ember', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Colors */
+  --ifm-color-primary: #6c8cff;
+  --ifm-color-primary-dark: #4d73ff;
+  --ifm-color-primary-darker: #3d66ff;
+  --ifm-color-primary-darkest: #0f40ff;
+  --ifm-color-primary-light: #8ba5ff;
+  --ifm-color-primary-lighter: #9bb2ff;
+  --ifm-color-primary-lightest: #c9d8ff;
+
+  /* Typography */
+  --ifm-code-font-size: 95%;
+  --ifm-heading-font-family: var(--font-family-display);
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #6c8cff;
+  --ifm-color-primary-dark: #4d73ff;
+  --ifm-color-primary-darker: #3d66ff;
+  --ifm-color-primary-darkest: #0f40ff;
+  --ifm-color-primary-light: #8ba5ff;
+  --ifm-color-primary-lighter: #9bb2ff;
+  --ifm-color-primary-lightest: #c9d8ff;
+  --ifm-background-color: #0a0a0f;
+  --ifm-background-surface-color: #12121a;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+/* ==========================================================================
+   Global typography
+   ========================================================================== */
+
+html {
+  font-family: var(--ifm-font-family-base);
+}
+
+/* Headings use Display variant for larger optical sizing */
+h1, h2, h3, h4, h5, h6,
+.markdown h1, .markdown h2, .markdown h3,
+.markdown h4, .markdown h5, .markdown h6 {
+  font-family: var(--font-family-display);
+}
+
+h1, .markdown h1 {
+  font-weight: 700;
+}
+
+h2, .markdown h2 {
+  font-weight: 700;
+}
+
+h3, h4, .markdown h3, .markdown h4 {
+  font-weight: 600;
+}
+
+/* Code blocks use Mono */
+code, kbd, pre, samp,
+.prism-code,
+[class*='codeBlock'] {
+  font-family: var(--ifm-font-family-monospace);
+}
+
+/* Navbar brand uses bold */
+.navbar__title {
+  font-family: var(--font-family-display);
+  font-weight: 700;
+}
+
+/* Table of contents uses regular weight for clean readability */
+.table-of-contents {
+  font-family: var(--ifm-font-family-base);
+  font-weight: 400;
+}
+
+/* Sidebar navigation */
+.menu__link {
+  font-family: var(--ifm-font-family-base);
+  font-weight: 400;
+}
+
+.menu__link--active {
+  font-weight: 600;
+}
+
+/* Footer uses condensed for a compact look */
+.footer {
+  font-family: var(--font-family-condensed);
+}
+
+/* Badges and tags use semi-bold */
+.badge, .service-tag, .tile-badge {
+  font-family: var(--ifm-font-family-base);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Hero Section
+   ========================================================================== */
+
+.hero--primary {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+
+.hero__title {
+  font-family: var(--font-family-display);
+  font-weight: 900;
+}
+
+.hero__subtitle {
+  font-family: var(--ifm-font-family-base);
+  font-weight: 300;
+}
+
+/* ==========================================================================
+   Tile Cards
+   ========================================================================== */
+
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.tile-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  text-decoration: none;
+  color: inherit;
+}
+
+.tile-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px rgba(108, 140, 255, 0.12);
+  border-color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+
+.tile-card h3 {
+  font-family: var(--font-family-display);
+  font-weight: 600;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.tile-card p {
+  flex: 1;
+  color: var(--ifm-color-emphasis-700);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.tile-card .tile-icon {
+  font-size: 2rem;
+  color: var(--ifm-color-primary);
+}
+
+.tile-card .tile-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-family-condensed);
+}
+
+.tile-badge--ready {
+  background: rgba(46, 204, 113, 0.15);
+  color: #2ecc71;
+}
+
+.tile-badge--soon {
+  background: rgba(241, 196, 15, 0.15);
+  color: #f1c40f;
+}
+
+/* ==========================================================================
+   Stack Grid
+   ========================================================================== */
+
+.stack-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.stack-item {
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
+}
+
+.stack-item h4 {
+  font-family: var(--font-family-condensed);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--ifm-color-primary);
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.stack-item p {
+  font-size: 0.84rem;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Service Tags
+   ========================================================================== */
+
+.service-tag {
+  display: inline-block;
+  font-family: var(--font-family-condensed);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  margin-right: 6px;
+  margin-top: 6px;
+}
+
+.tag--runtime { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
+.tag--memory { background: rgba(155, 89, 182, 0.15); color: #9b59b6; }
+.tag--gateway { background: rgba(52, 152, 219, 0.15); color: #3498db; }
+.tag--identity { background: rgba(241, 196, 15, 0.15); color: #f1c40f; }
+.tag--observability { background: rgba(230, 126, 34, 0.15); color: #e67e22; }
+.tag--evaluations { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+
+/* ==========================================================================
+   Results Chips
+   ========================================================================== */
+
+.results-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+.result-chip {
+  background: rgba(108, 140, 255, 0.08);
+  border: 1px solid rgba(108, 140, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  color: var(--ifm-color-primary-light);
+  font-weight: 600;
+  font-family: var(--ifm-font-family-base);
+}
+
+/* ==========================================================================
+   Architecture Flow
+   ========================================================================== */
+
+.arch-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 1rem 0;
+}
+
+.arch-flow-step {
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: var(--ifm-font-family-base);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.arch-flow-arrow {
+  color: var(--ifm-color-primary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   Reference Architecture Cards
+   ========================================================================== */
+
+.ref-arch-card {
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  overflow: hidden;
+  background: var(--ifm-background-surface-color);
+}
+
+.ref-arch-card__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.ref-arch-card__body {
+  padding: 1.5rem;
+}
+
+.ref-arch-card__num {
+  font-family: var(--font-family-condensed);
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--ifm-color-primary);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .tile-grid {
+    grid-template-columns: 1fr;
+  }
+  .stack-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
