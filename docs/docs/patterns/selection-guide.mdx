@@ -1,0 +1,88 @@
+---
+title: Pattern Selection Guide
+sidebar_label: Selection Guide
+sidebar_position: 2
+---
+
+# Pattern Selection Guide
+
+Match your scenario to the recommended pattern combination.
+
+## Quick Reference
+
+| Scenario | Recommended Pattern(s) | Complexity |
+|----------|----------------------|------------|
+| Simple FAQ / helpdesk | Single Agent + RAG + Tools | 🟢 Low |
+| Multi-domain support | Graph (router) + Agents-as-Tools | 🟡 Medium |
+| Complex case management | Agents-as-Tools + Workflow + HITL | 🔴 High |
+| Collaborative troubleshooting | Swarm | 🟠 Medium-High |
+| Regulated / compliance | Single Agent + Reflection + HITL | 🟡 Medium |
+| Multi-team platform | Bot Factory + Graph | 🔴 High |
+| Cross-platform federation | A2A + Agent-as-MCP | 🔴 High |
+
+---
+
+## Decision Tree
+
+### Start Here: How Many Domains?
+
+**Single domain** (e.g., just customer billing):
+- Start with **Single Agent + Tools**
+- Add **RAG** if you need knowledge base grounding
+- Add **HITL** if actions are high-risk
+
+**Multiple domains** (e.g., billing + support + account management):
+- Use **Agents-as-Tools** for clear domain separation
+- Or **Graph** if you need structured routing logic
+- Add **Router/Dispatcher** as entry point for intent classification
+
+### Execution Path Flexibility
+
+**Deterministic flows** (you know the steps in advance):
+- Use **Workflow (DAG)** for parallel execution
+- Suits batch processing, CI/CD, data pipelines
+
+**LLM-decided flows** (agent figures out the path):
+- Use **Graph** for controlled branching with guardrails
+- Use **Swarm** for maximum agent autonomy
+
+**Hybrid** (some fixed, some dynamic):
+- Use **Agents-as-Tools** — parent LLM picks which child, but children have predictable behavior
+
+### Cross-Organization Requirements
+
+**Single team, single framework**:
+- Any pattern works; start simple
+
+**Multi-team, shared platform**:
+- Use **Bot Factory** for standardized agent templates
+- Ensures governance, approved tools, common guardrails
+
+**Cross-platform, cross-framework**:
+- Use **A2A Protocol** for interoperability
+- Each team can use their preferred framework
+
+---
+
+## Anti-Patterns to Avoid
+
+| Anti-Pattern | Why It's Bad | Better Approach |
+|--------------|--------------|-----------------|
+| Swarm for simple tasks | Unpredictable, hard to debug | Single Agent + Tools |
+| Graph without clear branches | Over-engineering, slow iteration | Start with single agent, add routing later |
+| HITL on every action | Defeats the purpose of automation | HITL only on high-risk/high-confidence-gap actions |
+| A2A for internal agents | Protocol overhead unnecessary | Agents-as-Tools within same runtime |
+| Skipping observability | "It worked in dev" → failure in prod | Always instrument from day one |
+
+---
+
+## Migrating Between Patterns
+
+As your agent matures, you may need to upgrade patterns:
+
+1. **Single Agent → Agents-as-Tools** — When tool count exceeds ~15, or domains need separate guardrails
+2. **Graph → Swarm** — When branching logic becomes too complex to predefine
+3. **Agents-as-Tools → A2A** — When agents cross team/framework boundaries
+4. **Any pattern → + HITL** — When deploying to regulated environments
+
+AgentCore Runtime supports all patterns, so migration is a code change, not an infrastructure change.

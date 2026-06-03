@@ -1,0 +1,11 @@
+.DS_Store
+.omni/
+.claude/
+.github/
+.cursor/
+.kiro/
+.agents/
+node_modules/
+build/
+.docusaurus/
+content/

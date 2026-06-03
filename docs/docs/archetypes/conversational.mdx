@@ -1,0 +1,166 @@
+---
+title: Conversational Agents
+sidebar_label: Conversational
+sidebar_position: 1
+---
+
+import Link from '@docusaurus/Link';
+
+# Build Production-Grade Chat Agents on AgentCore
+
+Go from prototype to production with enterprise security, identity, memory, and observability built in. AgentCore is the platform that scales your conversational agents without the undifferentiated heavy lifting.
+
+:::tip Hot Topics
+- [BGL: NL-to-SQL Agent](https://aws.amazon.com/blogs/machine-learning/democratizing-business-intelligence-bgls-journey-with-claude-agent-sdk-and-amazon-bedrock-agentcore/)
+- [Iberdrola: IT Ops Agents](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/)
+- [Strands SDK Docs](https://strandsagents.com)
+- [AgentCore Docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html)
+:::
+
+---
+
+## Quick Start
+
+| Step | Action | Command |
+|------|--------|---------|
+| 1 | Install CLI | `npm install -g @aws/agentcore` |
+| 2 | Create Agent | `agentcore create` |
+| 3 | Add SDK | `uv add bedrock-agentcore strands-agents` |
+| 4 | Develop Locally | `agentcore dev` |
+| 5 | Deploy | `agentcore deploy` |
+
+---
+
+## Why AgentCore for Conversational Agents?
+
+Your chatbot prototype works. Now you need it to handle real users, real security, and real scale. AgentCore bridges that gap.
+
+<div className="tile-grid">
+  <div className="tile-card">
+    <span className="tile-icon">🔒</span>
+    <h3>Enterprise Identity Built In</h3>
+    <p>Authenticate end-users via your existing IdP (Entra ID, Okta, Cognito) with OAuth 2.0 token exchange. No custom auth middleware needed.</p>
+    <span className="service-tag tag--identity">Identity</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">🧠</span>
+    <h3>Persistent Memory</h3>
+    <p>Short-term session memory for multi-turn conversations. Long-term memory for user preferences across sessions. No external database plumbing required.</p>
+    <span className="service-tag tag--memory">Memory</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">⚡</span>
+    <h3>Serverless Runtime</h3>
+    <p>Deploy agents without managing infrastructure. Automatic scaling from zero to thousands of concurrent sessions. MicroVM isolation. Sessions persist up to 8 hours.</p>
+    <span className="service-tag tag--runtime">Runtime</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">🔌</span>
+    <h3>Secure Tool Access via Gateway</h3>
+    <p>Connect agents to internal APIs, databases, and SaaS tools through a managed gateway (MCP server). VPC egress support for private resources.</p>
+    <span className="service-tag tag--gateway">Gateway</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">📊</span>
+    <h3>Observability & Tracing</h3>
+    <p>Full trace visibility into every agent turn using OpenTelemetry standards surfaced through Amazon CloudWatch. Integrate with Langfuse or custom OTLP endpoints.</p>
+    <span className="service-tag tag--observability">Observability</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">🛡️</span>
+    <h3>Guardrails & Evaluations</h3>
+    <p>Content filtering, PII redaction, and custom guardrails. Automated evaluations to measure quality, accuracy, and safety before and after deployment.</p>
+    <span className="service-tag tag--evaluations">Evaluations</span>
+  </div>
+</div>
+
+---
+
+## Your Journey to Production
+
+From first API call to enterprise deployment in five stages.
+
+1. **Build Your Agent** — Use any framework (Strands, LangGraph, CrewAI, Claude Agent SDK). Test locally with `agentcore dev`.
+2. **Add Identity & Auth** — Configure OAuth 2.0 token exchange with your corporate IdP.
+3. **Connect Tools via Gateway** — Register internal APIs, databases, and SaaS integrations.
+4. **Deploy & Scale** — Push to AgentCore Runtime with `agentcore deploy`. No Kubernetes needed.
+5. **Monitor & Iterate** — Track every conversation with OpenTelemetry-based tracing via CloudWatch.
+
+---
+
+## Reference Architecture
+
+A production-ready conversational agent architecture on AgentCore.
+
+![Conversational Agent Architecture](/img/conversational_agent_architecture.png)
+
+<div className="arch-flow">
+  <span className="arch-flow-step">End User (Web/Mobile/Slack)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">AgentCore Identity (OAuth 2.0)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">API Gateway / WebSocket</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">AgentCore Runtime (microVM)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Agent</span>
+</div>
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Agent</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">Memory</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">Gateway (MCP)</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">Guardrails</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">Observability</span>
+</div>
+
+---
+
+## Recommended Patterns for Conversational Agents
+
+AgentCore supports [12 multi-agent patterns](/patterns/overview). The ones below are the most common starting points for chat workloads.
+
+| Pattern | When to Use | Example |
+|---------|-------------|---------|
+| **Single Agent + Tools** | Single domain, fewer than 10 tools, straightforward flows | [BGL — NL-to-SQL](https://aws.amazon.com/blogs/machine-learning/democratizing-business-intelligence-bgls-journey-with-claude-agent-sdk-and-amazon-bedrock-agentcore/) |
+| **Agents-as-Tools** | Multi-domain support, complex routing | [Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/) |
+| **Graph (Intent Router)** | Structured flows with conditional branching | [Iberdrola](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/) |
+| **Human-in-the-Loop** | Regulated industries, high-stakes decisions | [Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/) |
+
+:::info
+All AgentCore patterns work for conversational agents. For the full catalog including Swarm, Workflow, A2A, and Plan-Act-Reflect, see the [Architectural Patterns Reference](/patterns/overview).
+:::
+
+---
+
+## Chat-Specific Configuration
+
+The same patterns are used across archetypes. What differs is *how you configure AgentCore services* for conversational workloads.
+
+| AgentCore Service | Chat Configuration | Why It Matters |
+|-------------------|--------------------|----------------|
+| **Identity** | End-user OAuth token exchange (Entra ID, Okta, Cognito) | Agent acts *on behalf of the user* |
+| **Memory** | Session + long-term, namespace per user | Multi-turn context + cross-session recall |
+| **Runtime** | Streaming enabled, session affinity, up to 8h sessions | Real-time UX, stateful conversations |
+| **Guardrails** | Content filters + topic boundaries + PII redaction | Adversarial inputs (prompt injection, social engineering) |
+| **Observability** | Per-conversation tracing with user context | Debug "the agent gave me wrong info" |
+| **Gateway** | User-scoped tool access with auth propagation | Agent calls APIs as the user |
+
+---
+
+## Customer Stories
+
+- **BGL** — 200+ employees self-serve BI instantly via Slack-based NL-to-SQL agent
+- **Iberdrola** — Multi-agent IT operations with LangGraph orchestration and VPC-secured runtime
+- **Thomson Reuters** — Central orchestrator routing to specialized service agents with HITL
+- **Kavak** — Autonomous concierge agent for automotive marketplace
+- **Swisscom** — Enterprise-scale agentic AI platform
