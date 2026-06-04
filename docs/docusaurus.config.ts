@@ -10,7 +10,7 @@ const config: Config = {
   url: 'https://agentcore-central.pages.aws.dev',
   baseUrl: '/',
 
-  organizationName: 'ravizraj',
+  organizationName: 'agentcore-gtm',
   projectName: 'agentcore-central',
 
   onBrokenLinks: 'warn',
