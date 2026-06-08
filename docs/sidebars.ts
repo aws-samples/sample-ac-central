@@ -5,17 +5,17 @@ const sidebars: SidebarsConfig = {
     'index',
     {
       type: 'category',
-      label: 'Agent Archetypes',
+      label: 'Agent Types',
       collapsed: false,
       items: [
-        'archetypes/conversational',
-        'archetypes/event-driven',
-        'archetypes/coding',
+        'agenttypes/conversational',
+        'agenttypes/automation',
+        'agenttypes/coding',
       ],
     },
     {
       type: 'category',
-      label: 'Architectural Patterns',
+      label: 'Architectural Platform',
       collapsed: false,
       items: [
         'patterns/overview',
