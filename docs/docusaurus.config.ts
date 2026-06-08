@@ -82,6 +82,11 @@ const config: Config = {
           label: 'Documentation',
         },
         {
+          href: 'https://agentcore-catalog.beta.harmony.a2z.com/',
+          label: 'Resources Catalog',
+          position: 'right',
+        },
+        {
           href: 'https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html',
           label: 'AWS Docs',
           position: 'right',
