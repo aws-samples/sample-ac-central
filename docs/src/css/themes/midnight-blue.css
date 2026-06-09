@@ -1,0 +1,43 @@
+/**
+ * Theme: Midnight Blue
+ * Deep space, tech-forward — the original AgentCore theme
+ */
+
+:root {
+  --ifm-color-primary: #6c8cff;
+  --ifm-color-primary-dark: #4d73ff;
+  --ifm-color-primary-darker: #3d66ff;
+  --ifm-color-primary-darkest: #0f40ff;
+  --ifm-color-primary-light: #8ba5ff;
+  --ifm-color-primary-lighter: #9bb2ff;
+  --ifm-color-primary-lightest: #c9d8ff;
+
+  --ifm-background-color: #ffffff;
+  --ifm-background-surface-color: #f8f9fc;
+
+  --theme-hero-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  --theme-card-hover-shadow: rgba(108, 140, 255, 0.12);
+  --theme-chip-bg: rgba(108, 140, 255, 0.08);
+  --theme-chip-border: rgba(108, 140, 255, 0.2);
+  --theme-code-highlight: rgba(108, 140, 255, 0.08);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #6c8cff;
+  --ifm-color-primary-dark: #4d73ff;
+  --ifm-color-primary-darker: #3d66ff;
+  --ifm-color-primary-darkest: #0f40ff;
+  --ifm-color-primary-light: #8ba5ff;
+  --ifm-color-primary-lighter: #9bb2ff;
+  --ifm-color-primary-lightest: #c9d8ff;
+
+  --ifm-background-color: #0a0a0f;
+  --ifm-background-surface-color: #12121a;
+  --ifm-navbar-background-color: #0a0a0f;
+  --ifm-footer-background-color: #0a0a0f;
+
+  --theme-card-hover-shadow: rgba(108, 140, 255, 0.15);
+  --theme-chip-bg: rgba(108, 140, 255, 0.1);
+  --theme-chip-border: rgba(108, 140, 255, 0.25);
+  --theme-code-highlight: rgba(0, 0, 0, 0.3);
+}

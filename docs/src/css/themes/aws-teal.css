@@ -1,0 +1,43 @@
+/**
+ * Theme: AWS Teal
+ * Aligned with AWS branding — professional, enterprise feel
+ */
+
+:root {
+  --ifm-color-primary: #0972d3;
+  --ifm-color-primary-dark: #0761b3;
+  --ifm-color-primary-darker: #065ba9;
+  --ifm-color-primary-darkest: #054b8a;
+  --ifm-color-primary-light: #2b8ae0;
+  --ifm-color-primary-lighter: #539fe5;
+  --ifm-color-primary-lightest: #89bfed;
+
+  --ifm-background-color: #ffffff;
+  --ifm-background-surface-color: #f2f8fd;
+
+  --theme-hero-gradient: linear-gradient(135deg, #0f1b2d 0%, #132f4c 50%, #0a3563 100%);
+  --theme-card-hover-shadow: rgba(9, 114, 211, 0.12);
+  --theme-chip-bg: rgba(9, 114, 211, 0.08);
+  --theme-chip-border: rgba(9, 114, 211, 0.2);
+  --theme-code-highlight: rgba(9, 114, 211, 0.08);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #539fe5;
+  --ifm-color-primary-dark: #3a90e0;
+  --ifm-color-primary-darker: #2b86dc;
+  --ifm-color-primary-darkest: #1a6dbd;
+  --ifm-color-primary-light: #6caee9;
+  --ifm-color-primary-lighter: #7bb7ec;
+  --ifm-color-primary-lightest: #a4cff2;
+
+  --ifm-background-color: #0f1b2d;
+  --ifm-background-surface-color: #1a2b42;
+  --ifm-navbar-background-color: #0f1b2d;
+  --ifm-footer-background-color: #0f1b2d;
+
+  --theme-card-hover-shadow: rgba(83, 159, 229, 0.15);
+  --theme-chip-bg: rgba(83, 159, 229, 0.1);
+  --theme-chip-border: rgba(83, 159, 229, 0.25);
+  --theme-code-highlight: rgba(83, 159, 229, 0.15);
+}

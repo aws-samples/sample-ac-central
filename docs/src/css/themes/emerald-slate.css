@@ -1,0 +1,43 @@
+/**
+ * Theme: Emerald Slate
+ * Fresh, modern SaaS — green-accented with warm grays
+ */
+
+:root {
+  --ifm-color-primary: #10b981;
+  --ifm-color-primary-dark: #0d9d6e;
+  --ifm-color-primary-darker: #0c9268;
+  --ifm-color-primary-darkest: #097855;
+  --ifm-color-primary-light: #34d399;
+  --ifm-color-primary-lighter: #5ee3ad;
+  --ifm-color-primary-lightest: #a7f3d0;
+
+  --ifm-background-color: #ffffff;
+  --ifm-background-surface-color: #f8fafb;
+
+  --theme-hero-gradient: linear-gradient(135deg, #0c1220 0%, #0f2318 50%, #0a2e1a 100%);
+  --theme-card-hover-shadow: rgba(16, 185, 129, 0.12);
+  --theme-chip-bg: rgba(16, 185, 129, 0.08);
+  --theme-chip-border: rgba(16, 185, 129, 0.2);
+  --theme-code-highlight: rgba(16, 185, 129, 0.08);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #34d399;
+  --ifm-color-primary-dark: #1fc88a;
+  --ifm-color-primary-darker: #1dbd82;
+  --ifm-color-primary-darkest: #189e6c;
+  --ifm-color-primary-light: #5ee3ad;
+  --ifm-color-primary-lighter: #6fe7b6;
+  --ifm-color-primary-lightest: #a7f3d0;
+
+  --ifm-background-color: #0c0c0c;
+  --ifm-background-surface-color: #161618;
+  --ifm-navbar-background-color: #0c0c0c;
+  --ifm-footer-background-color: #0c0c0c;
+
+  --theme-card-hover-shadow: rgba(52, 211, 153, 0.12);
+  --theme-chip-bg: rgba(52, 211, 153, 0.1);
+  --theme-chip-border: rgba(52, 211, 153, 0.2);
+  --theme-code-highlight: rgba(52, 211, 153, 0.1);
+}

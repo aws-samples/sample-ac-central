@@ -1,0 +1,43 @@
+/**
+ * Theme: Amber Dusk
+ * Warm amber with dark charcoal — cozy, high readability
+ */
+
+:root {
+  --ifm-color-primary: #d97706;
+  --ifm-color-primary-dark: #b86505;
+  --ifm-color-primary-darker: #ae5f05;
+  --ifm-color-primary-darkest: #8f4e04;
+  --ifm-color-primary-light: #e88d1f;
+  --ifm-color-primary-lighter: #ea962e;
+  --ifm-color-primary-lightest: #f0b25e;
+
+  --ifm-background-color: #fffbf5;
+  --ifm-background-surface-color: #fef3e2;
+
+  --theme-hero-gradient: linear-gradient(135deg, #1c1917 0%, #292524 50%, #44403c 100%);
+  --theme-card-hover-shadow: rgba(217, 119, 6, 0.12);
+  --theme-chip-bg: rgba(217, 119, 6, 0.08);
+  --theme-chip-border: rgba(217, 119, 6, 0.2);
+  --theme-code-highlight: rgba(217, 119, 6, 0.08);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #f59e0b;
+  --ifm-color-primary-dark: #d68b09;
+  --ifm-color-primary-darker: #ca8309;
+  --ifm-color-primary-darkest: #a66c07;
+  --ifm-color-primary-light: #f6ab2e;
+  --ifm-color-primary-lighter: #f7b23c;
+  --ifm-color-primary-lightest: #f9c76c;
+
+  --ifm-background-color: #111111;
+  --ifm-background-surface-color: #1c1917;
+  --ifm-navbar-background-color: #111111;
+  --ifm-footer-background-color: #111111;
+
+  --theme-card-hover-shadow: rgba(245, 158, 11, 0.12);
+  --theme-chip-bg: rgba(245, 158, 11, 0.1);
+  --theme-chip-border: rgba(245, 158, 11, 0.2);
+  --theme-code-highlight: rgba(245, 158, 11, 0.1);
+}
