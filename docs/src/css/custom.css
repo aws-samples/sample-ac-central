@@ -3,6 +3,10 @@
  * Amazon Ember font family + clean professional dark/light theme
  */
 
+@import './themes/strands.css';
+/* @import './themes/aws-teal.css'; */
+/* @import './themes/amber-dusk.css'; */
+
 /* ==========================================================================
    @font-face declarations — Amazon Ember family
    ========================================================================== */
@@ -307,8 +311,12 @@
 }
 
 /* ==========================================================================
-   CSS Custom Properties — Theme tokens
+   CSS Custom Properties — Font stacks & typography
    ========================================================================== */
+
+html {
+  font-size: 125%; /* 1.25x scale — base becomes 20px instead of 16px */
+}
 
 :root {
   /* Font stacks */
@@ -317,32 +325,29 @@
   --font-family-display: 'Amazon Ember Display', 'Amazon Ember', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-family-condensed: 'Amazon Ember Condensed', 'Amazon Ember', -apple-system, BlinkMacSystemFont, sans-serif;
 
-  /* Colors */
-  --ifm-color-primary: #6c8cff;
-  --ifm-color-primary-dark: #4d73ff;
-  --ifm-color-primary-darker: #3d66ff;
-  --ifm-color-primary-darkest: #0f40ff;
-  --ifm-color-primary-light: #8ba5ff;
-  --ifm-color-primary-lighter: #9bb2ff;
-  --ifm-color-primary-lightest: #c9d8ff;
-
   /* Typography */
   --ifm-code-font-size: 95%;
   --ifm-heading-font-family: var(--font-family-display);
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --docusaurus-highlighted-code-line-bg: var(--theme-code-highlight);
 }
 
 [data-theme='dark'] {
-  --ifm-color-primary: #6c8cff;
-  --ifm-color-primary-dark: #4d73ff;
-  --ifm-color-primary-darker: #3d66ff;
-  --ifm-color-primary-darkest: #0f40ff;
-  --ifm-color-primary-light: #8ba5ff;
-  --ifm-color-primary-lighter: #9bb2ff;
-  --ifm-color-primary-lightest: #c9d8ff;
-  --ifm-background-color: #0a0a0f;
-  --ifm-background-surface-color: #12121a;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  --docusaurus-highlighted-code-line-bg: var(--theme-code-highlight);
+}
+
+/* Ensure dark mode background overrides Docusaurus defaults */
+html[data-theme='dark'] {
+  background-color: var(--ifm-background-color);
+}
+
+html[data-theme='dark'] .navbar {
+  background-color: var(--ifm-background-surface-color);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+html[data-theme='dark'] .footer {
+  background-color: var(--ifm-background-surface-color);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 /* ==========================================================================
@@ -417,7 +422,7 @@ code, kbd, pre, samp,
    ========================================================================== */
 
 .hero--primary {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: var(--theme-hero-gradient);
 }
 
 .hero__title {
@@ -455,7 +460,7 @@ code, kbd, pre, samp,
 
 .tile-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 36px rgba(108, 140, 255, 0.12);
+  box-shadow: 0 12px 36px var(--theme-card-hover-shadow);
   border-color: var(--ifm-color-primary);
   text-decoration: none;
 }
@@ -569,8 +574,8 @@ code, kbd, pre, samp,
 }
 
 .result-chip {
-  background: rgba(108, 140, 255, 0.08);
-  border: 1px solid rgba(108, 140, 255, 0.2);
+  background: var(--theme-chip-bg);
+  border: 1px solid var(--theme-chip-border);
   border-radius: 8px;
   padding: 8px 14px;
   font-size: 0.85rem;
@@ -651,5 +656,203 @@ code, kbd, pre, samp,
   }
   .stack-grid {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ==========================================================================
+   Landing Page
+   ========================================================================== */
+
+.landing-page {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Hero */
+.landing-hero {
+  background: var(--theme-hero-gradient);
+  padding: 5rem 2rem 4rem;
+  text-align: center;
+  position: relative;
+}
+
+.landing-hero__content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.landing-hero__title {
+  font-family: var(--font-family-display);
+  font-size: 3.2rem;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 1rem;
+  letter-spacing: -0.5px;
+}
+
+.landing-hero__title span {
+  color: var(--ifm-color-primary-lightest);
+}
+
+[data-theme='dark'] .landing-hero__title span {
+  color: var(--ifm-color-primary);
+}
+
+.landing-hero__subtitle {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 300;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.landing-hero__subtitle strong {
+  color: var(--ifm-color-primary-lightest);
+}
+
+[data-theme='dark'] .landing-hero__subtitle strong {
+  color: var(--ifm-color-primary);
+}
+
+/* Tiles Section */
+.landing-tiles {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
+
+.landing-tiles__heading {
+  font-family: var(--font-family-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.landing-tiles__subheading {
+  color: var(--ifm-color-emphasis-600);
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  max-width: 700px;
+}
+
+.landing-tiles__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.landing-tiles__wide {
+  display: block;
+}
+
+.landing-tile {
+  display: flex;
+  flex-direction: column;
+  padding: 1.75rem;
+  border-radius: 14px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  position: relative;
+}
+
+.landing-tile:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px var(--theme-card-hover-shadow);
+  border-color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+
+.landing-tile--wide {
+  flex-direction: row;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.landing-tile--wide .landing-tile__icon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.landing-tile--wide .landing-tile__desc {
+  flex: 1;
+}
+
+.landing-tile__icon {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.landing-tile__title {
+  font-family: var(--font-family-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--ifm-color-primary);
+}
+
+.landing-tile__desc {
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.6;
+  flex: 1;
+}
+
+.landing-tile__arrow {
+  display: block;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  color: var(--ifm-color-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: transform 0.2s;
+}
+
+.landing-tile:hover .landing-tile__arrow {
+  transform: translateX(4px);
+}
+
+.landing-tile--wide .landing-tile__arrow {
+  align-self: center;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+/* Stack Section */
+.landing-stack {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 2rem 4rem;
+  text-align: center;
+}
+
+.landing-stack__heading {
+  font-family: var(--font-family-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+}
+
+.landing-stack__image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .landing-hero__title {
+    font-size: 2.2rem;
+  }
+
+  .landing-tiles__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .landing-tile--wide {
+    flex-direction: column;
   }
 }
