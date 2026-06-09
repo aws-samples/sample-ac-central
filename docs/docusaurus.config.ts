@@ -5,7 +5,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 const config: Config = {
   title: 'AgentCore Central',
   tagline: 'Everything you need to position, design, and ship agents on Amazon Bedrock AgentCore',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/favicon.svg',
 
   url: 'https://agentcore-central.pages.aws.dev',
   baseUrl: '/',
@@ -37,7 +37,7 @@ const config: Config = {
         indexDocs: true,
         indexBlog: false,
         indexPages: true,
-        docsRouteBasePath: '/',
+        docsRouteBasePath: '/docs',
         language: ['en'],
         highlightSearchTermsOnTargetPage: true,
         explicitSearchResultPath: true,
@@ -50,7 +50,7 @@ const config: Config = {
       'classic',
       {
         docs: {
-          routeBasePath: '/',
+          routeBasePath: '/docs',
           sidebarPath: './sidebars.ts',
           editUrl: undefined,
         },
@@ -76,24 +76,31 @@ const config: Config = {
       },
       items: [
         {
-          type: 'docSidebar',
-          sidebarId: 'mainSidebar',
+          to: '/',
+          label: 'Home',
           position: 'left',
-          label: 'Documentation',
+          activeBaseRegex: '^/$',
+        },
+        {
+          to: '/docs/workloads/overview',
+          label: 'Agent Workloads',
+          position: 'left',
+          activeBasePath: '/docs/workloads',
+        },
+        {
+          to: '/docs/patterns/overview',
+          label: 'AgentCore Platform',
+          position: 'left',
+          activeBasePath: '/docs/patterns',
+        },
+        {
+          to: '/docs/reference-architectures',
+          label: 'Reference Architectures',
+          position: 'left',
         },
         {
           href: 'https://agentcore-catalog.beta.harmony.a2z.com/',
           label: 'Resources Catalog',
-          position: 'right',
-        },
-        {
-          href: 'https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html',
-          label: 'AWS Docs',
-          position: 'right',
-        },
-        {
-          href: 'https://strandsagents.com',
-          label: 'Strands SDK',
           position: 'right',
         },
       ],
@@ -102,30 +109,31 @@ const config: Config = {
       style: 'dark',
       links: [
         {
-          title: 'Agent Archetypes',
+          title: 'Agent Types',
           items: [
-            {label: 'Conversational Agents', to: '/archetypes/conversational'},
-            {label: 'Event-Driven Agents', to: '/archetypes/event-driven'},
-            {label: 'Coding Agents', to: '/archetypes/coding'},
+            {label: 'Conversational Agents', to: '/docs/workloads/conversational'},
+            {label: 'Automation Agents', to: '/docs/workloads/automation'},
+            {label: 'Coding Agents', to: '/docs/workloads/coding'},
           ],
         },
         {
           title: 'Reference',
           items: [
-            {label: 'Architectural Patterns', to: '/patterns/overview'},
-            {label: 'Reference Architectures', to: '/reference-architectures'},
+            {label: 'Architectural Patterns', to: '/docs/patterns/overview'},
+            {label: 'Selection Guide', to: '/docs/patterns/selection-guide'},
+            {label: 'Reference Architectures', to: '/docs/reference-architectures'},
           ],
         },
         {
           title: 'Resources',
           items: [
+            {label: 'Resources Catalog', href: 'https://agentcore-catalog.beta.harmony.a2z.com/'},
             {label: 'AgentCore Documentation', href: 'https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html'},
             {label: 'Strands SDK', href: 'https://strandsagents.com'},
-            {label: 'GitHub', href: 'https://github.com/strands-agents/sdk-python'},
           ],
         },
       ],
-      copyright: `AgentCore Central — v1.0 — Built by the AgentCore Team`,
+      copyright: `© 2026, Amazon Web Services, Inc. or its affiliates. All rights reserved.`,
     },
     prism: {
       theme: prismThemes.github,

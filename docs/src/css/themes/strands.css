@@ -1,0 +1,57 @@
+/**
+ * Theme: Strands
+ * Inspired by the Strands Agents documentation — clean, neutral, developer-focused.
+ * Light: white canvas with subtle gray surfaces, green primary accent.
+ * Dark: deep charcoal with muted surfaces, green primary accent.
+ */
+
+:root {
+  /* Primary — green accent (Strands uses a teal-green for links/active states) */
+  --ifm-color-primary: #16a34a;
+  --ifm-color-primary-dark: #138a3f;
+  --ifm-color-primary-darker: #12823b;
+  --ifm-color-primary-darkest: #0e6b31;
+  --ifm-color-primary-light: #22c55e;
+  --ifm-color-primary-lighter: #4ade80;
+  --ifm-color-primary-lightest: #86efac;
+
+  /* Backgrounds — clean white with cool gray surfaces */
+  --ifm-background-color: #ffffff;
+  --ifm-background-surface-color: #f8f9fa;
+
+  /* Accents */
+  --theme-hero-gradient: linear-gradient(135deg, #111827 0%, #1f2937 50%, #111827 100%);
+  --theme-card-hover-shadow: rgba(22, 163, 74, 0.1);
+  --theme-chip-bg: rgba(22, 163, 74, 0.06);
+  --theme-chip-border: rgba(22, 163, 74, 0.18);
+  --theme-code-highlight: rgba(22, 163, 74, 0.06);
+}
+
+[data-theme='dark'] {
+  /* Primary — brighter green for dark backgrounds */
+  --ifm-color-primary: #4ade80;
+  --ifm-color-primary-dark: #22c55e;
+  --ifm-color-primary-darker: #16a34a;
+  --ifm-color-primary-darkest: #15803d;
+  --ifm-color-primary-light: #86efac;
+  --ifm-color-primary-lighter: #bbf7d0;
+  --ifm-color-primary-lightest: #dcfce7;
+
+  /* Backgrounds — deep charcoal (Strands uses a very dark neutral, not blue-tinted) */
+  --ifm-background-color: #111111;
+  --ifm-background-surface-color: #1a1a1a;
+  --ifm-navbar-background-color: #161616;
+  --ifm-footer-background-color: #161616;
+
+  /* Text colors — matching Strands: muted body, bright headings */
+  --ifm-font-color-base: rgb(200, 208, 216);
+  --ifm-heading-color: rgb(255, 255, 255);
+  --ifm-link-color: var(--ifm-color-primary);
+  --ifm-table-head-color: rgb(255, 255, 255);
+
+  /* Accents */
+  --theme-card-hover-shadow: rgba(74, 222, 128, 0.1);
+  --theme-chip-bg: rgba(74, 222, 128, 0.08);
+  --theme-chip-border: rgba(74, 222, 128, 0.2);
+  --theme-code-highlight: rgba(74, 222, 128, 0.08);
+}

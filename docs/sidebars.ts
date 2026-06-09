@@ -2,20 +2,21 @@ import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 
 const sidebars: SidebarsConfig = {
   mainSidebar: [
-    'index',
+    // 'index',
     {
       type: 'category',
-      label: 'Agent Types',
+      label: 'Agent Workloads',
       collapsed: false,
       items: [
-        'agenttypes/conversational',
-        'agenttypes/automation',
-        'agenttypes/coding',
+        'workloads/overview',
+        'workloads/conversational',
+        'workloads/automation',
+        'workloads/coding',
       ],
     },
     {
       type: 'category',
-      label: 'Architectural Platform',
+      label: 'AgentCore Platform',
       collapsed: false,
       items: [
         'patterns/overview',
