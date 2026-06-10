@@ -1,0 +1,77 @@
+---
+title: AgentCore CLI
+sidebar_label: AgentCore CLI
+sidebar_position: 3
+---
+
+# AgentCore CLI
+
+Create, develop locally, and deploy agents to AgentCore with minimal configuration. No context switching required — stay in your terminal from init to production.
+
+---
+
+## Why AgentCore CLI?
+
+- **Local development** — Run your agent locally with `agentcore dev` before deploying. Hot reload included.
+- **No context switching** — Create, test, and deploy without leaving your terminal or IDE.
+- **CDK support** — Infrastructure-as-code with AWS CDK. Terraform support coming soon.
+- **Framework agnostic** — Works with Strands, LangGraph, CrewAI, Claude Agent SDK, or custom code.
+
+---
+
+## Get Started in 5 Steps
+
+```bash
+# 1. Install the CLI
+npm install -g @aws/agentcore
+
+# 2. Create a new agent project
+agentcore create my-agent
+
+# 3. Add the SDK
+cd my-agent
+uv add bedrock-agentcore strands-agents
+
+# 4. Develop locally (hot reload)
+agentcore dev
+
+# 5. Deploy to AgentCore Runtime
+agentcore deploy
+```
+
+---
+
+## Project Structure
+
+After running `agentcore create`, you get:
+
+```
+my-agent/
+├── agent.py          # Your agent logic
+├── tools/            # Custom tool definitions
+├── agentcore.yaml    # AgentCore configuration
+├── requirements.txt  # Python dependencies
+└── tests/            # Local tests
+```
+
+---
+
+## Key Commands
+
+| Command | Description |
+|---------|-------------|
+| `agentcore create` | Scaffold a new agent project |
+| `agentcore dev` | Run locally with hot reload |
+| `agentcore deploy` | Deploy to AgentCore Runtime |
+| `agentcore logs` | Stream production logs |
+| `agentcore destroy` | Tear down deployed resources |
+
+---
+
+## Resources
+
+- [AgentCore CLI Reference](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/cli-reference.html)
+- [Strands SDK — Quickstart Python](https://strandsagents.com/docs/user-guide/quickstart/python/)
+- [Strands SDK — Quickstart TypeScript](https://strandsagents.com/docs/user-guide/quickstart/typescript/)
+- [AgentCore Deploy Guide](https://strandsagents.com/docs/user-guide/deploy/)
+- [Sample Agents on GitHub](https://github.com/strands-agents/samples)
