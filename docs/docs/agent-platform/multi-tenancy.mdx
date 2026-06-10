@@ -1,0 +1,175 @@
+---
+title: Multi-Tenancy & Reference Architecture
+sidebar_label: Multi-Tenancy
+sidebar_position: 7
+---
+
+import Link from '@docusaurus/Link';
+
+# Multi-Tenancy & Reference Architecture
+
+Multi-tenancy is a cross-cutting concern that affects every layer of the agent platform. As multiple teams, business units, and use cases share the platform, proper isolation ensures security, performance predictability, and cost accountability.
+
+---
+
+## Multi-Tenancy Dimensions
+
+Each platform layer requires its own isolation strategy. A "tenant" may be a team, business unit, application, or customer — depending on your organizational model.
+
+| Dimension | Isolation Requirement | Implementation |
+|---|---|---|
+| **Runtime & Compute** | Agents from different tenants cannot share execution contexts | Separate containers/micro-VMs, namespace isolation |
+| **Tool Scope Boundaries** | Tenants access only their authorized tools and MCP servers | Per-tenant Gateway policies, Cedar authorization |
+| **Data & Prompt Isolation** | One tenant's data never leaks into another's context | Tenant-scoped storage, prompt injection guardrails |
+| **Memory Isolation** | Agent memory is partitioned per tenant | Tenant-prefixed memory stores, access policies |
+| **Eval & Telemetry Separation** | Metrics, traces, and evals are attributed to the correct tenant | Tenant tags on all telemetry, separate dashboards |
+| **Registry & Access** | Each tenant sees only their agents and approved shared agents | RBAC on registry, tenant-scoped discovery |
+
+---
+
+## Multi-Account Governance Architecture
+
+For enterprise-scale deployments, a multi-account architecture provides the strongest isolation boundaries using AWS Organizations.
+
+<div className="tile-grid">
+  <div className="tile-card">
+    <span className="tile-icon">🏛️</span>
+    <h3>Platform Account (Shared Services)</h3>
+    <p>Central platform services: Agent Registry, Gateway configuration, shared guardrails, platform CI/CD, cost aggregation, and tenant onboarding automation.</p>
+    <span className="service-tag tag--gateway">Central</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">🏢</span>
+    <h3>Domain Accounts (A, B, ...)</h3>
+    <p>Per-team or per-business-unit accounts. Agents run here with tenant-specific resources: runtime, memory, tools, and data stores.</p>
+    <span className="service-tag tag--runtime">Per-Team</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">🔧</span>
+    <h3>DevOps Account</h3>
+    <p>Shared CI/CD pipelines, artifact repositories, and deployment orchestration. Deploys to domain accounts via cross-account roles.</p>
+    <span className="service-tag tag--evaluations">Shared</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">🔒</span>
+    <h3>Security & Networking Account</h3>
+    <p>Centralized security controls: SCPs, VPC sharing, private link endpoints, WAF rules, and network firewall policies.</p>
+    <span className="service-tag tag--identity">Security</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">📊</span>
+    <h3>Observability Account</h3>
+    <p>Aggregated telemetry from all domain accounts. Cross-account CloudWatch dashboards, centralized alerting, and compliance reporting.</p>
+    <span className="service-tag tag--observability">Observability</span>
+  </div>
+</div>
+
+---
+
+## Operating Models
+
+How the platform team and domain teams interact determines the platform's operating model.
+
+| Model | Description | Best For |
+|---|---|---|
+| **Centralized** | Platform team builds and operates all agents. Domain teams submit requests. | Small organizations, early stages, regulated industries |
+| **Decentralized** | Each team builds and operates independently. Minimal shared services. | Highly autonomous engineering cultures (high Shadow AI risk) |
+| **Federated** ⭐ | Platform team provides shared services and guardrails. Domain teams build autonomously within boundaries. | Most enterprises — balances speed with governance |
+
+:::tip Recommended
+The **Federated** model is recommended for most enterprises. It provides the guardrails of centralized governance with the velocity of decentralized execution.
+:::
+
+---
+
+## Organization Model
+
+The federated model requires a dedicated Platform / Center of Excellence (CoE) team that enables domain teams.
+
+### Platform / CoE Team
+
+| Role | Responsibility |
+|---|---|
+| **Platform PM** | Roadmap, prioritization, stakeholder alignment |
+| **Platform Architect** | Reference architecture, standards, technology decisions |
+| **Platform Engineers** | Build and maintain platform services, IaC constructs, self-service tooling |
+| **Platform Ops** | Reliability, incident response, capacity management for shared services |
+| **Platform Security** | Security standards, policy authoring, threat modeling, compliance |
+
+### Domain Teams
+
+Domain teams consume platform services and build agents for their business domain. They own:
+- Agent logic and prompts
+- Domain-specific tools and data
+- Quality and evaluation criteria
+- On-call for their agents
+
+The platform team enables them with:
+- Self-service onboarding
+- Reusable templates and constructs
+- Shared observability and governance
+- Consultation and architecture reviews
+
+---
+
+## Platform Maturity Model
+
+Organizations evolve through maturity levels. Each level builds on the previous one.
+
+| Level | Name | Characteristics |
+|---|---|---|
+| **L1** | Experimentation | Individual teams building PoCs. No shared infrastructure. Ad-hoc security. |
+| **L2** | Foundation | Shared runtime and gateway deployed. Basic registry. Central observability. |
+| **L3** | Scaling | Self-service onboarding. CI/CD with eval gates. Multi-team adoption. A/B testing. |
+| **L4** | Governed & Optimized | Full governance automation. Cost optimization. Continuous evals. Federated ops. |
+
+---
+
+### Path to Maturity
+
+<div className="tile-grid">
+  <div className="tile-card">
+    <span className="tile-icon">🧪</span>
+    <h3>L1 → L2: Lay the Foundation</h3>
+    <p><strong>Steps:</strong></p>
+    <p>• Deploy AgentCore Runtime and Gateway<br/>
+    • Establish Agent Registry with basic metadata<br/>
+    • Enable AgentCore Observability for all agents<br/>
+    • Define initial security baseline (identity, guardrails)<br/>
+    • Create first IaC templates for common patterns</p>
+    <span className="service-tag tag--runtime">Foundation</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">📈</span>
+    <h3>L2 → L3: Scale Adoption</h3>
+    <p><strong>Steps:</strong></p>
+    <p>• Build self-service onboarding workflows<br/>
+    • Implement CI/CD pipelines with evaluation gates<br/>
+    • Add cost attribution and per-team budgets<br/>
+    • Enable A/B testing via Gateway traffic splitting<br/>
+    • Onboard 3+ domain teams to the platform</p>
+    <span className="service-tag tag--gateway">Scaling</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">🏆</span>
+    <h3>L3 → L4: Govern & Optimize</h3>
+    <p><strong>Steps:</strong></p>
+    <p>• Automate governance with policy-as-code<br/>
+    • Implement continuous online evaluations<br/>
+    • Deploy multi-account architecture with SCPs<br/>
+    • Establish federated operating model with CoE<br/>
+    • Optimize cost with model routing and caching<br/>
+    • Shadow AI detection and prevention workflows</p>
+    <span className="service-tag tag--identity">Governed</span>
+  </div>
+</div>
+
+:::info
+You don't need to reach L4 on day one. Start with L1 (experimentation), validate the value, then invest in platform capabilities incrementally. Most organizations should target L2 within 3 months and L3 within 6-9 months.
+:::

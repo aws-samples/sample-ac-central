@@ -27,7 +27,21 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'AgentCore Platform',
+      label: 'Agent Platform',
+      collapsed: false,
+      items: [
+        'agent-platform/overview',
+        'agent-platform/platform-stack',
+        'agent-platform/powered-by-agentcore',
+        'agent-platform/governance',
+        'agent-platform/observability-evals',
+        'agent-platform/agent-ops',
+        'agent-platform/multi-tenancy',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Architectural Patterns',
       collapsed: false,
       items: [
         'patterns/overview',
