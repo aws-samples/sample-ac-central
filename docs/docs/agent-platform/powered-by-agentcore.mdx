@@ -1,0 +1,122 @@
+---
+title: Platform Powered by Bedrock AgentCore
+sidebar_label: Powered by AgentCore
+sidebar_position: 3
+---
+
+import Link from '@docusaurus/Link';
+
+# Platform Powered by Bedrock AgentCore
+
+Every layer of the agent platform stack maps directly to managed services in Amazon Bedrock AgentCore and the broader AWS ecosystem. This eliminates undifferentiated heavy lifting and lets platform teams focus on governance, developer experience, and business value.
+
+---
+
+## Platform Layer Mapping
+
+| Platform Layer | AgentCore / AWS Service | What It Provides |
+|---|---|---|
+| **AI Gateway** | AgentCore Gateway | Unified entry point, MCP tool federation, JWT auth, rate limiting, routing |
+| **Registry & Discovery** | AgentCore Registry + Bedrock Model Catalog | Agent catalog, versioning, capability discovery, model selection |
+| **Agent Runtime** | AgentCore Runtime | Sandboxed containers, micro-VM isolation, long-running tasks, auto-scaling |
+| **Memory & Context** | AgentCore Memory + OpenSearch + S3 Vectors + Knowledge Bases | Short/long-term memory, vector search, RAG, session context |
+| **Observability** | AgentCore Observability | OTLP traces, metrics, logs, online evaluation, guardrail events |
+| **AgentOps** | AgentCore Evaluations + CI/CD tools | Offline/online evals, quality gates, drift detection, A/B testing |
+
+---
+
+## Security & Governance Mapping
+
+| Platform Pillar | AgentCore / AWS Service | What It Provides |
+|---|---|---|
+| **Security — Identity** | AgentCore Identity + IAM | Agent identity, OAuth/OIDC brokering, token management |
+| **Security — Guardrails** | Bedrock Guardrails | Input/output filtering, PII redaction, topic denial, hallucination detection |
+| **Security — Policy** | AgentCore Policy + Cedar | Fine-grained access control, declarative authorization policies |
+| **Security — Access** | IAM + AWS Organizations SCPs | Role-based access, service control policies, permission boundaries |
+| **Governance — Registry** | AgentCore Registry | Lifecycle management, approval workflows, version history |
+| **Governance — Audit** | CloudWatch + CloudTrail | Immutable audit logs, API activity recording, compliance evidence |
+| **Governance — Compliance** | AWS Organizations + SCPs | Organizational guardrails, preventive controls, detective controls |
+
+---
+
+## Platform Ops Mapping
+
+| Platform Capability | AWS Service | What It Provides |
+|---|---|---|
+| **Infrastructure-as-Code** | AWS CDK / CloudFormation | Reusable constructs for platform deployment |
+| **Cost Tracking** | AWS Cost Explorer + Cost Allocation Tags | Per-agent, per-team cost attribution |
+| **Multi-Account** | AWS Organizations + Control Tower | Account vending, baseline guardrails, centralized governance |
+| **CI/CD** | CodePipeline + CodeBuild + GitHub Actions | Pipeline orchestration for agent deployments |
+| **Monitoring** | CloudWatch Alarms + Dashboards | Operational alerts, SLA tracking, fleet health |
+
+---
+
+## Supported Protocols
+
+AgentCore is protocol-native, supporting open standards for interoperability across frameworks and ecosystems.
+
+<div className="arch-flow">
+  <span className="arch-flow-step">MCP (Model Context Protocol)</span>
+  <span className="arch-flow-arrow">•</span>
+  <span className="arch-flow-step">A2A (Agent-to-Agent)</span>
+  <span className="arch-flow-arrow">•</span>
+  <span className="arch-flow-step">OTEL (OpenTelemetry)</span>
+</div>
+
+- **MCP** — Tool federation and discovery. Agents connect to MCP servers through the Gateway without managing individual tool integrations.
+- **A2A** — Cross-framework agent collaboration. Agents built with different frameworks communicate via the open A2A protocol.
+- **OTEL** — Standardized observability. Traces, metrics, and logs flow via OpenTelemetry to AgentCore Observability and CloudWatch.
+
+---
+
+## Supported Frameworks
+
+AgentCore Runtime is framework-agnostic. Bring your preferred orchestration framework — the platform handles infrastructure, security, and operations.
+
+<div className="tile-grid">
+  <div className="tile-card">
+    <span className="tile-icon">🧬</span>
+    <h3>Strands Agents SDK</h3>
+    <p>AWS-native agent framework with first-class AgentCore integration. Built for production-grade agents with minimal boilerplate.</p>
+    <span className="service-tag tag--runtime">Native Integration</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">🔗</span>
+    <h3>LangGraph</h3>
+    <p>Graph-based orchestration from LangChain. Supports stateful, multi-step agent workflows with conditional branching.</p>
+    <span className="service-tag tag--gateway">Supported</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">🦙</span>
+    <h3>LlamaIndex</h3>
+    <p>Data-centric agent framework optimized for RAG workflows and knowledge-intensive applications.</p>
+    <span className="service-tag tag--gateway">Supported</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">👥</span>
+    <h3>CrewAI</h3>
+    <p>Multi-agent collaboration framework with role-based agents and task delegation patterns.</p>
+    <span className="service-tag tag--gateway">Supported</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">🤖</span>
+    <h3>OpenAI Agents SDK</h3>
+    <p>OpenAI's agent framework for building tool-using agents with built-in handoff and guardrail patterns.</p>
+    <span className="service-tag tag--gateway">Supported</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">💬</span>
+    <h3>Claude Agent SDK</h3>
+    <p>Anthropic's SDK for building Claude-powered agents with native tool use and extended thinking.</p>
+    <span className="service-tag tag--gateway">Supported</span>
+  </div>
+</div>
+
+:::tip
+Strands Agents SDK offers the deepest AgentCore integration with zero-config deployment to AgentCore Runtime. Other frameworks require a container image but benefit from the same platform services (Gateway, Memory, Observability, Identity).
+:::

@@ -1,0 +1,137 @@
+---
+title: Agent Ops
+sidebar_label: Agent Ops
+sidebar_position: 6
+---
+
+import Link from '@docusaurus/Link';
+
+# Agent Ops
+
+Agent Ops extends DevOps practices to the unique challenges of AI agents. Because agents are non-deterministic and continuously evolving, they require purpose-built CI/CD pipelines, continuous evaluation, traffic management, and lifecycle governance.
+
+---
+
+## Agent CI/CD Pipeline
+
+An agent deployment pipeline validates quality, safety, and performance at every stage — not just "does it build?"
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Commit</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Build & Test</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Validate (Evals)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Promote to Stage</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Registry</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Promote to Prod</span>
+</div>
+
+### Pipeline Stages
+
+| Stage | What Happens | Gate Criteria |
+|---|---|---|
+| **Commit** | Code pushed, PR created | Linting, type checks, unit tests pass |
+| **Build & Test** | Container image built, integration tests run | All tests pass, image scans clean |
+| **Validate (Evals)** | Offline evaluations against test dataset | Quality ≥ threshold, safety 100%, latency ≤ SLA |
+| **Promote to Stage** | Deploy to staging environment | Smoke tests pass, no regression vs. baseline |
+| **Registry** | Agent version registered with metadata | Approval workflow complete (if required) |
+| **Promote to Prod** | Deploy to production with traffic ramp | Canary metrics healthy, no alerts triggered |
+
+### Quality Feedback Loop
+
+When evaluations fail at the **Validate** stage, the pipeline provides actionable feedback:
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Eval Fails</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Identify Failure Cases</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Optimize (Prompt / Model / Data)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Re-commit</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Re-validate</span>
+</div>
+
+:::tip
+Treat evaluation failures like test failures — they block the pipeline. This ensures only validated agents reach production.
+:::
+
+---
+
+## Ongoing Operations
+
+Once an agent is in production, operations shift to continuous monitoring, experimentation, and lifecycle management.
+
+### Monitoring & Evaluations
+
+Continuous operational health checks powered by AgentCore Observability, Evaluations, CloudWatch Alarms, and Cost Explorer.
+
+| Signal | Monitors | Action on Breach |
+|---|---|---|
+| **Quality** | Faithfulness, relevance, completeness scores | Alert owner, escalate if sustained |
+| **Cost** | Token spend, tool invocation costs per agent | Throttle, switch model, notify team |
+| **Behavior** | Response distribution, tool usage patterns | Investigate drift, trigger on-demand eval |
+| **Availability** | Success rate, timeout rate, error rate | Auto-scale, circuit break, rollback |
+
+### A/B Testing
+
+Split traffic between agent versions to measure improvements with real users.
+
+<div className="tile-grid">
+  <div className="tile-card">
+    <span className="tile-icon">🔀</span>
+    <h3>Traffic Splitting via Gateway</h3>
+    <p>AgentCore Gateway routes a configurable percentage of traffic to each agent version. No code changes required — routing is policy-driven.</p>
+    <span className="service-tag tag--gateway">Gateway</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">📈</span>
+    <h3>Metric Comparison</h3>
+    <p>AgentCore Observability tracks per-version metrics. Compare quality, latency, cost, and user satisfaction between variants.</p>
+    <span className="service-tag tag--observability">Observability</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">✅</span>
+    <h3>Promotion Decision</h3>
+    <p>When the new version statistically outperforms the baseline, promote to 100% traffic. If not, roll back automatically.</p>
+    <span className="service-tag tag--evaluations">Evaluations</span>
+  </div>
+</div>
+
+### Agent Lifecycle Management
+
+Every agent follows a governed lifecycle managed through the Agent Registry.
+
+| Phase | Actions | Registry State |
+|---|---|---|
+| **Development** | Build, test locally, iterate on prompts | `draft` |
+| **Staging** | Integration testing, offline evals | `staging` |
+| **Production** | Serving live traffic | `active` |
+| **Deprecated** | Marked for removal, users notified | `deprecated` |
+| **Retired** | No traffic, preserved for audit | `archived` |
+
+Key lifecycle operations:
+
+- **Version History** — Every deployment creates an immutable version record with metadata, eval results, and configuration snapshot.
+- **Rollback** — Instant revert to any previous version. The registry maintains deployment history for quick recovery.
+- **Deprecation Workflow** — Notify consumers, provide migration path, set sunset date, automatically redirect traffic after deadline.
+
+---
+
+## Services Summary
+
+| Capability | Primary Service |
+|---|---|
+| CI/CD Pipeline | CodePipeline + CodeBuild (or GitHub Actions) |
+| Evaluation Gates | AgentCore Evaluations |
+| Monitoring & Alerts | AgentCore Observability + CloudWatch Alarms |
+| Cost Tracking | AWS Cost Explorer + Cost Allocation Tags |
+| Traffic Splitting | AgentCore Gateway |
+| Version Management | AgentCore Registry |
