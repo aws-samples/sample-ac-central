@@ -1,13 +1,13 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
-import useBaseUrl from '@docusaurus/useBaseUrl';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
-import ThemedImage from '@theme/ThemedImage';
+import CosmicBackground from '../components/CosmicBackground';
 
 function HeroSection() {
   return (
     <section className="landing-hero">
+      <CosmicBackground />
       <div className="landing-hero__content">
         <h1 className="landing-hero__title">
           <span>AgentCore</span> Central
@@ -72,23 +72,6 @@ function TilesSection() {
   );
 }
 
-function StackSection() {
-  return (
-    <section className="landing-stack">
-      <h2 className="landing-stack__heading">The AgentCore Stack</h2>
-      <div className="landing-stack__image">
-        <ThemedImage
-          alt="AgentCore Platform"
-          sources={{
-            light: useBaseUrl('/img/agentcore-platform.svg'),
-            dark: useBaseUrl('/img/agentcore-platform-dark.svg'),
-          }}
-        />
-      </div>
-    </section>
-  );
-}
-
 export default function Home(): React.JSX.Element {
   const {siteConfig} = useDocusaurusContext();
   return (
@@ -98,7 +81,6 @@ export default function Home(): React.JSX.Element {
       <main className="landing-page">
         <HeroSection />
         <TilesSection />
-        <StackSection />
       </main>
     </Layout>
   );

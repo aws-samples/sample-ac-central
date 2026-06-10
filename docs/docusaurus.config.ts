@@ -72,7 +72,7 @@ const config: Config = {
       title: 'AgentCore Central',
       logo: {
         alt: 'AgentCore Central Logo',
-        src: 'img/logo.svg',
+        src: 'img/ac-logo.svg',
       },
       items: [
         {
@@ -80,6 +80,12 @@ const config: Config = {
           label: 'Home',
           position: 'left',
           activeBaseRegex: '^/$',
+        },
+        {
+          to: '/docs/get-started/overview',
+          label: 'Get Started',
+          position: 'left',
+          activeBasePath: '/docs/get-started',
         },
         {
           to: '/docs/workloads/overview',
@@ -109,7 +115,7 @@ const config: Config = {
       style: 'dark',
       links: [
         {
-          title: 'Agent Types',
+          title: 'Agent Workloads',
           items: [
             {label: 'Conversational Agents', to: '/docs/workloads/conversational'},
             {label: 'Automation Agents', to: '/docs/workloads/automation'},
@@ -119,7 +125,7 @@ const config: Config = {
         {
           title: 'Reference',
           items: [
-            {label: 'Architectural Patterns', to: '/docs/patterns/overview'},
+            {label: 'AgentCore Platform', to: '/docs/patterns/overview'},
             {label: 'Selection Guide', to: '/docs/patterns/selection-guide'},
             {label: 'Reference Architectures', to: '/docs/reference-architectures'},
           ],
