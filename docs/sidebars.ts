@@ -5,6 +5,17 @@ const sidebars: SidebarsConfig = {
     // 'index',
     {
       type: 'category',
+      label: 'Get Started',
+      collapsed: false,
+      items: [
+        'get-started/overview',
+        'get-started/managed-harness',
+        'get-started/agentcore-cli',
+        'get-started/pre-built-skills',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Agent Workloads',
       collapsed: false,
       items: [
