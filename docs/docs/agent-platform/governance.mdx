@@ -1,0 +1,165 @@
+---
+title: Governance & Security
+sidebar_label: Governance & Security
+sidebar_position: 4
+---
+
+import Link from '@docusaurus/Link';
+
+# Governance & Security
+
+Autonomous agents introduce a new class of enterprise risk. Unlike traditional software that executes deterministic logic, agents reason, make decisions, and invoke tools dynamically. Without governance, this autonomy can lead to data exfiltration, cost overruns, compliance violations, and reputational damage.
+
+---
+
+## Why Agent Governance
+
+:::caution
+An unmonitored agent with broad tool access can — in a single session — access sensitive data, invoke external APIs, generate unauthorized content, and accumulate significant token costs. Traditional application security models are insufficient.
+:::
+
+**Key risks that governance addresses:**
+
+| Risk | Impact | Example |
+|---|---|---|
+| Data Exfiltration | Sensitive data leaks to unauthorized destinations | Agent sends PII to an unvetted external API |
+| Cost Overruns | Uncontrolled token consumption and tool invocations | Recursive agent loop burns through monthly budget in hours |
+| Compliance Violations | Regulatory breach | Agent processes EU citizen data outside approved regions |
+| Hallucination at Scale | Incorrect information propagated to customers | Customer-facing agent provides fabricated policy details |
+| Unauthorized Actions | Agent takes actions beyond its intended scope | Agent modifies production database during a read-only task |
+
+---
+
+## Regulatory Landscape
+
+Agent governance must account for emerging AI regulation:
+
+| Framework | Focus | Relevance to Agent Platforms |
+|---|---|---|
+| **EU AI Act** | Risk classification, transparency, human oversight | High-risk agents require documented governance, human-in-the-loop |
+| **NIST AI RMF** | Risk management lifecycle | Map, Measure, Manage, Govern — aligns with platform observability and evals |
+| **ISO 42001** | AI management systems | Organizational controls for AI systems lifecycle |
+
+---
+
+## Two-Plane Governance Architecture
+
+Effective agent governance separates **policy definition** from **runtime enforcement**. This separation enables centralized policy management with distributed enforcement at the point of execution.
+
+### Governance Plane — Define Policy
+
+The governance plane is where policies are authored, agents are registered, identities are managed, and compliance is monitored.
+
+<div className="tile-grid">
+  <div className="tile-card">
+    <span className="tile-icon">📜</span>
+    <h3>AgentCore Policy</h3>
+    <p>Declarative policies (Cedar) that define what agents can access, which tools they can invoke, and under what conditions. Version-controlled and auditable.</p>
+    <span className="service-tag tag--identity">Policy Definition</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">📋</span>
+    <h3>Agent Registry</h3>
+    <p>Central catalog with versioning, ownership metadata, approval workflows, and capability declarations. The source of truth for all agents in the enterprise.</p>
+    <span className="service-tag tag--gateway">Lifecycle Mgmt</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">🔐</span>
+    <h3>AgentCore Identity + IAM + OAuth</h3>
+    <p>Agent identity issuance, authentication, authorization, and token brokering. Each agent gets a verifiable identity — no shared credentials.</p>
+    <span className="service-tag tag--identity">AuthN / AuthZ</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon">📊</span>
+    <h3>AgentCore Observability + CloudWatch</h3>
+    <p>Logging, distributed tracing, metrics, audit trails, alerts, and cost tracking. The evidence layer for compliance and operational health.</p>
+    <span className="service-tag tag--observability">Audit & Monitor</span>
+  </div>
+</div>
+
+---
+
+### Enforcement Plane — Runtime Execution
+
+The enforcement plane applies governance policies at runtime, at every point in the agent's execution flow.
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Application</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Gateway (Inbound)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Agent Runtime</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Model Catalog</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Guardrails</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Gateway (Outbound)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Tools & Resources</span>
+</div>
+
+#### Gateway — Inbound Enforcement
+
+| Check | Service | Description |
+|---|---|---|
+| Authentication | AgentCore Identity | Validate caller identity (JWT, API key, OAuth token) |
+| Cedar Policy Eval | AgentCore Policy | Evaluate fine-grained access control policies |
+| FGAC | IAM + Cedar | Field-level and resource-level authorization |
+| Rate Limiting | AgentCore Gateway | Throttle requests per tenant, per agent, per user |
+
+#### Agent Runtime — Execution
+
+| Capability | Service | Description |
+|---|---|---|
+| Orchestration | AgentCore Runtime | Agent reasoning loop execution in sandboxed environment |
+| Memory & Context | AgentCore Memory | Scoped memory access — agents see only their authorized context |
+| Tool Invocation | AgentCore Gateway | Controlled tool execution with permission checks |
+| Reasoning | LLM via Bedrock | Model inference with guardrails applied |
+
+#### Model Catalog — Model Governance
+
+| Capability | Service | Description |
+|---|---|---|
+| Model Selection | Bedrock Model Catalog | Approved model list per agent or use case |
+| Model Routing | AgentCore Gateway | Route to appropriate model based on task, cost, latency |
+
+#### Guardrails — Content Safety
+
+| Check | Service | Description |
+|---|---|---|
+| Input Filtering | Bedrock Guardrails | Block harmful, off-topic, or policy-violating inputs |
+| Output Filtering | Bedrock Guardrails | Prevent harmful or non-compliant responses |
+| PII Redaction | Bedrock Guardrails | Detect and mask personally identifiable information |
+| Topic Denial | Bedrock Guardrails | Prevent agents from discussing restricted topics |
+| Hallucination Detection | Bedrock Guardrails | Grounded responses with citation requirements |
+
+#### Gateway — Outbound Enforcement
+
+| Check | Service | Description |
+|---|---|---|
+| Cedar Policy Eval | AgentCore Policy | Evaluate outbound access policies before tool execution |
+| Outbound Auth (2LO/3LO) | AgentCore Identity | Broker OAuth tokens for external service access |
+| Tool Connectivity | AgentCore Gateway | Managed connections to MCP servers and external APIs |
+
+#### Tools & Resources
+
+| Target | Protocol | Description |
+|---|---|---|
+| MCP Servers | MCP | Federated tool access via Model Context Protocol |
+| External APIs | HTTPS | REST/GraphQL APIs with managed credentials |
+| Databases | Various | Scoped read/write access with query policies |
+| Other Agents | A2A | Agent-to-agent delegation via A2A protocol |
+
+---
+
+## Putting It Together
+
+The governance architecture ensures that every agent interaction passes through multiple enforcement points. No single bypass can compromise the system.
+
+:::info
+The governance plane and enforcement plane work together as a **continuous loop**: policies are defined centrally, enforced at runtime, and observability data feeds back to refine policies and detect anomalies.
+:::

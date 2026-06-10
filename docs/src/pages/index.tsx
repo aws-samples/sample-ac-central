@@ -59,11 +59,11 @@ function TilesSection() {
       </div>
 
       <div className="landing-tiles__wide">
-        <Link to="/docs/patterns/overview" className="landing-tile landing-tile--wide">
+        <Link to="/docs/agent-platform/overview" className="landing-tile landing-tile--wide">
           <span className="landing-tile__icon">🔀</span>
-          <h3 className="landing-tile__title">AgentCore Platform &amp; Architecture Patterns</h3>
+          <h3 className="landing-tile__title">Agentic AI Platform For Scale</h3>
           <p className="landing-tile__desc">
-            Multi-agent patterns — single agent, agents-as-tools, graph, swarm, workflow, A2A, HITL, and more. With selection guide and execution-path comparison.
+            AI agents are in production — handling customer support, automating workflows, generating code, and orchestrating complex business processes. Scale your agent deployments with world-class AgentCore infrastructure.
           </p>
           <span className="landing-tile__arrow">→</span>
         </Link>

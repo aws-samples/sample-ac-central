@@ -94,8 +94,14 @@ const config: Config = {
           activeBasePath: '/docs/workloads',
         },
         {
+          to: '/docs/agent-platform/overview',
+          label: 'Agent Platform',
+          position: 'left',
+          activeBasePath: '/docs/agent-platform',
+        },
+        {
           to: '/docs/patterns/overview',
-          label: 'AgentCore Platform',
+          label: 'Architectural Patterns',
           position: 'left',
           activeBasePath: '/docs/patterns',
         },
@@ -123,17 +129,17 @@ const config: Config = {
           ],
         },
         {
-          title: 'Reference',
+          title: 'References',
           items: [
-            {label: 'AgentCore Platform', to: '/docs/patterns/overview'},
-            {label: 'Selection Guide', to: '/docs/patterns/selection-guide'},
+            {label: 'Agent Platform', to: '/docs/agent-platform/overview'},
+            {label: 'Architectural Patterns', to: '/docs/patterns/overview'},
             {label: 'Reference Architectures', to: '/docs/reference-architectures'},
           ],
         },
         {
           title: 'Resources',
           items: [
-            {label: 'Resources Catalog', href: 'https://agentcore-catalog.beta.harmony.a2z.com/'},
+            {label: 'AgentCore Samples', href: 'https://github.com/awslabs/agentcore-samples'},
             {label: 'AgentCore Documentation', href: 'https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html'},
             {label: 'Strands SDK', href: 'https://strandsagents.com'},
           ],
