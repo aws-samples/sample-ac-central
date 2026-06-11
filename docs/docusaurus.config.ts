@@ -90,25 +90,25 @@ const config: Config = {
         },
         {
           to: '/docs/workloads/overview',
-          label: 'Agent Workloads',
+          label: 'Workloads',
           position: 'left',
           activeBasePath: '/docs/workloads',
         },
         {
           to: '/docs/agent-platform/overview',
-          label: 'Agent Platform',
+          label: 'Platform',
           position: 'left',
           activeBasePath: '/docs/agent-platform',
         },
         {
           to: '/docs/patterns/overview',
-          label: 'Architectural Patterns',
+          label: 'Patterns',
           position: 'left',
           activeBasePath: '/docs/patterns',
         },
         {
           to: '/docs/reference-architectures/overview',
-          label: 'Reference Architectures',
+          label: 'References',
           position: 'left',
         },
         {
