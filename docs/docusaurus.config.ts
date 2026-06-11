@@ -73,6 +73,7 @@ const config: Config = {
       logo: {
         alt: 'AgentCore Central Logo',
         src: 'img/ac-logo.svg',
+        srcDark: 'img/ac-logo-dark.svg',
       },
       items: [
         {
