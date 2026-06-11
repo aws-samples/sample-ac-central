@@ -106,7 +106,7 @@ const config: Config = {
           activeBasePath: '/docs/patterns',
         },
         {
-          to: '/docs/reference-architectures',
+          to: '/docs/reference-architectures/overview',
           label: 'Reference Architectures',
           position: 'left',
         },
@@ -133,7 +133,7 @@ const config: Config = {
           items: [
             {label: 'Agent Platform', to: '/docs/agent-platform/overview'},
             {label: 'Architectural Patterns', to: '/docs/patterns/overview'},
-            {label: 'Reference Architectures', to: '/docs/reference-architectures'},
+            {label: 'Reference Architectures', to: '/docs/reference-architectures/overview'},
           ],
         },
         {

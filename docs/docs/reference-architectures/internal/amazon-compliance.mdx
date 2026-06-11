@@ -1,0 +1,50 @@
+---
+title: Amazon Compliance — Sanctions Screening
+sidebar_label: Amazon Compliance
+sidebar_position: 2
+---
+
+# Amazon Compliance — Sanctions Screening Automation
+
+🏷️ **Pattern:** Event-driven
+
+---
+
+## Architecture
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Compliance Events</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Screening Agent</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Sanctions Database Check</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Flagging & Audit Trail</span>
+</div>
+
+---
+
+## Customer Story
+
+**Customer:** Amazon Compliance Team
+
+**Challenge:** High volume of transactions requiring sanctions screening with manual review creating bottlenecks and risking compliance gaps
+
+**Solution:** Automated sanctions screening with AI agents processing compliance events and flagging potential violations with full audit trails. Agents triage routine cases and escalate complex scenarios to human reviewers.
+
+---
+
+## AgentCore Services
+
+<span className="service-tag tag--runtime">Runtime</span> <span className="service-tag tag--observability">Observability</span> <span className="service-tag tag--evaluations">Evaluations</span>
+
+---
+
+## Results
+
+<div className="results-grid">
+  <span className="result-chip">Automated sanctions screening</span>
+  <span className="result-chip">Full audit trail</span>
+  <span className="result-chip">Reduced manual review burden</span>
+  <span className="result-chip">Faster compliance processing</span>
+</div>
