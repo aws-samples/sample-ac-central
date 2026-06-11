@@ -1,0 +1,54 @@
+---
+title: Thomson Reuters — Platform Engineering Hub
+sidebar_label: Thomson Reuters
+sidebar_position: 5
+---
+
+# Thomson Reuters — Agentic Platform Engineering Hub
+
+🏷️ **Pattern:** Platform
+
+📖 [Blog Post →](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/)
+
+---
+
+## Architecture
+
+![Thomson Reuters Architecture](/img/image73.png)
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Internal Teams (Natural Language)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">"Aether" Self-Service Hub</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">LangGraph Central Orchestrator</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Specialized Service Agents</span>
+</div>
+
+---
+
+## Customer Story
+
+**Customer:** Thomson Reuters — Global content and technology company
+
+**Challenge:** Internal teams spending excessive time on routine platform engineering tasks — cloud provisioning, DB patching, network configuration, architecture reviews
+
+**Solution:** Platform engineering hub ("Aether") where internal teams request infrastructure changes through natural language. Central orchestrator delegates to specialized agents for cloud provisioning, DB patching, network config, and architecture reviews.
+
+---
+
+## AgentCore Services
+
+<span className="service-tag tag--runtime">Runtime</span> <span className="service-tag tag--memory">Memory</span> <span className="service-tag tag--gateway">Gateway</span> <span className="service-tag tag--identity">Identity</span>
+
+---
+
+## Results
+
+<div className="results-grid">
+  <span className="result-chip">Self-service infrastructure via natural language</span>
+  <span className="result-chip">Human-in-the-loop for sensitive operations</span>
+  <span className="result-chip">Standardized agent patterns across org</span>
+  <span className="result-chip">Reduced platform engineering toil</span>
+</div>

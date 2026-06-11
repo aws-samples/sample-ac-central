@@ -1,0 +1,56 @@
+---
+title: BGL — Democratizing BI
+sidebar_label: BGL
+sidebar_position: 3
+---
+
+# BGL — Democratizing BI with Claude Agent SDK + AgentCore
+
+🏷️ **Pattern:** Chat Agent
+
+📖 [Blog Post →](https://aws.amazon.com/blogs/machine-learning/democratizing-business-intelligence-bgls-journey-with-claude-agent-sdk-and-amazon-bedrock-agentcore/)
+
+---
+
+## Architecture
+
+![BGL Architecture](/img/image71.jpeg)
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Slack (User Query)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Claude Agent SDK</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">NL → SQL Translation</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">dbt + Athena</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Python Analytics</span>
+</div>
+
+---
+
+## Customer Story
+
+**Customer:** BGL — SMSF administration software (12,700+ businesses, 15 countries)
+
+**Challenge:** Business users dependent on data team for every analytics query, creating bottlenecks and delays
+
+**Solution:** Slack-based AI agent that converts natural language to SQL to Python analytics, powered by Claude Agent SDK on a strong data foundation
+
+---
+
+## AgentCore Services
+
+<span className="service-tag tag--runtime">Runtime</span> <span className="service-tag tag--identity">Identity</span>
+
+---
+
+## Results
+
+<div className="results-grid">
+  <span className="result-chip">200+ employees self-serve BI instantly</span>
+  <span className="result-chip">No SQL, no data team dependency</span>
+  <span className="result-chip">Data team freed for strategic work</span>
+  <span className="result-chip">Compliance-aligned session isolation</span>
+</div>

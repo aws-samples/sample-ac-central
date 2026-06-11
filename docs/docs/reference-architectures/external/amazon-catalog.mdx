@@ -1,0 +1,56 @@
+---
+title: Amazon.com Catalog — Self-Learning GenAI
+sidebar_label: Amazon.com Catalog
+sidebar_position: 4
+---
+
+# Amazon.com Catalog — Self-Learning GenAI at Scale
+
+🏷️ **Pattern:** Event-driven
+
+📖 [Blog Post →](https://aws.amazon.com/blogs/machine-learning/how-the-amazon-com-catalog-team-built-self-learning-generative-ai-at-scale-with-amazon-bedrock/)
+
+---
+
+## Architecture
+
+![Amazon Catalog Architecture](/img/image72.png)
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Product Submissions (millions/day)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Generator Workers (Nova Lite × N)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Consensus Check</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Supervisor (Claude Sonnet)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Knowledge Base</span>
+</div>
+
+---
+
+## Customer Story
+
+**Customer:** Amazon.com Catalog Team — Millions of daily product submissions
+
+**Challenge:** Scaling product classification and validation to millions of submissions per day while maintaining accuracy and reducing costs
+
+**Solution:** Generator-evaluator-supervisor architecture. Lightweight workers handle routine cases. Disagreements trigger a supervisor that resolves disputes and extracts reusable learnings.
+
+---
+
+## AgentCore Services
+
+<span className="service-tag tag--runtime">Runtime</span> <span className="service-tag tag--observability">Observability</span>
+
+---
+
+## Results
+
+<div className="results-grid">
+  <span className="result-chip">Error rates continuously decline</span>
+  <span className="result-chip">Costs decrease over time</span>
+  <span className="result-chip">Millions of products/day</span>
+  <span className="result-chip">No retraining required</span>
+</div>
