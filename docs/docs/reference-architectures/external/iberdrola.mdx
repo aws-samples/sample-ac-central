@@ -1,0 +1,47 @@
+---
+title: Iberdrola — IT Operations
+sidebar_label: Iberdrola
+---
+
+# Iberdrola — AI Agents for IT Operations
+
+🏷️ **Pattern:** Event-driven + Chat
+
+📖 [Blog Post →](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/)
+
+## Architecture
+
+![Iberdrola Architecture](/img/image70.jpeg)
+
+Multi-agent IT operations system with LangGraph orchestration, VPC-secured and integrated with enterprise identity.
+
+<div className="arch-flow">
+  <span className="arch-flow-step">ServiceNow (Tickets/Changes)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">LangGraph Orchestrator</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Specialized Agents</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">AgentCore Runtime (VPC)</span>
+</div>
+
+## Customer Story
+
+**Customer:** Iberdrola — global energy utility
+
+**Challenge:** Manual ServiceNow change/incident management causing bottlenecks and slow resolution.
+
+**Solution:** Multi-agent AI system on AgentCore (built with LangGraph) for change request validation, incident enrichment, and conversational change model assistant.
+
+## AgentCore Services
+
+<span className="service-tag tag--runtime">Runtime</span> <span className="service-tag tag--memory">Memory</span> <span className="service-tag tag--gateway">Gateway</span> <span className="service-tag tag--identity">Identity</span> <span className="service-tag tag--observability">Observability</span>
+
+## Results
+
+<div className="results-grid">
+  <span className="result-chip">Reusable, production-grade agents</span>
+  <span className="result-chip">Serverless, VPC-secured</span>
+  <span className="result-chip">Framework-agnostic</span>
+  <span className="result-chip">Entra ID (OAuth 2.0) integrated</span>
+</div>
