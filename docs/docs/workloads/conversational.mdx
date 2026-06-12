@@ -21,13 +21,13 @@ Go from prototype to production with enterprise security, identity, memory, and 
 
 ## Quick Start
 
-| Step | Action | Command |
-|------|--------|---------|
-| 1 | Install CLI | `npm install -g @aws/agentcore` |
-| 2 | Create Agent | `agentcore create` |
-| 3 | Add SDK | `uv add bedrock-agentcore strands-agents` |
-| 4 | Develop Locally | `agentcore dev` |
-| 5 | Deploy | `agentcore deploy` |
+| Step | Action          | Command                                   |
+| ---- | --------------- | ----------------------------------------- |
+| 1    | Install CLI     | `npm install -g @aws/agentcore`           |
+| 2    | Create Agent    | `agentcore create`                        |
+| 3    | Add SDK         | `uv add strands-agents bedrock-agentcore` |
+| 4    | Develop Locally | `agentcore dev`                           |
+| 5    | Deploy          | `agentcore deploy`                        |
 
 ---
 
@@ -37,45 +37,52 @@ Your chatbot prototype works. Now you need it to handle real users, real securit
 
 <div className="tile-grid">
   <div className="tile-card">
-    <span className="tile-icon">🔒</span>
-    <h3>Enterprise Identity Built In</h3>
-    <p>Authenticate end-users via your existing IdP (Entra ID, Okta, Cognito) with OAuth 2.0 token exchange. No custom auth middleware needed.</p>
+    <span className="tile-icon tile-icon-svg tile-icon--identity" aria-hidden="true" />
+    <h3>Enterprise Identity & Token Exchange</h3>
+    <p>Authenticate end-users via your existing IdP (Entra ID, Okta, Cognito, Auth0) with OAuth 2.0 token exchange (RFC 8693). The exchanged token carries both the agent's identity and the original caller's identity for zero-trust authorization at every hop — no custom auth middleware, no shared API keys.</p>
     <span className="service-tag tag--identity">Identity</span>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">🧠</span>
+    <span className="tile-icon tile-icon-svg tile-icon--memory" aria-hidden="true" />
     <h3>Persistent Memory</h3>
-    <p>Short-term session memory for multi-turn conversations. Long-term memory for user preferences across sessions. No external database plumbing required.</p>
+    <p>Short-term session memory for multi-turn conversations. Long-term memory for user preferences across sessions. Namespace-per-user isolation. No external database plumbing required.</p>
     <span className="service-tag tag--memory">Memory</span>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">⚡</span>
-    <h3>Serverless Runtime</h3>
-    <p>Deploy agents without managing infrastructure. Automatic scaling from zero to thousands of concurrent sessions. MicroVM isolation. Sessions persist up to 8 hours.</p>
+    <span className="tile-icon tile-icon-svg tile-icon--runtime" aria-hidden="true" />
+    <h3>Serverless Runtime with MicroVM Isolation</h3>
+    <p>Deploy agents without managing infrastructure. Automatic scaling from zero to thousands of concurrent sessions. Each session runs in a dedicated microVM with memory sanitized when it ends. Compute lifecycles last up to 8 hours.</p>
     <span className="service-tag tag--runtime">Runtime</span>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">🔌</span>
+    <span className="tile-icon tile-icon-svg tile-icon--gateway" aria-hidden="true" />
     <h3>Secure Tool Access via Gateway</h3>
-    <p>Connect agents to internal APIs, databases, and SaaS tools through a managed gateway (MCP server). VPC egress support for private resources.</p>
+    <p>Connect agents to internal APIs, databases, and SaaS tools through a managed gateway (MCP server). Auth propagation ensures the agent calls APIs as the user. VPC egress support for private resources.</p>
     <span className="service-tag tag--gateway">Gateway</span>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">📊</span>
+    <span className="tile-icon tile-icon-svg tile-icon--observability" aria-hidden="true" />
     <h3>Observability & Tracing</h3>
-    <p>Full trace visibility into every agent turn using OpenTelemetry standards surfaced through Amazon CloudWatch. Integrate with Langfuse or custom OTLP endpoints.</p>
+    <p>Full trace visibility into every agent turn using OpenTelemetry standards surfaced through Amazon CloudWatch. Per-conversation tracing with user context. Integrate with Langfuse or custom OTLP endpoints.</p>
     <span className="service-tag tag--observability">Observability</span>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">🛡️</span>
+    <span className="tile-icon tile-icon-svg tile-icon--guardrails" aria-hidden="true" />
     <h3>Guardrails & Evaluations</h3>
-    <p>Content filtering, PII redaction, and custom guardrails. Automated evaluations to measure quality, accuracy, and safety before and after deployment.</p>
+    <p>Content filtering, PII redaction, topic boundaries, and custom guardrails. Online evaluations (GoalSuccessRate, Correctness, Helpfulness, ToolSelectionAccuracy) run continuously in production to catch regressions before users feel them.</p>
     <span className="service-tag tag--evaluations">Evaluations</span>
+  </div>
+
+  <div className="tile-card">
+    <span className="tile-icon tile-icon-svg tile-icon--cost" aria-hidden="true" />
+    <h3>Cost Optimization</h3>
+    <p>Scale-to-zero means no idle cost. Context-window optimization (summarization + semantic retrieval) reduces the tokens sent to the model each turn. Route simple turns to cheaper models, complex reasoning to premium models.</p>
+    <span className="service-tag tag--runtime">Runtime</span>
   </div>
 </div>
 
@@ -87,9 +94,105 @@ From first API call to enterprise deployment in five stages.
 
 1. **Build Your Agent** — Use any framework (Strands, LangGraph, CrewAI, Claude Agent SDK). Test locally with `agentcore dev`.
 2. **Add Identity & Auth** — Configure OAuth 2.0 token exchange with your corporate IdP.
-3. **Connect Tools via Gateway** — Register internal APIs, databases, and SaaS integrations.
+3. **Connect Tools via Gateway** — Register internal APIs, databases, and SaaS integrations as MCP tools.
 4. **Deploy & Scale** — Push to AgentCore Runtime with `agentcore deploy`. No Kubernetes needed.
-5. **Monitor & Iterate** — Track every conversation with OpenTelemetry-based tracing via CloudWatch.
+5. **Monitor & Iterate** — Track every conversation with OpenTelemetry-based tracing via CloudWatch. Enable online evaluations for continuous quality measurement.
+
+---
+
+## Session Management
+
+Conversational agents need stateful, long-lived sessions — not the request/response model of traditional APIs. AgentCore handles this at the platform level so you don't build it yourself.
+
+### How Sessions Work
+
+| Capability          | What AgentCore Provides                                                              |
+| ------------------- | ------------------------------------------------------------------------------------ |
+| Session isolation   | Each session runs in a dedicated microVM. No shared state between users.             |
+| Session duration    | Compute lifecycle lasts up to 8 hours. Long enough for complex multi-step workflows. |
+| Session persistence | If a session disconnects, it resumes where it left off. No lost context.             |
+| Session ID tracking | Pass a `runtimeSessionId` on each invoke. Same ID = same conversation.               |
+| Scale-to-zero       | Idle sessions terminate (default 15 min). You pay only for active time.              |
+
+### Multi-Turn Conversations
+
+AgentCore Memory keeps your agent coherent across turns without manual context plumbing:
+
+- **Short-term memory (session)** — automatic. Every message in the current session is available to the agent. No prompt stuffing required.
+- **Long-term memory (cross-session)** — opt-in. Store user preferences, past decisions, and facts that should persist across sessions. Namespace per user for isolation.
+- **Summarization** — for conversations that exceed context window limits, AgentCore Memory can summarize older turns so the agent retains the gist without exhausting tokens.
+
+### Handling Interruptions and Resume
+
+Real users close laptops, switch devices, and come back hours later. AgentCore handles this:
+
+1. **Session persists server-side** — the microVM maintains state even when the client disconnects.
+2. **Resume with the same session ID** — the next invoke picks up where the user left off.
+3. **Timeout behavior** — after the idle timeout (default 15 minutes, configurable up to 8 hours), the session terminates gracefully and durable state is retained in AgentCore Memory.
+
+### Cross-Channel Continuity
+
+Users may start on Slack, switch to a web app, then follow up on mobile. Because sessions are server-side and identified by `runtimeSessionId` + user identity:
+
+- Same user + same session ID = seamless continuation regardless of channel.
+- AgentCore Identity links the user across channels via their IdP token, not a device cookie.
+
+:::info Why this matters
+Without platform-level session management, teams end up building custom DynamoDB tables for conversation state, manual context-window truncation, reconnect/resume plumbing for WebSocket drops, and tenant isolation in shared infrastructure. AgentCore eliminates all of this.
+:::
+
+---
+
+## Context Window Management
+
+Long conversations consume context windows quickly. As multi-turn conversations with tool calls grow, raw message history can exhaust the model's context window — degrading answer quality, increasing cost, and eventually hitting hard model limits. Without management, agents degrade silently: they don't crash, they just start giving worse answers as relevant context scrolls out of the window.
+
+**Short-term memory with automatic summarization** — recent turns are kept verbatim; older turns are summarized into concise recaps that preserve key facts and decisions. The agent keeps the gist of the full conversation without paying the full token cost.
+
+**Semantic retrieval from long-term memory** — when the agent needs a fact from many turns ago, AgentCore Memory embeds the current query and retrieves the most relevant past events by semantic similarity. Only the relevant snippets are injected into context — "retrieve what matters" instead of "stuff everything in."
+
+**Namespace scoping per user** — memory is isolated by user/actor ID. One user's long conversation doesn't pollute another's context, which also enforces data boundaries in multi-tenant deployments.
+
+| Practice                             | Why                                                                 |
+| ------------------------------------ | ------------------------------------------------------------------- |
+| Use short-term + long-term memory    | Short-term for the active thread; long-term for cross-session facts |
+| Set a summarization window           | Summarize after N turns to keep active context within model limits  |
+| Retrieve, don't replay               | Fetch relevant history on demand instead of replaying all messages  |
+| Separate system prompt from history  | Pin critical instructions outside the sliding window                |
+| Monitor token usage per conversation | Track via CloudWatch to catch runaway conversations early           |
+
+---
+
+## Streaming & Real-Time UX
+
+Conversational agents live or die on perceived responsiveness. AgentCore streams tokens to the client as they're generated — no buffering.
+
+| Capability               | Detail                                                                             |
+| ------------------------ | ---------------------------------------------------------------------------------- |
+| Token-by-token streaming | SSE (Server-Sent Events) from Runtime to client via `stream_async`.                |
+| Tool-activity feedback   | During tool calls, emit status events so the UI shows "Looking up account…"        |
+| Partial response display | Stream the answer while tools run in parallel behind the scenes.                   |
+| WebSocket support        | Bidirectional UX (typing indicators, interruptions, voice) via the AG-UI protocol. |
+
+Without streaming, users wait on a blank screen while the agent reasons and calls tools — perceived latency is a leading cause of enterprise chat-agent abandonment. With streaming, the response renders progressively, tool-use activity is visible in the message bubble, and the experience feels conversational rather than transactional.
+
+---
+
+## Multi-Tenant Isolation
+
+Enterprise deployments serve multiple teams, business units, or customers from shared infrastructure. AgentCore provides tenant isolation at the platform level.
+
+| Layer          | Isolation mechanism                                                     |
+| -------------- | ----------------------------------------------------------------------- |
+| Compute        | Dedicated microVM per session. No shared OS processes between tenants.  |
+| Memory         | Namespace-per-user. One tenant cannot retrieve another's memory events. |
+| Gateway/Tools. | Auth propagation ensures each tool call is scoped to the user's token.  |
+| Observability  | Traces and logs carry user context; RBAC on CloudWatch log groups.      |
+| Data at rest   | Encryption with customer-managed keys (CMK) supported.                  |
+
+:::info Why this matters
+Without platform-level isolation, teams build custom tenant partitioning into every layer — DynamoDB partition keys, S3 prefix policies, Lambda authorizers, log filtering. AgentCore does this once, correctly, at the infrastructure level.
+:::
 
 ---
 
@@ -114,9 +217,9 @@ A production-ready conversational agent architecture on AgentCore.
 <div className="arch-flow">
   <span className="arch-flow-step">Agent</span>
   <span className="arch-flow-arrow">↔</span>
-  <span className="arch-flow-step">Memory</span>
+  <span className="arch-flow-step">memory</span>
   <span className="arch-flow-arrow">↔</span>
-  <span className="arch-flow-step">Gateway (MCP)</span>
+  <span className="arch-flow-step">gateway (MCP)</span>
   <span className="arch-flow-arrow">↔</span>
   <span className="arch-flow-step">Guardrails</span>
   <span className="arch-flow-arrow">↔</span>
@@ -127,17 +230,18 @@ A production-ready conversational agent architecture on AgentCore.
 
 ## Recommended Patterns for Conversational Agents
 
-AgentCore supports [12 multi-agent patterns](/docs/patterns/overview). The ones below are the most common starting points for chat workloads.
+AgentCore supports [a range of multi-agent patterns](/docs/patterns/overview). The ones below are the most common starting points for chat workloads.
 
-| Pattern | When to Use | Example |
-|---------|-------------|---------|
-| **Single Agent + Tools** | Single domain, fewer than 10 tools, straightforward flows | [BGL — NL-to-SQL](https://aws.amazon.com/blogs/machine-learning/democratizing-business-intelligence-bgls-journey-with-claude-agent-sdk-and-amazon-bedrock-agentcore/) |
-| **Agents-as-Tools** | Multi-domain support, complex routing | [Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/) |
-| **Graph (Intent Router)** | Structured flows with conditional branching | [Iberdrola](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/) |
-| **Human-in-the-Loop** | Regulated industries, high-stakes decisions | [Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/) |
+| Pattern                   | When to Use                                               | Example                                                                                                                                                               |
+| ------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Single Agent + Tools**  | Single domain, fewer than 10 tools, straightforward flows | [BGL — NL-to-SQL](https://aws.amazon.com/blogs/machine-learning/democratizing-business-intelligence-bgls-journey-with-claude-agent-sdk-and-amazon-bedrock-agentcore/) |
+| **Agentic RAG + Tools**   | Knowledge-grounded Q&A with action capability             | [BGL — NL-to-SQL](https://aws.amazon.com/blogs/machine-learning/democratizing-business-intelligence-bgls-journey-with-claude-agent-sdk-and-amazon-bedrock-agentcore/) |
+| **Agents-as-Tools**       | Multi-domain support, complex routing                     | [Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/)         |
+| **Graph (Intent Router)** | Structured flows with conditional branching               | [Iberdrola](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/)                                           |
+| **Human-in-the-Loop**     | Regulated industries, high-stakes decisions               | [Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/)         |
 
 :::info
-All AgentCore patterns work for conversational agents. For the full catalog including Swarm, Workflow, A2A, and Plan-Act-Reflect, see the [Architectural Patterns Reference](/docs/patterns/overview).
+All AgentCore patterns work for conversational agents. For the full catalog including Swarm, Workflow, and A2A, see the [Architectural Patterns Reference](/docs/patterns/overview).
 :::
 
 ---
@@ -146,21 +250,53 @@ All AgentCore patterns work for conversational agents. For the full catalog incl
 
 The same patterns are used across archetypes. What differs is *how you configure AgentCore services* for conversational workloads.
 
-| AgentCore Service | Chat Configuration | Why It Matters |
-|-------------------|--------------------|----------------|
-| **Identity** | End-user OAuth token exchange (Entra ID, Okta, Cognito) | Agent acts *on behalf of the user* |
-| **Memory** | Session + long-term, namespace per user | Multi-turn context + cross-session recall |
-| **Runtime** | Streaming enabled, session affinity, up to 8h sessions | Real-time UX, stateful conversations |
-| **Guardrails** | Content filters + topic boundaries + PII redaction | Adversarial inputs (prompt injection, social engineering) |
-| **Observability** | Per-conversation tracing with user context | Debug "the agent gave me wrong info" |
-| **Gateway** | User-scoped tool access with auth propagation | Agent calls APIs as the user |
+| AgentCore Service | Chat Configuration                                              | Why It Matters                                            |
+| ----------------- | --------------------------------------------------------------- | --------------------------------------------------------- |
+| **Identity**      | End-user OAuth token exchange (Entra ID, Okta, Cognito)         | Agent acts *on behalf of the user*                        |
+| **Memory**        | Session + long-term, namespace per user                         | Multi-turn context + cross-session recall                 |
+| **Runtime**       | Streaming enabled, session affinity, up to 8h compute lifecycle | Real-time UX, stateful conversations                      |
+| **Guardrails**    | Content filters + topic boundaries + PII redaction              | Adversarial inputs (prompt injection, social engineering) |
+| **Evaluations**   | Online eval: GoalSuccessRate, Helpfulness, Correctness          | Catch regressions before users feel them                  |
+| **Observability** | Per-conversation tracing with user context                      | Debug "the agent gave me wrong info"                      |
+| **Gateway**       | User-scoped tool access with auth propagation                   | Agent calls APIs as the user                              |
+
+---
+
+## Common Objections & Responses
+
+| Objection                                          | Response                                                                                                                  |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| "Why not just Lambda + API Gateway?"               | No session persistence, no memory, no microVM isolation, no identity token exchange. You'd rebuild half of AgentCore.     |
+| "What about latency / cold starts?"                | Responses stream progressively via SSE, so users see output as it's generated rather than waiting for the full answer.    |
+| "How does this compare to Azure AI Agent Service?" | Multi-model (any provider via Strands), bring-your-own-framework, no vendor lock-in on the model layer.                   |
+| "What about cost at scale?"                        | Serverless pricing means no idle cost. Context optimization reduces per-turn token spend via summarization and retrieval. |
+| "Is it production-ready?"                          | Cox, Ryanair, BGL, Kavak, Thomson Reuters, and Swisscom are in production today.                                          |
+
+---
+
+## What to Demo (5-Minute Path)
+
+For the account team walking into a first meeting without a specreq:
+
+1. **Deploy (before meeting)* - Sample conversational agent architecture at [Placeholder for sample project]
+2. **`agentcore dev`** — show a local agent booting in seconds with hot reload.
+3. **Send a message** — show token-by-token streaming response in the terminal TUI.
+4. **Add a Gateway tool** — wire a Lambda target and show the agent calling it mid-conversation.
+5. **Show the trace** — open CloudWatch, filter by conversation ID, walk through the agent's reasoning and tool calls.
+6. **Point to production** — `agentcore deploy` is one command to go from this demo to a scaled, isolated, monitored deployment.
+
+:::tip Outcome
+"We can go from this to production without managing infrastructure, building auth plumbing, or wiring observability. It's already built in."
+:::
 
 ---
 
 ## Customer Stories
 
-- **BGL** — 200+ employees self-serve BI instantly via Slack-based NL-to-SQL agent
-- **Iberdrola** — Multi-agent IT operations with LangGraph orchestration and VPC-secured runtime
-- **Thomson Reuters** — Central orchestrator routing to specialized service agents with HITL
-- **Kavak** — Autonomous concierge agent for automotive marketplace
-- **Swisscom** — Enterprise-scale agentic AI platform
+| Customer            | What They Built                                                      | Key Metric                             |
+| ------------------- | -------------------------------------------------------------------- | -------------------------------------- |
+| **BGL**             | Slack-based NL-to-SQL agent for self-serve BI                        | 200+ employees self-serve instantly    |
+| **Iberdrola**       | Multi-agent IT operations with LangGraph + VPC-secured runtime       | Reduced resolution time                |
+| **Thomson Reuters** | Central orchestrator routing to specialized service agents with HITL | Enterprise-scale multi-domain support  |
+| **Kavak**           | Autonomous concierge agent for automotive marketplace                | End-to-end customer journey automation |
+| **Swisscom**        | Enterprise-scale agentic AI platform                                 | Platform-level agent governance        |
