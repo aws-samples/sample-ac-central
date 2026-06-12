@@ -107,13 +107,17 @@ const config: Config = {
           activeBasePath: '/docs/patterns',
         },
         {
-          to: '/docs/reference-architectures/overview',
-          label: 'References',
+          to: '/docs/customer/overview',
+          label: 'Customers',
           position: 'left',
         },
         {
           href: 'https://agentcore-catalog.beta.harmony.a2z.com/',
           label: 'Resources Catalog',
+          position: 'right',
+        },
+        {
+          type: 'custom-feedback',
           position: 'right',
         },
       ],
@@ -125,7 +129,7 @@ const config: Config = {
           title: 'Agent Workloads',
           items: [
             {label: 'Conversational Agents', to: '/docs/workloads/conversational'},
-            {label: 'Automation Agents', to: '/docs/workloads/automation'},
+            {label: 'Workflow Agents', to: '/docs/workloads/workflow'},
             {label: 'Coding Agents', to: '/docs/workloads/coding'},
           ],
         },
@@ -134,7 +138,7 @@ const config: Config = {
           items: [
             {label: 'Agent Platform', to: '/docs/agent-platform/overview'},
             {label: 'Architectural Patterns', to: '/docs/patterns/overview'},
-            {label: 'Reference Architectures', to: '/docs/reference-architectures/overview'},
+            {label: 'Customers', to: '/docs/customer/overview'},
           ],
         },
         {
