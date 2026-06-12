@@ -7,8 +7,9 @@ const config: Config = {
   tagline: 'Everything you need to position, design, and ship agents on Amazon Bedrock AgentCore',
   favicon: 'img/favicon.svg',
 
-  url: 'https://agentcore-central-a002cf.pages.aws.dev',
-  baseUrl: '/',
+  // url: 'https://agentcore-central-a002cf.pages.aws.dev',
+  url: 'https://agentcore-gtm.pages.aws.dev',
+  baseUrl: '/agentcore-central',
 
   organizationName: 'agentcore-gtm',
   projectName: 'agentcore-central',
