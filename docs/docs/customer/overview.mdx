@@ -4,7 +4,7 @@ sidebar_label: Overview
 sidebar_position: 1
 ---
 
-# AgentCore Reference Architectures
+# AgentCore Customer References and Architectures
 
 Production deployments and customer case studies built on Amazon Bedrock AgentCore. These reference architectures demonstrate real-world patterns across industries — from healthcare and energy to media and automotive.
 
@@ -12,8 +12,8 @@ Production deployments and customer case studies built on Amazon Bedrock AgentCo
 
 ## How to Use This Section
 
-Each reference architecture includes:
-- **Architecture pattern** — The agent design pattern used (event-driven, chat, platform, coding, swarm)
+Each customer reference includes:
+- **Architecture pattern** — The agent design pattern used (workflow, Conversational, platform, coding, swarm)
 - **Architecture diagram** — Visual representation of the solution (where available)
 - **Customer story** — Business context, challenge, and solution
 - **AgentCore services** — Which AgentCore capabilities power the solution
@@ -27,15 +27,15 @@ Production stories with published blog posts and approved for external sharing.
 
 | # | Customer | Pattern | Industry |
 |---|----------|---------|----------|
-| 01 | [Rede Mater Dei](./external/rede-mater-dei) | Event-driven | Healthcare |
-| 02 | [Iberdrola](./external/iberdrola) | Event-driven + Chat | Energy |
-| 03 | [BGL](./external/bgl) | Chat Agent | Financial Services |
-| 04 | [Amazon.com Catalog](./external/amazon-catalog) | Event-driven | Retail / E-commerce |
+| 01 | [Rede Mater Dei](./external/rede-mater-dei) | Workflow | Healthcare |
+| 02 | [Iberdrola](./external/iberdrola) | Workflow + Conversational | Energy |
+| 03 | [BGL](./external/bgl) | Conversational | Financial Services |
+| 04 | [Amazon.com Catalog](./external/amazon-catalog) | Workflow | Retail / E-commerce |
 | 05 | [Thomson Reuters](./external/thomson-reuters) | Platform | Legal / Media |
 | 06 | [AutoScout24](./external/autoscout24) | Platform | Automotive |
 | 07 | [Cox Automotive](./external/cox-automotive) | Multi-pattern | Automotive |
 | 08 | [Blue Origin](./external/blue-origin) | Coding | Aerospace |
-| 09 | [Kavak](./external/kavak) | Chat Agent | Automotive |
+| 09 | [Kavak](./external/kavak) | Conversational | Automotive |
 
 ---
 
@@ -46,13 +46,13 @@ Customer stories approved for internal reference and enablement — not for exte
 | # | Customer | Pattern | Industry |
 |---|----------|---------|----------|
 | 01 | [Swisscom](./internal/swisscom) | Platform | Telecom |
-| 02 | [Amazon Compliance](./internal/amazon-compliance) | Event-driven | Compliance |
-| 03 | [Druva](./internal/druva) | Event-driven | Data Security |
-| 04 | [Parrot Analytics](./internal/parrot-analytics) | Chat Agent | Media |
+| 02 | [Amazon Compliance](./internal/amazon-compliance) | Workflow | Compliance |
+| 03 | [Druva](./internal/druva) | Workflow | Data Security |
+| 04 | [Parrot Analytics](./internal/parrot-analytics) | Conversational | Media |
 | 05 | [LobeHub](./internal/lobehub) | Swarm | Technology |
 | 06 | [Marubeni](./internal/marubeni) | Platform | Trading |
-| 07 | [EBG](./internal/ebg) | Event-driven | Marketing |
-| 08 | [WBD](./internal/wbd) | Event-driven | Media |
+| 07 | [EBG](./internal/ebg) | Workflow | Marketing |
+| 08 | [WBD](./internal/wbd) | Workflow | Media |
 
 ---
 
@@ -60,9 +60,9 @@ Customer stories approved for internal reference and enablement — not for exte
 
 | Pattern | Description | Example Customers |
 |---------|-------------|-------------------|
-| **Event-driven** | Agents triggered by business events, processing asynchronously | Rede Mater Dei, Iberdrola, Amazon Catalog |
-| **Chat Agent** | Conversational agents with stateful sessions | BGL, Kavak, Parrot Analytics |
+| **Workflow** | Agents triggered by business events, processing asynchronously | Rede Mater Dei, Iberdrola, Amazon Catalog |
+| **Conversational** | Conversational agents with stateful sessions | BGL, Kavak, Parrot Analytics |
 | **Platform** | Enterprise platforms standardizing agent development | Thomson Reuters, AutoScout24, Swisscom |
 | **Coding** | Agents that generate, validate, or transform code | Blue Origin |
 | **Swarm** | Multi-agent collaboration on complex tasks | LobeHub |
-| **Multi-pattern** | Multiple agent patterns deployed together | Cox Automotive |
+| **Multi-pattern** | Multiple agent workload types deployed together | Cox Automotive |
