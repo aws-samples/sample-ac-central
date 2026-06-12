@@ -39,9 +39,9 @@ function TilesSection() {
           <span className="landing-tile__arrow">→</span>
         </Link>
 
-        <Link to="/docs/workloads/automation" className="landing-tile">
+        <Link to="/docs/workloads/workflow" className="landing-tile">
           <span className="landing-tile__icon">⚡</span>
-          <h3 className="landing-tile__title">Automation Agents</h3>
+          <h3 className="landing-tile__title">Workflow Agents</h3>
           <p className="landing-tile__desc">
             Async agents triggered by tickets, emails, webhooks, and system events. Automate workflows with confidence scoring and HITL escalation.
           </p>
@@ -61,9 +61,9 @@ function TilesSection() {
       <div className="landing-tiles__wide">
         <Link to="/docs/agent-platform/overview" className="landing-tile landing-tile--wide">
           <span className="landing-tile__icon">🔀</span>
-          <h3 className="landing-tile__title">Agentic AI Platform For Scale</h3>
+          <h3 className="landing-tile__title">Build Your Agent Platform</h3>
           <p className="landing-tile__desc">
-            AI agents are in production — handling customer support, automating workflows, generating code, and orchestrating complex business processes. Scale your agent deployments with world-class AgentCore infrastructure.
+            AI agents are in production — handling support, automating workflows, generating code, and orchestrating complex processes. Scale your deployments with Agent Platform built with AgentCore.
           </p>
           <span className="landing-tile__arrow">→</span>
         </Link>
