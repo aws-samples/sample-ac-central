@@ -490,6 +490,33 @@ code, kbd, pre, samp,
   color: var(--ifm-color-primary);
 }
 
+/* ==========================================================================
+   Icon-mask tiles — static SVGs from /img/icons, brand-colored via mask.
+   Usage in MDX: <span className="tile-icon-svg tile-icon--identity" />
+   The SVG provides the shape; background-color provides the (themeable) color.
+   ========================================================================== */
+
+.tile-card .tile-icon-svg {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  background-color: var(--ifm-color-primary);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.tile-icon--identity      { -webkit-mask-image: url('/img/icons/identity.svg');      mask-image: url('/img/icons/identity.svg'); }
+.tile-icon--memory        { -webkit-mask-image: url('/img/icons/memory.svg');        mask-image: url('/img/icons/memory.svg'); }
+.tile-icon--runtime       { -webkit-mask-image: url('/img/icons/runtime.svg');       mask-image: url('/img/icons/runtime.svg'); }
+.tile-icon--gateway       { -webkit-mask-image: url('/img/icons/gateway.svg');       mask-image: url('/img/icons/gateway.svg'); }
+.tile-icon--observability { -webkit-mask-image: url('/img/icons/observability.svg'); mask-image: url('/img/icons/observability.svg'); }
+.tile-icon--guardrails    { -webkit-mask-image: url('/img/icons/guardrails.svg');    mask-image: url('/img/icons/guardrails.svg'); }
+.tile-icon--cost          { -webkit-mask-image: url('/img/icons/cost.svg');          mask-image: url('/img/icons/cost.svg'); }
+
 .tile-card .tile-badge {
   display: inline-block;
   font-size: 0.7rem;
