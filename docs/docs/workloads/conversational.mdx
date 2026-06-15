@@ -200,16 +200,16 @@ Without platform-level isolation, teams build custom tenant partitioning into ev
 
 A production-ready conversational agent architecture on AgentCore.
 
-![Conversational Agent Architecture](/img/conversational_agent_architecture.png)
+![Conversational Agent Architecture](/img/conv-agent-ref-arch.png)
 
 <div className="arch-flow">
   <span className="arch-flow-step">End User (Web/Mobile/Slack)</span>
   <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">AgentCore Identity (OAuth 2.0)</span>
+  <span className="arch-flow-step">Identity Provider (OAuth 2.0)</span>
   <span className="arch-flow-arrow">→</span>
   <span className="arch-flow-step">API Gateway / WebSocket</span>
   <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">AgentCore Runtime (microVM)</span>
+  <span className="arch-flow-step">AgentCore runtime</span>
   <span className="arch-flow-arrow">→</span>
   <span className="arch-flow-step">Agent</span>
 </div>
