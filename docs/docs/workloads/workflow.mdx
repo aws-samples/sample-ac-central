@@ -531,7 +531,19 @@ For multi-tenant SaaS processing events from different customers, use the entity
 
 For the account team showing event-driven automation:
 
-1. **Publish an event** — use `aws events put-events` to fire a test event at EventBridge.
+**Prerequisite (before the meeting):** Deploy the [IT Incident Response sample](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents). This provisions the full reference architecture used below — an EventBridge custom bus and rule, the trigger Lambda (+ DLQ), the Runtime agent, the Gateway tools (`restart_service`, `get_metrics`), and the Cedar policy. Confirm observability is enabled (and Transaction Search on, for step 4).
+
+1. **Publish an event** — fire a test event at the sample's EventBridge bus. The `detail` matches the trigger Lambda's schema and the rule that routes to it:
+
+   ```bash
+   aws events put-events --entries '[{
+     "EventBusName": "incident-bus",
+     "Source": "demo.incidents",
+     "DetailType": "IncidentOpened",
+     "Detail": "{\"entity_id\":\"INC-12345\",\"event_type\":\"service_down\",\"priority\":\"HIGH\",\"context\":{\"service\":\"checkout-api\"}}"
+   }]'
+   ```
+
 2. **Watch the agent reason** — open CloudWatch traces, show the agent receiving the event, calling tools, deciding action.
 3. **Show the Cedar policy** — demonstrate that the agent is bounded: it can restart services but cannot delete resources.
 4. **Show the evaluation** — point to online eval metrics proving the agent's decisions are correct.
