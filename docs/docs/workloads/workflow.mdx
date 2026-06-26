@@ -54,7 +54,7 @@ Your automation scripts are brittle. They break on edge cases, can't reason abou
   <div className="tile-card">
     <span className="tile-icon tile-icon-svg tile-icon--gateway" aria-hidden="true" />
     <h3>Managed Tool Access via MCP Gateway</h3>
-    <p>Connect agents to internal APIs, databases, ticketing systems, and cloud infrastructure through a managed MCP gateway. Each tool target can be a Lambda function, API Gateway, or remote MCP server with a typed schema. The agent discovers tools dynamically and the Gateway handles auth and access control.</p>
+    <p>Connect agents to internal APIs, databases, ticketing systems, and cloud infrastructure through a managed MCP gateway. Targets can be Lambda functions, OpenAPI or Smithy APIs, or remote MCP servers — the gateway aggregates them into one virtual MCP server with semantic tool search, so the agent finds the right tool even across hundreds. Inbound access is secured with IAM (SigV4) or OAuth; outbound calls to each backend use a managed credential provider so secrets never live in the agent.</p>
     <span className="service-tag tag--gateway">Gateway</span>
   </div>
 
@@ -215,7 +215,7 @@ The single most important differentiator for production workflow agents. Without
 ```cedar
 // High-priority incidents: allow remediation actions
 permit(
-  principal is AgentCore::OAuthUser,
+  principal is AgentCore::IamEntity,
   action == AgentCore::Action::"RemediationTools___restart_service",
   resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-west-2:123456789012:gateway/incident-gateway"
 )
@@ -225,7 +225,7 @@ when {
 
 // Low-priority: only allow read-only diagnostic tools
 permit(
-  principal is AgentCore::OAuthUser,
+  principal is AgentCore::IamEntity,
   action == AgentCore::Action::"DiagnosticTools___get_metrics",
   resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-west-2:123456789012:gateway/incident-gateway"
 )
@@ -253,12 +253,31 @@ Tools are the hands of the agent. Well-designed tools make the difference betwee
 | Typed schemas                    | Every tool gets a JSON schema defining inputs. No "catch-all" parameters. |
 | Idempotent where possible        | Agent might retry on failure. Make tools safe to call multiple times.     |
 
-### Co-Located vs. Gateway Tools
+### Tool Hosting: Co-Located vs. Gateway
 
-| Approach       | When to Use                                           | Trade-off                       |
-| -------------- | ----------------------------------------------------- | ------------------------------- |
-| Co-located     | Simple tools, few dependencies, fast iteration        | No separate deployment or IAM   |
-| Gateway Lambda | Complex tools, shared across agents, separate scaling | More infrastructure, more reuse |
+| Approach       | When to Use                                            | Trade-off                       |
+| -------------- | ------------------------------------------------------ | ------------------------------- |
+| Co-located     | Simple tools, few dependencies, fast iteration         | No separate deployment or IAM   |
+| Gateway target | Complex or shared tools, many tools, cross-agent reuse | More infrastructure, more reuse |
+
+The Gateway aggregates all MCP targets into a single virtual MCP server, exposing one consolidated `tools/list` to the agent. **Semantic tool search** lets the agent select the right tool even when hundreds are registered — important for autonomous workflows that span many enterprise systems.
+
+| Target Type               | Use For                                                                |
+| ------------------------- | ---------------------------------------------------------------------- |
+| Lambda function           | Custom business logic in any language; gateway invokes and maps to MCP |
+| OpenAPI / API Gateway     | Turn an existing REST API into MCP tools with no code                  |
+| Smithy model              | Generate tools for AWS services or Smithy-defined APIs                 |
+| MCP server                | Connect a remote MCP server's tools, prompts, and resources            |
+| Integrations / connectors | Pre-built templates and connectors for common tools                    |
+
+The Gateway separates the two directions of authentication, which matters for autonomous agents that run without a human in the loop:
+
+- **Inbound (agent → gateway):** use **IAM (SigV4)** so the agent calls as a service identity. OAuth (JWT) is also supported; `authenticate-only` validates the token but defers authorization to the target.
+- **Outbound (gateway → backend):** Lambda and Smithy targets use the gateway's execution role; OpenAPI and MCP-server targets use an **AgentCore credential provider** (API key, OAuth, or SigV4), so credentials for Jira, ServiceNow, or internal APIs stay in the gateway rather than the agent.
+
+:::info Beyond tools
+Gateway targets come in three categories. **MCP targets** (the tools above) are aggregated into the virtual MCP server. **HTTP targets** proxy directly to other agents or A2A services — useful when a workflow agent orchestrates specialized sub-agents. **Inference targets** route LLM traffic to multiple model providers through one endpoint.
+:::
 
 ### Example: Well-Designed Tool
 
@@ -287,32 +306,71 @@ def get_incident_details(incident_id: str) -> str:
 
 ---
 
-## Online Evaluations
+## Evaluations
 
 Workflow agents make real decisions with real consequences. You need to know — continuously, not just at launch — whether those decisions are correct. Conversational agents have users who immediately notice bad answers. Workflow agents operate in the background, so bad decisions can compound silently for days before anyone notices.
 
-| Evaluator                 | What It Measures                                                   |
-| ------------------------- | ------------------------------------------------------------------ |
-| GoalSuccessRate           | Did the agent accomplish the stated objective?                     |
-| Correctness               | Was the agent's output factually accurate?                         |
-| TrajectoryExactOrderMatch | Did the agent call the right tools in the right order?             |
-| Custom (LLM-as-judge)     | Your domain-specific criteria (e.g., "followed escalation policy") |
+### Built-in Evaluators
 
-```json
-{
-  "onlineEvalConfigs": [{
-    "name": "IncidentAgentEval",
-    "agent": "incident-agent",
-    "evaluators": [
-      "Builtin.GoalSuccessRate",
-      "Builtin.Correctness",
-      "Builtin.TrajectoryExactOrderMatch"
+AgentCore provides built-in evaluators that score agent behavior against your session telemetry. Trajectory evaluators use **programmatic scoring (no LLM calls, zero token cost)**, while GoalSuccessRate and Correctness use LLM-as-a-Judge.
+
+| Evaluator                 | Level   | Ground Truth Field   | What It Measures                                                       |
+| ------------------------- | ------- | -------------------- | --------------------------------------------------------------------- |
+| GoalSuccessRate           | Session | `assertions`         | Behavior satisfies natural-language assertions (LLM-as-Judge)         |
+| Correctness               | Trace   | `expectedResponse`   | Response matches the expected answer (LLM-as-Judge)                   |
+| TrajectoryExactOrderMatch | Session | `expectedTrajectory` | Exact tool sequence — same tools, same order, no extras (programmatic) |
+| TrajectoryInOrderMatch    | Session | `expectedTrajectory` | Expected tools appear in order; extras allowed between (programmatic)  |
+| TrajectoryAnyOrderMatch   | Session | `expectedTrajectory` | All expected tools present, any order, extras allowed (programmatic)   |
+| Custom (LLM-as-judge)     | —       | placeholders         | Your domain-specific criteria (e.g., "followed escalation policy")     |
+
+### Ground Truth Evaluations
+
+Ground truth is the known-correct answer or expected behavior for a given input — the "gold standard" you compare actual results against. You provide reference inputs alongside session spans when calling the Evaluate API, and the service scores actual behavior against expected behavior.
+
+| Field                | Scope   | Description                                                          |
+| -------------------- | ------- | ------------------------------------------------------------------- |
+| `expectedResponse`   | Trace   | Expected agent response for a specific turn (scoped by `traceId`)   |
+| `assertions`         | Session | Natural-language statements that should be true about the behavior  |
+| `expectedTrajectory` | Session | Expected sequence of tool-call names for the session                |
+
+Ground truth fields are optional. If you omit them, evaluators fall back to their ground-truth-free mode — for example, `Builtin.Correctness` still works without `expectedResponse`, evaluating on context alone. For workflow agents, build a benchmark dataset of past events with known-correct outcomes to catch regressions before they reach production.
+
+:::info Prerequisites
+Evaluations require an agent deployed on AgentCore Runtime with observability enabled (or a supported framework — Strands Agents or LangGraph — configured for AgentCore Observability), **Transaction Search enabled in CloudWatch**, and Python 3.10+.
+:::
+
+### Running an Evaluation
+
+Use the AgentCore SDK (or the `agentcore run eval` CLI) to evaluate a session against ground truth:
+
+```python
+from bedrock_agentcore.evaluation import EvaluationClient, ReferenceInputs
+
+client = EvaluationClient(region_name=REGION)
+
+results = client.run(
+    evaluator_ids=[
+        "Builtin.GoalSuccessRate",
+        "Builtin.TrajectoryExactOrderMatch",
     ],
-    "samplingRate": 100,
-    "description": "Evaluate every invocation for decision quality"
-  }]
-}
+    agent_id=AGENT_ID,
+    session_id=SESSION_ID,
+    reference_inputs=ReferenceInputs(
+        assertions=[
+            "Agent used the remediation tool for the HIGH-priority incident",
+            "Agent did not call any destructive infrastructure tools",
+        ],
+        expected_trajectory=["get_incident_details", "restart_service"],
+    ),
+)
+
+for r in results:
+    print(f"{r['evaluatorId']}: {r['value']} ({r['label']})")
 ```
+
+:::tip Cost-efficient quality gates
+Trajectory evaluators are programmatic (zero token cost), so you can run them on 100% of invocations cheaply. Reserve the LLM-judged evaluators (GoalSuccessRate, Correctness) for sampled traffic or high-priority events.
+:::
 
 ---
 
@@ -385,9 +443,9 @@ The same patterns are used across archetypes. What differs is *how you configure
 | **Memory**        | SEMANTIC per entity, optional SUMMARIZATION           | Cross-invocation context for recurring events              |
 | **Runtime**       | Short sessions (minutes), no streaming required       | Event processing, not interactive conversation             |
 | **Policy Engine** | Cedar policies in ENFORCE mode                        | Bounded autonomy is mandatory for production automation    |
-| **Evaluations**   | GoalSuccessRate + TrajectoryMatch (100% sampling)     | Silent failures: no user to notice bad decisions           |
+| **Evaluations**   | Trajectory 100% programmatic; LLM-judged sampled      | Silent failures: no user to notice bad decisions           |
 | **Observability** | Per-invocation tracing with entity and event context | Debug "why did the agent take that action on INC-12345?"   |
-| **Gateway**       | Service-scoped tool access with typed schemas         | Agent calls tools as system identity with validated inputs |
+| **Gateway**       | SigV4 inbound; credential provider outbound           | Calls tools as a service identity; secrets stay in gateway |
 
 ---
 
@@ -473,7 +531,19 @@ For multi-tenant SaaS processing events from different customers, use the entity
 
 For the account team showing event-driven automation:
 
-1. **Publish an event** — use `aws events put-events` to fire a test event at EventBridge.
+**Prerequisite (before the meeting):** Deploy the [IT Incident Response sample](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents). This provisions the full reference architecture used below — an EventBridge custom bus and rule, the trigger Lambda (+ DLQ), the Runtime agent, the Gateway tools (`restart_service`, `get_metrics`), and the Cedar policy. Confirm observability is enabled (and Transaction Search on, for step 4).
+
+1. **Publish an event** — fire a test event at the sample's EventBridge bus. The `detail` matches the trigger Lambda's schema and the rule that routes to it:
+
+   ```bash
+   aws events put-events --entries '[{
+     "EventBusName": "incident-bus",
+     "Source": "demo.incidents",
+     "DetailType": "IncidentOpened",
+     "Detail": "{\"entity_id\":\"INC-12345\",\"event_type\":\"service_down\",\"priority\":\"HIGH\",\"context\":{\"service\":\"checkout-api\"}}"
+   }]'
+   ```
+
 2. **Watch the agent reason** — open CloudWatch traces, show the agent receiving the event, calling tools, deciding action.
 3. **Show the Cedar policy** — demonstrate that the agent is bounded: it can restart services but cannot delete resources.
 4. **Show the evaluation** — point to online eval metrics proving the agent's decisions are correct.
