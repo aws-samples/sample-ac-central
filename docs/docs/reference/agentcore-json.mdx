@@ -1,0 +1,475 @@
+---
+title: agentcore.json Schema Reference
+sidebar_label: agentcore.json
+sidebar_position: 1
+---
+
+# agentcore.json Schema Reference
+
+`agentcore/agentcore.json` is the declarative source of truth for all AgentCore resources in your project. When you run `agentcore add` or `agentcore deploy`, this file determines what to create, update, or remove.
+
+---
+
+## File Location
+
+```
+your-project/
+└── agentcore/
+    ├── agentcore.json       ← this file
+    ├── aws-targets.json     ← deployment account + region
+    └── cdk/                 ← supplementary infrastructure
+```
+
+---
+
+## Top-Level Structure
+
+```json
+{
+  "agents": [...],
+  "memories": [...],
+  "agentCoreGateways": [...],
+  "policyEngines": [...]
+}
+```
+
+All top-level arrays are optional. Include only what your agent needs.
+
+---
+
+## agents
+
+Defines the agent runtimes to deploy. Each entry corresponds to one AgentCore Runtime.
+
+```json
+{
+  "agents": [
+    {
+      "name": "MyAgent",
+      "language": "Python",
+      "framework": "Strands",
+      "type": "create",
+      "codeLocation": "app/MyAgent",
+      "entrypoint": "main.py",
+      "build": "CodeZip",
+      "modelProvider": "Bedrock",
+      "protocol": "HTTP",
+      "networkMode": "PUBLIC",
+      "memory": "none"
+    }
+  ]
+}
+```
+
+### Agent Fields
+
+| Field           | Type   | Required | Description                                                                    |
+|-----------------|--------|----------|--------------------------------------------------------------------------------|
+| `name`          | string | yes      | Agent name. Pattern: `[a-zA-Z][a-zA-Z0-9_]{0,47}`                             |
+| `language`      | string | yes      | Runtime language: `Python`                                                     |
+| `framework`     | string | yes      | Agent framework: `Strands`, `LangGraph`, `CrewAI`, `Custom`                    |
+| `type`          | string | yes      | `create` (new agent) or `import` (from existing Bedrock Agent)                 |
+| `codeLocation`  | string | yes      | Relative path to the agent source directory                                    |
+| `entrypoint`    | string | yes      | Python file serving as the runtime entry point (e.g., `main.py`)               |
+| `build`         | string | yes      | Build type: `CodeZip` (max 250MB zipped) or `Container` (ARM64 Docker image)   |
+| `modelProvider` | string | yes      | Model source: `Bedrock`, `OpenAI`, `Anthropic`, `Custom`                       |
+| `protocol`      | string | yes      | Server protocol: `HTTP`, `MCP`, or `A2A`                                       |
+| `networkMode`   | string | yes      | Network access: `PUBLIC` or `VPC`                                              |
+| `memory`        | string | yes      | Memory mode: `none`, `shortTerm`, or `longAndShortTerm`                        |
+
+### Protocol Details
+
+| Protocol | Port | Path           | Use Case                        |
+|----------|------|----------------|---------------------------------|
+| `HTTP`   | 8080 | /invocations   | Standard agent (JSON or SSE)    |
+| `MCP`    | 8000 | /mcp           | Agent exposed as MCP server     |
+| `A2A`    | 9000 | /              | Agent-to-Agent protocol         |
+
+All protocols require a `/ping` GET endpoint returning `{"status": "Healthy"}`.
+
+### Memory Shorthand
+
+| Value              | What It Creates                                                           |
+|--------------------|---------------------------------------------------------------------------|
+| `none`             | No memory resource                                                        |
+| `shortTerm`        | Short-term memory only (events stored per session, 30-day retention)      |
+| `longAndShortTerm` | Short-term + long-term with SEMANTIC and SUMMARIZATION extraction strategies |
+
+### Build Types
+
+| Type        | How It Works                                             | Constraints                    |
+|-------------|----------------------------------------------------------|--------------------------------|
+| `CodeZip`   | Python code zipped and uploaded to S3, deployed directly | Max 250MB zipped / 750MB unzipped |
+| `Container` | Docker image pushed to ECR                               | Must be ARM64 architecture     |
+
+### Runtime Version
+
+The CLI may scaffold a `runtimeVersion` field. If set to `PYTHON_3_14` (pre-release), change it to `PYTHON_3_13`:
+
+```json
+"runtimeVersion": "PYTHON_3_13"
+```
+
+Valid values: `PYTHON_3_10`, `PYTHON_3_11`, `PYTHON_3_12`, `PYTHON_3_13`.
+
+---
+
+## memories
+
+Defines persistent memory resources for cross-session context.
+
+```json
+{
+  "memories": [
+    {
+      "name": "SharedMemory",
+      "eventExpiryDuration": 30,
+      "strategies": [
+        {
+          "type": "SEMANTIC",
+          "name": "semantic_strategy",
+          "namespaces": ["users/{actorId}/facts"]
+        },
+        {
+          "type": "SUMMARIZATION",
+          "name": "summary_strategy"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Memory Fields
+
+| Field                | Type    | Required | Description                                          |
+|----------------------|---------|----------|------------------------------------------------------|
+| `name`               | string  | yes      | Memory name. Pattern: `[a-zA-Z][a-zA-Z0-9_]{0,47}`  |
+| `eventExpiryDuration`| integer | yes      | Days before events expire (3–365)                    |
+| `strategies`         | array   | no       | Long-term memory extraction strategies               |
+| `tags`               | object  | no       | Key-value tags (max 50)                              |
+| `encryptionKeyArn`   | string  | no       | Customer-managed KMS key ARN                         |
+| `executionRoleArn`   | string  | no       | IAM role ARN for memory operations                   |
+
+### Strategy Types
+
+| Type              | Description                                            | Key Fields                              |
+|-------------------|--------------------------------------------------------|-----------------------------------------|
+| `SEMANTIC`        | Extracts facts and knowledge as semantic vectors       | `namespaces` (supports `{actorId}`)     |
+| `SUMMARIZATION`   | Creates conversation summaries                         |                                         |
+| `USER_PREFERENCE` | Captures user preferences and settings                 |                                         |
+| `EPISODIC`        | Stores episodic memories with optional reflections     | `namespaces`, `reflectionNamespaces`    |
+
+### Namespace Placeholders
+
+Namespaces support template variables that resolve at runtime:
+
+| Placeholder          | Resolves To                       |
+|----------------------|-----------------------------------|
+| `{actorId}`          | The user/actor ID from the event  |
+| `{sessionId}`        | The session ID                    |
+| `{memoryStrategyId}` | The strategy's internal ID        |
+
+---
+
+## agentCoreGateways
+
+Defines MCP Gateways that federate tools for your agent.
+
+```json
+{
+  "agentCoreGateways": [
+    {
+      "name": "MyGateway",
+      "description": "Gateway for agent tools",
+      "targets": [
+        {
+          "name": "WeatherTools",
+          "targetType": "mcpServer",
+          "endpoint": "https://mcp.example.com/mcp"
+        },
+        {
+          "name": "MyLambdaTools",
+          "targetType": "lambdaFunctionArn",
+          "lambdaArn": "arn:aws:lambda:us-east-1:123:function:my-func",
+          "toolDefinitions": [
+            {
+              "name": "get_data",
+              "description": "Retrieve data from the database",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "query": {"type": "string", "description": "Search query"}
+                },
+                "required": ["query"]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Gateway Fields
+
+| Field         | Type   | Required | Description                                                   |
+|---------------|--------|----------|---------------------------------------------------------------|
+| `name`        | string | yes      | Gateway name. Pattern: `^[0-9a-zA-Z](?:[0-9a-zA-Z-]*)?$`, max 100 |
+| `description` | string | no       | Human-readable description (max 200 chars)                    |
+| `targets`     | array  | yes      | List of tool targets exposed through this gateway             |
+
+### Target Types
+
+| `targetType`       | Required Fields                            | Use Case                          |
+|--------------------|--------------------------------------------|-----------------------------------|
+| `mcpServer`        | `endpoint`                                 | Remote MCP server                 |
+| `lambdaFunctionArn`| `lambdaArn`, `toolDefinitions`             | Lambda function with tool schemas |
+| `openApiSchema`    | Schema (inline or S3 reference)            | REST API described by OpenAPI     |
+| `smithyModel`      | Model (inline or S3 reference)             | AWS service or Smithy API         |
+| `apiGateway`       | `restApiId`, `stage`                       | API Gateway REST API              |
+
+### Tool Naming Convention
+
+Tools exposed through a Gateway are prefixed with the target name and triple underscore:
+
+```
+${targetName}___${toolName}
+```
+
+For example, a target named `WeatherTools` with a tool `get_forecast` becomes `WeatherTools___get_forecast` in the agent's tool list.
+
+---
+
+## policyEngines
+
+Defines Cedar-based authorization for tool invocations.
+
+```json
+{
+  "policyEngines": [
+    {
+      "name": "MyPolicyEngine",
+      "description": "Authorization for production tools",
+      "policies": [
+        {
+          "name": "AllowReadTools",
+          "description": "Allow all principals to invoke read-only tools",
+          "statement": "permit(principal, action == AgentCore::Action::\"WeatherTools___get_forecast\", resource is AgentCore::Gateway);"
+        },
+        {
+          "name": "BusinessHoursOnly",
+          "sourceFile": "policies/business-hours.cedar"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### Policy Engine Fields
+
+| Field              | Type   | Required | Description                                          |
+|--------------------|--------|----------|------------------------------------------------------|
+| `name`             | string | yes      | Engine name. Pattern: `[A-Za-z][A-Za-z0-9_]*`, max 48 |
+| `description`      | string | no       | Description (max 4096 chars)                         |
+| `encryptionKeyArn` | string | no       | Customer-managed KMS key ARN                         |
+| `tags`             | object | no       | Key-value tags (max 50)                              |
+| `policies`         | array  | no       | Cedar policies managed by this engine                |
+
+### Policy Fields
+
+| Field            | Type   | Required | Description                                                          |
+|------------------|--------|----------|----------------------------------------------------------------------|
+| `name`           | string | yes      | Policy name. Pattern: `[A-Za-z][A-Za-z0-9_]*`, max 48                |
+| `description`    | string | no       | Human-readable description (max 4096 chars)                          |
+| `statement`      | string | cond.    | Cedar policy text (35–10000 chars). Required unless `sourceFile` set |
+| `sourceFile`     | string | cond.    | Path to `.cedar` file (relative to project root)                     |
+| `validationMode` | string | no       | `FAIL_ON_ANY_FINDINGS` (default) or `IGNORE_ALL_FINDINGS`            |
+
+### Cedar Policy Syntax Rules
+
+1. **Always constrain the resource type:**
+   ```cedar
+   // CORRECT
+   permit(principal, action, resource is AgentCore::Gateway);
+
+   // WRONG — fails at deploy
+   permit(principal, action, resource);
+   ```
+
+2. **Action names use the target___tool format:**
+   ```cedar
+   action == AgentCore::Action::"TargetName___tool_name"
+   ```
+
+3. **Resource is the Gateway ARN:**
+   ```cedar
+   resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-east-1:123:gateway/my-gw"
+   ```
+
+4. **Conditions access input context:**
+   ```cedar
+   when { context.input.priority == "HIGH" }
+   ```
+
+### Policy Engine Modes
+
+| Mode       | Behavior                                                       |
+|------------|----------------------------------------------------------------|
+| `LOG_ONLY` | Evaluates policies and logs decisions; does not block requests  |
+| `ENFORCE`  | Actively allows or denies based on policy evaluation           |
+
+:::tip
+Always deploy in `LOG_ONLY` first, inspect CloudWatch logs to verify correct behavior, then switch to `ENFORCE`.
+:::
+
+---
+
+## Attaching Services to Each Other
+
+### Memory → Agent
+
+Set the `memory` field on the agent entry:
+
+```json
+{"agents": [{"name": "MyAgent", "memory": "longAndShortTerm", ...}]}
+```
+
+Or reference a named memory from the `memories` array.
+
+### Gateway → Agent
+
+The agent connects to the Gateway URL at runtime via the MCP client in your agent code. The Gateway URL is injected as an environment variable during deployment.
+
+### Policy Engine → Gateway
+
+```json
+{
+  "agentCoreGateways": [{
+    "name": "MyGateway",
+    "policyEngineConfiguration": {
+      "policyEngineName": "MyPolicyEngine",
+      "mode": "ENFORCE"
+    },
+    "targets": [...]
+  }]
+}
+```
+
+---
+
+## Complete Example
+
+A full `agentcore.json` for a workflow automation agent with memory, gateway, and policy:
+
+```json
+{
+  "agents": [
+    {
+      "name": "IncidentAgent",
+      "language": "Python",
+      "framework": "Strands",
+      "type": "create",
+      "codeLocation": "app/IncidentAgent",
+      "entrypoint": "main.py",
+      "build": "CodeZip",
+      "modelProvider": "Bedrock",
+      "protocol": "HTTP",
+      "networkMode": "PUBLIC",
+      "memory": "longAndShortTerm"
+    }
+  ],
+  "memories": [
+    {
+      "name": "IncidentMemory",
+      "eventExpiryDuration": 90,
+      "strategies": [
+        {
+          "type": "SEMANTIC",
+          "name": "incident_facts",
+          "namespaces": ["incidents/{actorId}/facts"]
+        },
+        {
+          "type": "SUMMARIZATION",
+          "name": "incident_summaries"
+        }
+      ]
+    }
+  ],
+  "agentCoreGateways": [
+    {
+      "name": "IncidentGateway",
+      "description": "Tools for incident response",
+      "policyEngineConfiguration": {
+        "policyEngineName": "IncidentPolicy",
+        "mode": "LOG_ONLY"
+      },
+      "targets": [
+        {
+          "name": "DiagnosticTools",
+          "targetType": "lambdaFunctionArn",
+          "lambdaArn": "arn:aws:lambda:us-east-1:123456789012:function:diagnostic-tools",
+          "toolDefinitions": [
+            {
+              "name": "get_metrics",
+              "description": "Get CloudWatch metrics for a service",
+              "inputSchema": {
+                "type": "object",
+                "properties": {
+                  "service_name": {"type": "string"},
+                  "metric_name": {"type": "string"},
+                  "period_minutes": {"type": "integer"}
+                },
+                "required": ["service_name", "metric_name"]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "policyEngines": [
+    {
+      "name": "IncidentPolicy",
+      "description": "Bounded autonomy for incident response",
+      "policies": [
+        {
+          "name": "AllowDiagnostics",
+          "description": "Allow all diagnostic tools unconditionally",
+          "statement": "permit(principal, action == AgentCore::Action::\"DiagnosticTools___get_metrics\", resource is AgentCore::Gateway);"
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+## Validation
+
+After editing `agentcore.json`, always validate:
+
+```bash
+agentcore validate
+```
+
+This checks:
+- JSON syntax validity
+- Schema conformance (required fields, valid values)
+- Cross-references (memory names, policy engine names, gateway references)
+- Agent code location exists and contains the entrypoint file
+
+---
+
+## Authoritative Sources
+
+| Topic                    | Source                                                                                                 |
+|--------------------------|--------------------------------------------------------------------------------------------------------|
+| Runtime configuration    | [AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/)           |
+| Memory strategies        | [AgentCore Memory docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html)    |
+| Gateway & targets        | [AgentCore Gateway docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html)  |
+| Cedar policy language    | [Cedar documentation](https://www.cedarpolicy.com/)                                                   |
+| CLI command reference    | `agentcore --help` and `agentcore <command> --help`                                                   |
