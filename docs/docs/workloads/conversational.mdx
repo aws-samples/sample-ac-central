@@ -31,7 +31,128 @@ Go from prototype to production with enterprise security, identity, memory, and 
 
 ---
 
-## Why AgentCore for Conversational Agents?
+## Complete Working Example
+
+A conversational agent with memory that remembers user preferences across sessions. Copy this into `app/ChatAgent/main.py`:
+
+```python
+"""Conversational agent with memory and a lookup tool."""
+
+import logging
+
+from strands import Agent, tool
+
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
+
+log = logging.getLogger(__name__)
+app = BedrockAgentCoreApp()
+
+
+@tool
+def lookup_account(account_id: str) -> dict:
+    """Look up account details by ID.
+
+    Args:
+        account_id: The customer account identifier.
+
+    Returns:
+        Account information including name, plan, and status.
+    """
+    # Replace with real API call in production
+    accounts = {
+        "ACC-001": {"name": "Acme Corp", "plan": "Enterprise", "status": "active"},
+        "ACC-002": {"name": "Startup Inc", "plan": "Growth", "status": "active"},
+    }
+    account = accounts.get(account_id)
+    if not account:
+        return {"error": f"Account {account_id} not found"}
+    return {
+        "status": "success",
+        "content": [{"text": str(account)}],
+    }
+
+
+SYSTEM_PROMPT = """You are a helpful customer support assistant.
+You can look up account information when users provide an account ID.
+Be concise, friendly, and accurate. If you don't know something, say so."""
+
+
+@app.entrypoint
+def invoke(payload, context):
+    """Agent entrypoint — called by AgentCore Runtime on each request."""
+    prompt = payload.get("prompt", "Hello!")
+
+    # Memory session manager injected by AgentCore when memory is configured.
+    # Works without memory too (session_manager=None is fine).
+    session_manager = None
+    try:
+        from bedrock_agentcore.memory.integrations.strands import (
+            AgentCoreMemorySessionManager,
+        )
+
+        memory_id = __import__("os").environ.get("BEDROCK_AGENTCORE_MEMORY_ID")
+        if memory_id:
+            session_manager = AgentCoreMemorySessionManager(
+                memory_id=memory_id,
+                region=__import__("os").environ.get("AWS_REGION", "us-east-1"),
+                session_id=context.session_id,
+                actor_id=getattr(context, "actor_id", "default-user"),
+            )
+    except Exception as exc:
+        log.warning("Memory unavailable (running without): %s", exc)
+
+    agent = Agent(
+        model="us.anthropic.claude-sonnet-4-20250514-v1:0",
+        system_prompt=SYSTEM_PROMPT,
+        tools=[lookup_account],
+        session_manager=session_manager,
+    )
+
+    result = agent(prompt)
+    return {"response": result.message}
+
+
+app.run()
+```
+
+### Configuration (`agentcore/agentcore.json`)
+
+```json
+{
+  "agents": [
+    {
+      "name": "ChatAgent",
+      "language": "Python",
+      "framework": "Strands",
+      "type": "create",
+      "codeLocation": "app/ChatAgent",
+      "entrypoint": "main.py",
+      "build": "CodeZip",
+      "modelProvider": "Bedrock",
+      "protocol": "HTTP",
+      "networkMode": "PUBLIC",
+      "memory": "longAndShortTerm"
+    }
+  ]
+}
+```
+
+### Test It
+
+```bash
+# Start locally
+agentcore dev
+
+# Send a message (in another terminal)
+agentcore dev --invoke '{"prompt": "Look up account ACC-001"}'
+
+# Expected: "Acme Corp is on the Enterprise plan and their account is active."
+
+# Multi-turn (memory persists across turns)
+agentcore dev --invoke '{"prompt": "What plan are they on?"}'
+
+# Expected: Agent remembers ACC-001 from the previous turn
+```
 
 Your chatbot prototype works. Now you need it to handle real users, real security, and real scale. AgentCore bridges that gap.
 
@@ -262,41 +383,20 @@ The same patterns are used across archetypes. What differs is *how you configure
 
 ---
 
-## Common Objections & Responses
+## Field Guide
 
-| Objection                                          | Response                                                                                                                  |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| "Why not just Lambda + API Gateway?"               | No session persistence, no memory, no microVM isolation, no identity token exchange. You'd rebuild half of AgentCore.     |
-| "What about latency / cold starts?"                | Responses stream progressively via SSE, so users see output as it's generated rather than waiting for the full answer.    |
-| "How does this compare to Azure AI Agent Service?" | Multi-model (any provider via Strands), bring-your-own-framework, no vendor lock-in on the model layer.                   |
-| "What about cost at scale?"                        | Serverless pricing means no idle cost. Context optimization reduces per-turn token spend via summarization and retrieval. |
-| "Is it production-ready?"                          | Cox, Ryanair, BGL, Kavak, Thomson Reuters, and Swisscom are in production today.                                          |
-
----
-
-## What to Demo (5-Minute Path)
-
-For the account team walking into a first meeting without a specreq:
-
-1. **Deploy (before meeting)* - Sample conversational agent architecture at [Placeholder for sample project]
-2. **`agentcore dev`** — show a local agent booting in seconds with hot reload.
-3. **Send a message** — show token-by-token streaming response in the terminal TUI.
-4. **Add a Gateway tool** — wire a Lambda target and show the agent calling it mid-conversation.
-5. **Show the trace** — open CloudWatch, filter by conversation ID, walk through the agent's reasoning and tool calls.
-6. **Point to production** — `agentcore deploy` is one command to go from this demo to a scaled, isolated, monitored deployment.
-
-:::tip Outcome
-"We can go from this to production without managing infrastructure, building auth plumbing, or wiring observability. It's already built in."
+:::info For Account Teams
+Positioning guidance, competitive objections, and demo scripts for this workload are in the [Field Guide: Conversational Agents](/docs/field-guide/conversational).
 :::
 
 ---
 
 ## Customer Stories
 
-| Customer            | What They Built                                                      | Key Metric                             |
-| ------------------- | -------------------------------------------------------------------- | -------------------------------------- |
-| **[BGL](../customer/external/bgl)**             | Slack-based NL-to-SQL agent for self-serve BI                        | 200+ employees self-serve instantly    |
+| Customer                                              | What They Built                                                      | Key Metric                             |
+|-------------------------------------------------------|----------------------------------------------------------------------|----------------------------------------|
+| **[BGL](../customer/external/bgl)**                   | Slack-based NL-to-SQL agent for self-serve BI                        | 200+ employees self-serve instantly    |
 | **[Iberdrola](../customer/external/iberdrola)**       | Multi-agent IT operations with LangGraph + VPC-secured runtime       | Reduced resolution time                |
 | **[Thomson Reuters](../customer/external/thomson-reuters)** | Central orchestrator routing to specialized service agents with HITL | Enterprise-scale multi-domain support  |
-| **[Kavak](../customer/external/kavak)**           | Autonomous concierge agent for automotive marketplace                | End-to-end customer journey automation |
-| **Swisscom**        | Enterprise-scale agentic AI platform                                 | Platform-level agent governance        |
+| **[Kavak](../customer/external/kavak)**               | Autonomous concierge agent for automotive marketplace                | End-to-end customer journey automation |
+| **Swisscom**                                          | Enterprise-scale agentic AI platform                                 | Platform-level agent governance        |

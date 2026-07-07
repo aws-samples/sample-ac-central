@@ -6,6 +6,10 @@ sidebar_position: 6
 
 import Link from '@docusaurus/Link';
 
+:::info Architectural Guidance
+This page describes the target-state architecture for agent operations at enterprise scale. Some capabilities (Agent Registry, percentage-based traffic splitting) represent platform patterns you build on top of AgentCore primitives, not GA managed services. AgentCore Runtime endpoint versioning enables blue-green deployments today; additional traffic management is a customer-built layer.
+:::
+
 # Agent Ops
 
 Agent Ops extends DevOps practices to the unique challenges of AI agents. Because agents are non-deterministic and continuously evolving, they require purpose-built CI/CD pipelines, continuous evaluation, traffic management, and lifecycle governance.
