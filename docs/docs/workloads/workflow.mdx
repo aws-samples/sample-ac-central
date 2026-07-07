@@ -191,19 +191,15 @@ app.run()
 
 ```json
 {
-  "agents": [
+  "runtimes": [
     {
       "name": "IncidentAgent",
-      "language": "Python",
-      "framework": "Strands",
-      "type": "create",
-      "codeLocation": "app/IncidentAgent",
-      "entrypoint": "main.py",
       "build": "CodeZip",
-      "modelProvider": "Bedrock",
+      "entrypoint": "main.py",
+      "codeLocation": "app/IncidentAgent/",
+      "runtimeVersion": "PYTHON_3_13",
       "protocol": "HTTP",
-      "networkMode": "PUBLIC",
-      "memory": "none"
+      "networkMode": "PUBLIC"
     }
   ]
 }
@@ -212,11 +208,11 @@ app.run()
 ### Test It
 
 ```bash
-# Start locally
+# Terminal 1: start the dev server
 agentcore dev
 
-# Simulate an incident event (in another terminal)
-agentcore dev --invoke '{"prompt": "{\"service_name\": \"checkout-api\", \"event_type\": \"high_error_rate\", \"severity\": \"high\", \"description\": \"Error rate exceeded 10% threshold\"}"}'
+# Terminal 2: simulate an incident event
+agentcore dev '{"service_name": "checkout-api", "event_type": "high_error_rate", "severity": "high", "description": "Error rate exceeded 10% threshold"}'
 
 # Expected: Agent calls get_service_health, sees degraded status,
 # restarts the service, notifies on-call, and summarizes actions taken.
@@ -387,12 +383,12 @@ Workflow agents use memory differently than conversational agents. Instead of mu
 
 ### When to Use Memory vs. External State
 
-| Question                                          | If Yes → Use...             |
-| ------------------------------------------------- | --------------------------- |
-| Does the agent need context from prior events?    | AgentCore Memory (SEMANTIC) |
-| Does the agent track entity state across events?  | DynamoDB + Memory           |
-| Is each event fully self-contained?               | No memory needed            |
-| Does the agent learn user preferences over time?  | Memory (long-term)          |
+| Question                                         | If Yes → Use...             |
+| ------------------------------------------------ | --------------------------- |
+| Does the agent need context from prior events?   | AgentCore Memory (SEMANTIC) |
+| Does the agent track entity state across events? | DynamoDB + Memory           |
+| Is each event fully self-contained?              | No memory needed            |
+| Does the agent learn user preferences over time? | Memory (long-term)          |
 
 ---
 
@@ -513,9 +509,9 @@ Workflow agents make real decisions with real consequences. You need to know —
 AgentCore provides built-in evaluators that score agent behavior against your session telemetry. Trajectory evaluators use **programmatic scoring (no LLM calls, zero token cost)**, while GoalSuccessRate and Correctness use LLM-as-a-Judge.
 
 | Evaluator                 | Level   | Ground Truth Field   | What It Measures                                                       |
-| ------------------------- | ------- | -------------------- | --------------------------------------------------------------------- |
-| GoalSuccessRate           | Session | `assertions`         | Behavior satisfies natural-language assertions (LLM-as-Judge)         |
-| Correctness               | Trace   | `expectedResponse`   | Response matches the expected answer (LLM-as-Judge)                   |
+| ------------------------- | ------- | -------------------- | ---------------------------------------------------------------------- |
+| GoalSuccessRate           | Session | `assertions`         | Behavior satisfies natural-language assertions (LLM-as-Judge)          |
+| Correctness               | Trace   | `expectedResponse`   | Response matches the expected answer (LLM-as-Judge)                    |
 | TrajectoryExactOrderMatch | Session | `expectedTrajectory` | Exact tool sequence — same tools, same order, no extras (programmatic) |
 | TrajectoryInOrderMatch    | Session | `expectedTrajectory` | Expected tools appear in order; extras allowed between (programmatic)  |
 | TrajectoryAnyOrderMatch   | Session | `expectedTrajectory` | All expected tools present, any order, extras allowed (programmatic)   |
@@ -525,11 +521,11 @@ AgentCore provides built-in evaluators that score agent behavior against your se
 
 Ground truth is the known-correct answer or expected behavior for a given input — the "gold standard" you compare actual results against. You provide reference inputs alongside session spans when calling the Evaluate API, and the service scores actual behavior against expected behavior.
 
-| Field                | Scope   | Description                                                          |
-| -------------------- | ------- | ------------------------------------------------------------------- |
-| `expectedResponse`   | Trace   | Expected agent response for a specific turn (scoped by `traceId`)   |
-| `assertions`         | Session | Natural-language statements that should be true about the behavior  |
-| `expectedTrajectory` | Session | Expected sequence of tool-call names for the session                |
+| Field                | Scope   | Description                                                        |
+| -------------------- | ------- | ------------------------------------------------------------------ |
+| `expectedResponse`   | Trace   | Expected agent response for a specific turn (scoped by `traceId`)  |
+| `assertions`         | Session | Natural-language statements that should be true about the behavior |
+| `expectedTrajectory` | Session | Expected sequence of tool-call names for the session               |
 
 Ground truth fields are optional. If you omit them, evaluators fall back to their ground-truth-free mode — for example, `Builtin.Correctness` still works without `expectedResponse`, evaluating on context alone. For workflow agents, build a benchmark dataset of past events with known-correct outcomes to catch regressions before they reach production.
 
@@ -616,14 +612,14 @@ A production-ready event-driven workflow automation agent on AgentCore.
 
 AgentCore supports [a range of multi-agent patterns](/docs/patterns/overview). The ones below are the most common starting points for workflow automation.
 
-| Pattern                       | When to Use                                                | Example                                                                                                                                                        |
-| ----------------------------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Single Agent + Tools**      | One decision domain, clear input → output mapping          | [IT Incident Response](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents)                                       |
-| **Dual-Agent (Decide + Act)** | Separation of reasoning from execution for compliance      | [Claims Processing](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents)                                          |
-| **Agents-as-Tools**           | Multi-domain orchestration with specialized sub-agents     | [Iberdrola IT Ops](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/)                              |
-| **Human-in-the-Loop**         | High-stakes actions requiring approval before execution    | [Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/)   |
-| **Confidence-Gated**          | Auto-execute above threshold, escalate below               | Triage (auto-route easy, escalate hard)                                                                                                                        |
-| **Fan-Out (parallel tools)**  | Enrich from multiple sources simultaneously before reason  | Incident enrichment from 5+ data sources                                                                                                                       |
+| Pattern                       | When to Use                                               | Example                                                                                                                                                       |
+| ----------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Single Agent + Tools**      | One decision domain, clear input → output mapping         | [IT Incident Response](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents)                                     |
+| **Dual-Agent (Decide + Act)** | Separation of reasoning from execution for compliance     | [Claims Processing](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents)                                        |
+| **Agents-as-Tools**           | Multi-domain orchestration with specialized sub-agents    | [Iberdrola IT Ops](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/)                            |
+| **Human-in-the-Loop**         | High-stakes actions requiring approval before execution   | [Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/) |
+| **Confidence-Gated**          | Auto-execute above threshold, escalate below              | Triage (auto-route easy, escalate hard)                                                                                                                       |
+| **Fan-Out (parallel tools)**  | Enrich from multiple sources simultaneously before reason | Incident enrichment from 5+ data sources                                                                                                                      |
 
 :::info
 All AgentCore patterns work for workflow agents. For the full catalog including Swarm, Graph, and A2A, see the [Architectural Patterns Reference](/docs/patterns/overview).
@@ -635,15 +631,15 @@ All AgentCore patterns work for workflow agents. For the full catalog including 
 
 The same patterns are used across archetypes. What differs is *how you configure AgentCore services* for workflow automation workloads.
 
-| AgentCore Service | Workflow Configuration                                | Why It Matters                                             |
-| ----------------- | ----------------------------------------------------- | ---------------------------------------------------------- |
-| **Identity**      | Service principal (client credentials or SigV4)       | Agent acts as a system, not a user                         |
-| **Memory**        | SEMANTIC per entity, optional SUMMARIZATION           | Cross-invocation context for recurring events              |
-| **Runtime**       | Short sessions (minutes), no streaming required       | Event processing, not interactive conversation             |
-| **Policy Engine** | Cedar policies in ENFORCE mode                        | Bounded autonomy is mandatory for production automation    |
-| **Evaluations**   | Trajectory 100% programmatic; LLM-judged sampled      | Silent failures: no user to notice bad decisions           |
+| AgentCore Service | Workflow Configuration                               | Why It Matters                                             |
+| ----------------- | ---------------------------------------------------- | ---------------------------------------------------------- |
+| **Identity**      | Service principal (client credentials or SigV4)      | Agent acts as a system, not a user                         |
+| **Memory**        | SEMANTIC per entity, optional SUMMARIZATION          | Cross-invocation context for recurring events              |
+| **Runtime**       | Short sessions (minutes), no streaming required      | Event processing, not interactive conversation             |
+| **Policy Engine** | Cedar policies in ENFORCE mode                       | Bounded autonomy is mandatory for production automation    |
+| **Evaluations**   | Trajectory 100% programmatic; LLM-judged sampled     | Silent failures: no user to notice bad decisions           |
 | **Observability** | Per-invocation tracing with entity and event context | Debug "why did the agent take that action on INC-12345?"   |
-| **Gateway**       | SigV4 inbound; credential provider outbound           | Calls tools as a service identity; secrets stay in gateway |
+| **Gateway**       | SigV4 inbound; credential provider outbound          | Calls tools as a service identity; secrets stay in gateway |
 
 ---
 
@@ -698,13 +694,13 @@ def load_model(priority: str = "MEDIUM") -> BedrockModel:
 
 Enterprise event-driven workloads often serve multiple tenants, business units, or customers from shared infrastructure. AgentCore provides isolation at every layer.
 
-| Layer          | Isolation Mechanism                                                       |
-| -------------- | ------------------------------------------------------------------------- |
-| Compute        | Dedicated microVM per invocation. No shared processes between tenants.    |
-| Memory         | Namespace-per-entity. One tenant cannot retrieve another's memory events. |
-| Gateway/Tools  | Scoped credentials per invocation. Each tool call is bound to the caller. |
-| Observability  | Traces carry tenant/entity context. Filter by tenant in CloudWatch.       |
-| Data at rest   | Encryption with customer-managed keys (CMK) supported.                    |
+| Layer         | Isolation Mechanism                                                       |
+| ------------- | ------------------------------------------------------------------------- |
+| Compute       | Dedicated microVM per invocation. No shared processes between tenants.    |
+| Memory        | Namespace-per-entity. One tenant cannot retrieve another's memory events. |
+| Gateway/Tools | Scoped credentials per invocation. Each tool call is bound to the caller. |
+| Observability | Traces carry tenant/entity context. Filter by tenant in CloudWatch.       |
+| Data at rest  | Encryption with customer-managed keys (CMK) supported.                    |
 
 :::info Why this matters
 For multi-tenant SaaS processing events from different customers, use the entity/tenant ID in the memory namespace and session ID so there is zero cross-contamination between tenants even when events are processed concurrently.
@@ -722,9 +718,9 @@ Positioning guidance, competitive objections, and demo scripts for this workload
 
 ## Customer Stories
 
-| Customer                                                                                                                                                              | What They Built                                                | Key Metric                         |
-|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|------------------------------------|
-| **[Rede Mater Dei](https://aws.amazon.com/blogs/machine-learning/rede-mater-dei-de-saude-monitoring-ai-agents-in-the-revenue-cycle-with-amazon-bedrock-agentcore/)** | Healthcare revenue cycle with 12 event-driven agents           | Automated billing reconciliation   |
-| **[Iberdrola](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/)**                                       | Multi-agent IT operations with LangGraph + VPC-secured runtime | Reduced incident resolution time   |
-| **[Cox Automotive](https://aws.amazon.com/solutions/case-studies/cox-auto-case-study/)**                                                                              | Network operations automation with bounded autonomy            | Automated tier-1 incident response |
-| **[Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/)**     | Legal document processing with confidence-gated HITL           | Enterprise-scale document automation |
+| Customer                                                                                                                                                             | What They Built                                                | Key Metric                           |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------ |
+| **[Rede Mater Dei](https://aws.amazon.com/blogs/machine-learning/rede-mater-dei-de-saude-monitoring-ai-agents-in-the-revenue-cycle-with-amazon-bedrock-agentcore/)** | Healthcare revenue cycle with 12 event-driven agents           | Automated billing reconciliation     |
+| **[Iberdrola](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/)**                                      | Multi-agent IT operations with LangGraph + VPC-secured runtime | Reduced incident resolution time     |
+| **[Cox Automotive](https://aws.amazon.com/solutions/case-studies/cox-auto-case-study/)**                                                                             | Network operations automation with bounded autonomy            | Automated tier-1 incident response   |
+| **[Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/)**    | Legal document processing with confidence-gated HITL           | Enterprise-scale document automation |

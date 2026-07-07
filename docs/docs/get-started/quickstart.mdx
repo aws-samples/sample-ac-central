@@ -15,7 +15,7 @@ Go from zero to a working agent on AgentCore. This guide creates a simple weathe
 - **Python 3.12+**: for the agent runtime
 - **uv**: Python package manager ([install guide](https://docs.astral.sh/uv/getting-started/installation/))
 - **AWS credentials**: configured with `aws configure` or environment variables
-- **Bedrock model access**: Claude Sonnet enabled in your AWS account ([enable models](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access-modify.html))
+- **Bedrock model access**: Claude Sonnet 4.5 enabled in your AWS account ([enable models](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access-modify.html))
 :::
 
 ---
@@ -34,8 +34,10 @@ agentcore --version
 ```bash
 agentcore create --name WeatherAgent --framework Strands \
   --model-provider Bedrock --language Python \
-  --memory none --build CodeZip --skip-python-setup
+  --memory none --build CodeZip --skip-install
 ```
+
+`--skip-install` skips both `npm install` (for the CDK project) and `uv sync` (for the agent), so scaffolding finishes in under a second. You'll install dependencies in the next step.
 
 This creates the project structure with `agentcore/agentcore.json` as the declarative config.
 
@@ -44,14 +46,14 @@ This creates the project structure with `agentcore/agentcore.json` as the declar
 ## Step 3: Install Python Dependencies
 
 ```bash
-cd app/WeatherAgent && uv venv && uv sync && cd ../..
+cd WeatherAgent/app/WeatherAgent && uv venv && uv sync && cd ../../..
 ```
 
 ---
 
 ## Step 4: Write Your Agent
 
-Replace the scaffolded `app/WeatherAgent/main.py` with:
+Replace the scaffolded `WeatherAgent/app/WeatherAgent/main.py` with:
 
 ```python
 """Weather agent that answers weather questions using a simple tool."""
@@ -60,10 +62,10 @@ import json
 import random
 
 from strands import Agent, tool
-
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 
 app = BedrockAgentCoreApp()
+log = app.logger
 
 
 @tool
@@ -78,23 +80,11 @@ def get_weather(city: str) -> dict:
     """
     # Simulated weather data for demo purposes
     conditions = ["sunny", "cloudy", "rainy", "partly cloudy"]
-    temp = random.randint(15, 35)
-    condition = random.choice(conditions)
-
     return {
-        "status": "success",
-        "content": [
-            {
-                "text": json.dumps(
-                    {
-                        "city": city,
-                        "temperature_celsius": temp,
-                        "condition": condition,
-                        "humidity_percent": random.randint(30, 90),
-                    }
-                )
-            }
-        ],
+        "city": city,
+        "temperature_celsius": random.randint(15, 35),
+        "condition": random.choice(conditions),
+        "humidity_percent": random.randint(30, 90),
     }
 
 
@@ -102,42 +92,47 @@ SYSTEM_PROMPT = """You are a helpful weather assistant. When users ask about
 the weather, use the get_weather tool to look up current conditions.
 Always include the temperature and conditions in your response."""
 
+agent = Agent(
+    model="global.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    system_prompt=SYSTEM_PROMPT,
+    tools=[get_weather],
+)
+
 
 @app.entrypoint
-def invoke(payload, context):
-    """Agent entrypoint called by AgentCore Runtime on each request."""
-    prompt = payload.get(
-        "prompt",
-        "No prompt found. Please send a JSON payload with a 'prompt' key.",
-    )
+async def invoke(payload, context):
+    """Agent entrypoint, called by AgentCore Runtime on each request."""
+    prompt = payload.get("prompt", "Hello!")
+    log.info("Invoking agent with prompt: %s", prompt)
 
-    agent = Agent(
-        model="us.anthropic.claude-sonnet-4-20250514-v1:0",
-        system_prompt=SYSTEM_PROMPT,
-        tools=[get_weather],
-    )
-
-    result = agent(prompt)
-    return {"response": result.message}
+    async for event in agent.stream_async(prompt):
+        if "event" in event:
+            yield event
 
 
-app.run()
+if __name__ == "__main__":
+    app.run()
 ```
+
+:::info Why streaming?
+`app.entrypoint` supports async generators. Yielding raw Strands stream events lets `agentcore dev` and AgentCore Runtime render the response as it's generated instead of waiting for the full answer. This is the same pattern the CLI scaffolds by default.
+:::
 
 ---
 
 ## Step 5: Test Locally
 
-Start the dev server:
+Start the dev server (needs a real terminal, not a piped/non-interactive shell):
 
 ```bash
+cd WeatherAgent
 agentcore dev
 ```
 
-In another terminal, send a test message:
+From a **second terminal**, send a prompt as a plain positional argument:
 
 ```bash
-agentcore dev --invoke '{"prompt": "What is the weather in Seattle?"}'
+agentcore dev "What is the weather in Seattle?"
 ```
 
 Expected output:
@@ -148,7 +143,7 @@ of 22°C and humidity at 65%.
 ```
 
 :::tip
-If `agentcore dev` fails with `error starting dev server: terminal`, use `agentcore dev --logs` or run in a native terminal window.
+`agentcore dev` requires an interactive terminal. If you see `No agents defined in project` even though `agentcore validate` says your config is valid, you're likely running it through a pipe or a non-TTY shell. Run it directly in Terminal.app, iTerm, or your IDE's integrated terminal.
 :::
 
 ---
@@ -162,12 +157,12 @@ agentcore deploy
 Once deployed, invoke the live agent:
 
 ```bash
-agentcore invoke '{"prompt": "What is the weather in Tokyo?"}'
+agentcore invoke "What is the weather in Tokyo?"
 ```
 
 That's it. Your agent is running on AgentCore Runtime with:
 - **MicroVM isolation**: each session in a dedicated sandbox
-- **Scale-to-zero**: no idle cost when no requests
+- **Scale-to-zero**: no idle cost when there are no requests
 - **OpenTelemetry tracing**: full observability via CloudWatch
 
 ---
@@ -178,25 +173,31 @@ The CLI generated this configuration for your agent:
 
 ```json
 {
-  "agents": [
+  "$schema": "https://schema.agentcore.aws.dev/v1/agentcore.json",
+  "name": "WeatherAgent",
+  "version": 1,
+  "managedBy": "CDK",
+  "runtimes": [
     {
       "name": "WeatherAgent",
-      "language": "Python",
-      "framework": "Strands",
-      "type": "create",
-      "codeLocation": "app/WeatherAgent",
-      "entrypoint": "main.py",
       "build": "CodeZip",
-      "modelProvider": "Bedrock",
-      "protocol": "HTTP",
+      "entrypoint": "main.py",
+      "codeLocation": "app/WeatherAgent/",
+      "runtimeVersion": "PYTHON_3_13",
       "networkMode": "PUBLIC",
-      "memory": "none"
+      "protocol": "HTTP"
     }
-  ]
+  ],
+  "memories": [],
+  "credentials": []
 }
 ```
 
-This is the declarative source of truth for your AgentCore resources. As you add Memory, Gateway, or Policy Engine via `agentcore add`, they appear here.
+This is the declarative source of truth for your AgentCore resources. As you add Memory, Gateway, or credentials via `agentcore add`, they appear as new entries under `runtimes`, `memories`, `agentCoreGateways`, and so on.
+
+:::info Runtime version
+The CLI may scaffold `runtimeVersion: "PYTHON_3_14"` (a pre-release version). Change it to `"PYTHON_3_13"` before deploying.
+:::
 
 ---
 

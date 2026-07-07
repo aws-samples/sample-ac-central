@@ -6,7 +6,11 @@ sidebar_position: 1
 
 # agentcore.json Schema Reference
 
-`agentcore/agentcore.json` is the declarative source of truth for all AgentCore resources in your project. When you run `agentcore add` or `agentcore deploy`, this file determines what to create, update, or remove.
+`agentcore/agentcore.json` is the declarative source of truth for all AgentCore resources in your project. When you run `agentcore add`, `agentcore remove`, or `agentcore deploy`, this file determines what to create, update, or remove.
+
+:::info Authoritative source
+This page is generated from the actual schema shipped with the CLI. After running `agentcore create`, your project has its own copy at `agentcore/.llm-context/agentcore.ts` with the exact types and validation rules for your installed CLI version. When in doubt, that file (and `agentcore validate`) is the ground truth.
+:::
 
 ---
 
@@ -17,6 +21,7 @@ your-project/
 └── agentcore/
     ├── agentcore.json       ← this file
     ├── aws-targets.json     ← deployment account + region
+    ├── .llm-context/        ← TypeScript type definitions (read-only reference)
     └── cdk/                 ← supplementary infrastructure
 ```
 
@@ -26,91 +31,94 @@ your-project/
 
 ```json
 {
-  "agents": [...],
-  "memories": [...],
-  "agentCoreGateways": [...],
-  "policyEngines": [...]
+  "name": "MyProject",
+  "version": 1,
+  "managedBy": "CDK",
+  "tags": {},
+  "runtimes": [],
+  "memories": [],
+  "credentials": [],
+  "evaluators": [],
+  "onlineEvalConfigs": [],
+  "agentCoreGateways": [],
+  "policyEngines": [],
+  "configBundles": [],
+  "abTests": [],
+  "datasets": []
 }
 ```
 
-All top-level arrays are optional. Include only what your agent needs.
+The root object always has `name`, `version`, and `managedBy`. Every resource type is a flat top-level array — there is no nesting between resources. Agents discover memories, credentials, and gateways at runtime via environment variables or SDK calls, not via references inside `agentcore.json` (with the exception of `policyEngineConfiguration` on gateways, and `agent`/`runtimes` references on evaluators and A/B tests).
+
+:::caution Common mistake
+The array of agent runtimes is called **`runtimes`**, not `agents`. This is the single most common typo when hand-editing this file.
+:::
 
 ---
 
-## agents
+## runtimes
 
 Defines the agent runtimes to deploy. Each entry corresponds to one AgentCore Runtime.
 
 ```json
 {
-  "agents": [
+  "runtimes": [
     {
       "name": "MyAgent",
-      "language": "Python",
-      "framework": "Strands",
-      "type": "create",
-      "codeLocation": "app/MyAgent",
-      "entrypoint": "main.py",
       "build": "CodeZip",
-      "modelProvider": "Bedrock",
-      "protocol": "HTTP",
+      "entrypoint": "main.py",
+      "codeLocation": "app/MyAgent/",
+      "runtimeVersion": "PYTHON_3_13",
       "networkMode": "PUBLIC",
-      "memory": "none"
+      "protocol": "HTTP"
     }
   ]
 }
 ```
 
-### Agent Fields
+### Runtime Fields
 
-| Field           | Type   | Required | Description                                                                    |
-|-----------------|--------|----------|--------------------------------------------------------------------------------|
-| `name`          | string | yes      | Agent name. Pattern: `[a-zA-Z][a-zA-Z0-9_]{0,47}`                             |
-| `language`      | string | yes      | Runtime language: `Python`                                                     |
-| `framework`     | string | yes      | Agent framework: `Strands`, `LangGraph`, `CrewAI`, `Custom`                    |
-| `type`          | string | yes      | `create` (new agent) or `import` (from existing Bedrock Agent)                 |
-| `codeLocation`  | string | yes      | Relative path to the agent source directory                                    |
-| `entrypoint`    | string | yes      | Python file serving as the runtime entry point (e.g., `main.py`)               |
-| `build`         | string | yes      | Build type: `CodeZip` (max 250MB zipped) or `Container` (ARM64 Docker image)   |
-| `modelProvider` | string | yes      | Model source: `Bedrock`, `OpenAI`, `Anthropic`, `Custom`                       |
-| `protocol`      | string | yes      | Server protocol: `HTTP`, `MCP`, or `A2A`                                       |
-| `networkMode`   | string | yes      | Network access: `PUBLIC` or `VPC`                                              |
-| `memory`        | string | yes      | Memory mode: `none`, `shortTerm`, or `longAndShortTerm`                        |
-
-### Protocol Details
-
-| Protocol | Port | Path           | Use Case                        |
-|----------|------|----------------|---------------------------------|
-| `HTTP`   | 8080 | /invocations   | Standard agent (JSON or SSE)    |
-| `MCP`    | 8000 | /mcp           | Agent exposed as MCP server     |
-| `A2A`    | 9000 | /              | Agent-to-Agent protocol         |
-
-All protocols require a `/ping` GET endpoint returning `{"status": "Healthy"}`.
-
-### Memory Shorthand
-
-| Value              | What It Creates                                                           |
-|--------------------|---------------------------------------------------------------------------|
-| `none`             | No memory resource                                                        |
-| `shortTerm`        | Short-term memory only (events stored per session, 30-day retention)      |
-| `longAndShortTerm` | Short-term + long-term with SEMANTIC and SUMMARIZATION extraction strategies |
+| Field                      | Type   | Required | Description                                                                                      |
+| -------------------------- | ------ | -------- | ------------------------------------------------------------------------------------------------ |
+| `name`                     | string | yes      | Pattern: `^[a-zA-Z][a-zA-Z0-9_]{0,47}$`, max 48 chars                                            |
+| `build`                    | string | yes      | `CodeZip` or `Container`                                                                         |
+| `entrypoint`               | string | yes      | Entry file, e.g. `main.py`. Optional handler suffix: `main.py:handler`                           |
+| `codeLocation`             | string | yes      | Directory path relative to the project root                                                      |
+| `dockerfile`               | string | no       | Custom Dockerfile name for `Container` builds (default: `Dockerfile`)                            |
+| `runtimeVersion`           | string | no       | `PYTHON_3_10` – `PYTHON_3_14`, or `NODE_18` / `NODE_20` / `NODE_22`                              |
+| `envVars`                  | array  | no       | List of `{name, value}` environment variables                                                    |
+| `networkMode`              | string | no       | `PUBLIC` (default) or `VPC`                                                                      |
+| `networkConfig`            | object | cond.    | `{subnets: string[], securityGroups: string[]}`, required when `networkMode` is `VPC`            |
+| `instrumentation`          | object | no       | `{enableOtel: boolean}` — wraps the entrypoint with `opentelemetry-instrument` (default: `true`) |
+| `protocol`                 | string | no       | `HTTP` (default), `MCP`, `A2A`, or `AGUI`                                                        |
+| `tags`                     | object | no       | Key-value tags                                                                                   |
+| `filesystemConfigurations` | array  | no       | Session storage, EFS, or S3 Files mounts (max 5 total)                                           |
 
 ### Build Types
 
-| Type        | How It Works                                             | Constraints                    |
-|-------------|----------------------------------------------------------|--------------------------------|
-| `CodeZip`   | Python code zipped and uploaded to S3, deployed directly | Max 250MB zipped / 750MB unzipped |
-| `Container` | Docker image pushed to ECR                               | Must be ARM64 architecture     |
+| Type        | How It Works                                                                  | Constraints                               |
+| ----------- | ----------------------------------------------------------------------------- | ----------------------------------------- |
+| `CodeZip`   | Python or Node source zipped and deployed directly to AgentCore Runtime       | Max 250MB zipped / 750MB unzipped         |
+| `Container` | Docker image built in CodeBuild (ARM64), pushed to a per-agent ECR repository | Requires a `Dockerfile` in `codeLocation` |
+
+### Protocol Details
+
+| Protocol | Description                                      |
+| -------- | ------------------------------------------------ |
+| `HTTP`   | Standard HTTP agent endpoint (`/invocations`)    |
+| `MCP`    | Agent exposed as a Model Context Protocol server |
+| `A2A`    | Agent-to-Agent protocol (Google A2A)             |
+| `AGUI`   | Agent GUI protocol for interactive front-ends    |
 
 ### Runtime Version
 
-The CLI may scaffold a `runtimeVersion` field. If set to `PYTHON_3_14` (pre-release), change it to `PYTHON_3_13`:
+The CLI may scaffold `runtimeVersion: "PYTHON_3_14"` (a pre-release version). Change it to a stable version before deploying:
 
 ```json
 "runtimeVersion": "PYTHON_3_13"
 ```
 
-Valid values: `PYTHON_3_10`, `PYTHON_3_11`, `PYTHON_3_12`, `PYTHON_3_13`.
+Valid values: `PYTHON_3_10`, `PYTHON_3_11`, `PYTHON_3_12`, `PYTHON_3_13`, `PYTHON_3_14`, `NODE_18`, `NODE_20`, `NODE_22`.
 
 ---
 
@@ -128,7 +136,7 @@ Defines persistent memory resources for cross-session context.
         {
           "type": "SEMANTIC",
           "name": "semantic_strategy",
-          "namespaces": ["users/{actorId}/facts"]
+          "namespaceTemplates": ["users/{actorId}/facts"]
         },
         {
           "type": "SUMMARIZATION",
@@ -142,39 +150,78 @@ Defines persistent memory resources for cross-session context.
 
 ### Memory Fields
 
-| Field                | Type    | Required | Description                                          |
-|----------------------|---------|----------|------------------------------------------------------|
-| `name`               | string  | yes      | Memory name. Pattern: `[a-zA-Z][a-zA-Z0-9_]{0,47}`  |
-| `eventExpiryDuration`| integer | yes      | Days before events expire (3–365)                    |
-| `strategies`         | array   | no       | Long-term memory extraction strategies               |
-| `tags`               | object  | no       | Key-value tags (max 50)                              |
-| `encryptionKeyArn`   | string  | no       | Customer-managed KMS key ARN                         |
-| `executionRoleArn`   | string  | no       | IAM role ARN for memory operations                   |
+| Field                 | Type    | Required | Description                                             |
+| --------------------- | ------- | -------- | ------------------------------------------------------- |
+| `name`                | string  | yes      | Pattern: `^[a-zA-Z][a-zA-Z0-9_]{0,47}$`, max 48         |
+| `eventExpiryDuration` | integer | yes      | Days before events expire (3–365)                       |
+| `strategies`          | array   | no       | Long-term memory extraction strategies (unique by type) |
+| `tags`                | object  | no       | Key-value tags                                          |
+| `encryptionKeyArn`    | string  | no       | Customer-managed KMS key ARN                            |
+| `executionRoleArn`    | string  | no       | IAM role ARN for memory operations                      |
 
 ### Strategy Types
 
-| Type              | Description                                            | Key Fields                              |
-|-------------------|--------------------------------------------------------|-----------------------------------------|
-| `SEMANTIC`        | Extracts facts and knowledge as semantic vectors       | `namespaces` (supports `{actorId}`)     |
-| `SUMMARIZATION`   | Creates conversation summaries                         |                                         |
-| `USER_PREFERENCE` | Captures user preferences and settings                 |                                         |
-| `EPISODIC`        | Stores episodic memories with optional reflections     | `namespaces`, `reflectionNamespaces`    |
+| Type              | Description                                        | Key Fields                                           |
+| ----------------- | -------------------------------------------------- | ---------------------------------------------------- |
+| `SEMANTIC`        | Extracts facts and knowledge as semantic vectors   | `namespaceTemplates`                                 |
+| `SUMMARIZATION`   | Creates conversation summaries                     | —                                                    |
+| `USER_PREFERENCE` | Captures user preferences and settings             | —                                                    |
+| `EPISODIC`        | Stores episodic memories with optional reflections | `namespaceTemplates`, `reflectionNamespaceTemplates` |
+
+:::info Deprecated fields
+`namespaces` and `reflectionNamespaces` are deprecated aliases for `namespaceTemplates` and `reflectionNamespaceTemplates`. Use the `Templates` variants in new configs.
+:::
 
 ### Namespace Placeholders
 
-Namespaces support template variables that resolve at runtime:
+| Placeholder          | Resolves To                      |
+| -------------------- | -------------------------------- |
+| `{actorId}`          | The user/actor ID from the event |
+| `{sessionId}`        | The session ID                   |
+| `{memoryStrategyId}` | The strategy's internal ID       |
 
-| Placeholder          | Resolves To                       |
-|----------------------|-----------------------------------|
-| `{actorId}`          | The user/actor ID from the event  |
-| `{sessionId}`        | The session ID                    |
-| `{memoryStrategyId}` | The strategy's internal ID        |
+---
+
+## credentials
+
+Defines API key or OAuth credential providers stored in the AgentCore token vault.
+
+```json
+{
+  "credentials": [
+    {
+      "authorizerType": "ApiKeyCredentialProvider",
+      "name": "OpenAI"
+    },
+    {
+      "authorizerType": "OAuthCredentialProvider",
+      "name": "MyOAuthProvider",
+      "discoveryUrl": "https://idp.example.com/.well-known/openid-configuration",
+      "scopes": ["read", "write"],
+      "usage": "outbound"
+    }
+  ]
+}
+```
+
+### Credential Fields
+
+| Field            | Type   | Required | Description                                             |
+| ---------------- | ------ | -------- | ------------------------------------------------------- |
+| `authorizerType` | string | yes      | `ApiKeyCredentialProvider` or `OAuthCredentialProvider` |
+| `name`           | string | yes      | Pattern: `^[a-zA-Z0-9\-_]+$`, max 128 chars             |
+| `discoveryUrl`   | string | OAuth    | OIDC discovery URL                                      |
+| `scopes`         | array  | no       | Supported OAuth scopes                                  |
+| `vendor`         | string | no       | OAuth vendor type (default: `CustomOauth2`)             |
+| `usage`          | string | no       | `inbound` or `outbound`                                 |
+
+The actual secret value (API key or client secret) is never stored in `agentcore.json` — it lives in the AgentCore token vault (backed by AWS Secrets Manager), referenced only by name.
 
 ---
 
 ## agentCoreGateways
 
-Defines MCP Gateways that federate tools for your agent.
+Defines MCP gateways that federate tools for your agents.
 
 ```json
 {
@@ -182,6 +229,8 @@ Defines MCP Gateways that federate tools for your agent.
     {
       "name": "MyGateway",
       "description": "Gateway for agent tools",
+      "authorizerType": "NONE",
+      "enableSemanticSearch": true,
       "targets": [
         {
           "name": "WeatherTools",
@@ -191,20 +240,10 @@ Defines MCP Gateways that federate tools for your agent.
         {
           "name": "MyLambdaTools",
           "targetType": "lambdaFunctionArn",
-          "lambdaArn": "arn:aws:lambda:us-east-1:123:function:my-func",
-          "toolDefinitions": [
-            {
-              "name": "get_data",
-              "description": "Retrieve data from the database",
-              "inputSchema": {
-                "type": "object",
-                "properties": {
-                  "query": {"type": "string", "description": "Search query"}
-                },
-                "required": ["query"]
-              }
-            }
-          ]
+          "lambdaFunctionArn": {
+            "lambdaArn": "arn:aws:lambda:us-east-1:123456789012:function:my-func",
+            "toolSchemaFile": "tool-schemas/my-func.json"
+          }
         }
       ]
     }
@@ -214,25 +253,30 @@ Defines MCP Gateways that federate tools for your agent.
 
 ### Gateway Fields
 
-| Field         | Type   | Required | Description                                                   |
-|---------------|--------|----------|---------------------------------------------------------------|
-| `name`        | string | yes      | Gateway name. Pattern: `^[0-9a-zA-Z](?:[0-9a-zA-Z-]*)?$`, max 100 |
-| `description` | string | no       | Human-readable description (max 200 chars)                    |
-| `targets`     | array  | yes      | List of tool targets exposed through this gateway             |
+| Field                       | Type    | Required | Description                                                    |
+| --------------------------- | ------- | -------- | -------------------------------------------------------------- |
+| `name`                      | string  | yes      | Pattern: `^[0-9a-zA-Z](?:[0-9a-zA-Z-]*[0-9a-zA-Z])?$`, max 100 |
+| `description`               | string  | no       | Free-text description                                          |
+| `targets`                   | array   | yes      | List of tool targets exposed through this gateway              |
+| `authorizerType`            | string  | no       | `NONE` (default), `AWS_IAM`, or `CUSTOM_JWT`                   |
+| `authorizerConfiguration`   | object  | cond.    | Required when `authorizerType` is `CUSTOM_JWT`                 |
+| `enableSemanticSearch`      | boolean | no       | Default `true`                                                 |
+| `exceptionLevel`            | string  | no       | `NONE` (default) or `DEBUG`                                    |
+| `policyEngineConfiguration` | object  | no       | `{policyEngineName, mode}` — attaches a Cedar policy engine    |
 
 ### Target Types
 
-| `targetType`       | Required Fields                            | Use Case                          |
-|--------------------|--------------------------------------------|-----------------------------------|
-| `mcpServer`        | `endpoint`                                 | Remote MCP server                 |
-| `lambdaFunctionArn`| `lambdaArn`, `toolDefinitions`             | Lambda function with tool schemas |
-| `openApiSchema`    | Schema (inline or S3 reference)            | REST API described by OpenAPI     |
-| `smithyModel`      | Model (inline or S3 reference)             | AWS service or Smithy API         |
-| `apiGateway`       | `restApiId`, `stage`                       | API Gateway REST API              |
+| `targetType`        | Key Config Field           | Use Case                                |
+| ------------------- | -------------------------- | --------------------------------------- |
+| `mcpServer`         | `endpoint`                 | Remote MCP server                       |
+| `lambdaFunctionArn` | `lambdaFunctionArn` object | Lambda function with a tool schema file |
+| `openApiSchema`     | `schemaSource`             | REST API described by OpenAPI           |
+| `smithyModel`       | `schemaSource`             | AWS service or Smithy-defined API       |
+| `apiGateway`        | `apiGateway` object        | API Gateway REST API                    |
 
 ### Tool Naming Convention
 
-Tools exposed through a Gateway are prefixed with the target name and triple underscore:
+Tools exposed through a gateway are prefixed with the target name and a triple underscore:
 
 ```
 ${targetName}___${toolName}
@@ -255,12 +299,8 @@ Defines Cedar-based authorization for tool invocations.
       "policies": [
         {
           "name": "AllowReadTools",
-          "description": "Allow all principals to invoke read-only tools",
-          "statement": "permit(principal, action == AgentCore::Action::\"WeatherTools___get_forecast\", resource is AgentCore::Gateway);"
-        },
-        {
-          "name": "BusinessHoursOnly",
-          "sourceFile": "policies/business-hours.cedar"
+          "statement": "permit(principal, action == AgentCore::Action::\"WeatherTools___get_forecast\", resource is AgentCore::Gateway);",
+          "validationMode": "FAIL_ON_ANY_FINDINGS"
         }
       ]
     }
@@ -270,23 +310,22 @@ Defines Cedar-based authorization for tool invocations.
 
 ### Policy Engine Fields
 
-| Field              | Type   | Required | Description                                          |
-|--------------------|--------|----------|------------------------------------------------------|
-| `name`             | string | yes      | Engine name. Pattern: `[A-Za-z][A-Za-z0-9_]*`, max 48 |
-| `description`      | string | no       | Description (max 4096 chars)                         |
-| `encryptionKeyArn` | string | no       | Customer-managed KMS key ARN                         |
-| `tags`             | object | no       | Key-value tags (max 50)                              |
-| `policies`         | array  | no       | Cedar policies managed by this engine                |
+| Field              | Type   | Required | Description                                                |
+| ------------------ | ------ | -------- | ---------------------------------------------------------- |
+| `name`             | string | yes      | Pattern: `^[A-Za-z][A-Za-z0-9_]{0,47}$`, max 48. Immutable |
+| `description`      | string | no       | Max 4096 chars                                             |
+| `encryptionKeyArn` | string | no       | Customer-managed KMS key ARN                               |
+| `policies`         | array  | no       | Cedar policies managed by this engine (unique by name)     |
 
 ### Policy Fields
 
-| Field            | Type   | Required | Description                                                          |
-|------------------|--------|----------|----------------------------------------------------------------------|
-| `name`           | string | yes      | Policy name. Pattern: `[A-Za-z][A-Za-z0-9_]*`, max 48                |
-| `description`    | string | no       | Human-readable description (max 4096 chars)                          |
-| `statement`      | string | cond.    | Cedar policy text (35–10000 chars). Required unless `sourceFile` set |
-| `sourceFile`     | string | cond.    | Path to `.cedar` file (relative to project root)                     |
-| `validationMode` | string | no       | `FAIL_ON_ANY_FINDINGS` (default) or `IGNORE_ALL_FINDINGS`            |
+| Field            | Type   | Required | Description                                                             |
+| ---------------- | ------ | -------- | ----------------------------------------------------------------------- |
+| `name`           | string | yes      | Pattern: `^[A-Za-z][A-Za-z0-9_]{0,47}$`, max 48. Immutable              |
+| `description`    | string | no       | Max 4096 chars                                                          |
+| `statement`      | string | cond.    | Cedar policy text (35–10000 chars). Required unless `sourceFile` is set |
+| `sourceFile`     | string | cond.    | Path to a `.cedar` file, relative to the project root                   |
+| `validationMode` | string | no       | `FAIL_ON_ANY_FINDINGS` (default) or `IGNORE_ALL_FINDINGS`               |
 
 ### Cedar Policy Syntax Rules
 
@@ -295,156 +334,45 @@ Defines Cedar-based authorization for tool invocations.
    // CORRECT
    permit(principal, action, resource is AgentCore::Gateway);
 
-   // WRONG — fails at deploy
+   // WRONG, fails at deploy
    permit(principal, action, resource);
    ```
 
-2. **Action names use the target___tool format:**
+2. **Action names use the `TargetName___tool_name` format:**
    ```cedar
    action == AgentCore::Action::"TargetName___tool_name"
    ```
 
-3. **Resource is the Gateway ARN:**
-   ```cedar
-   resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-east-1:123:gateway/my-gw"
-   ```
-
-4. **Conditions access input context:**
+3. **Conditions can access invocation context:**
    ```cedar
    when { context.input.priority == "HIGH" }
    ```
 
-### Policy Engine Modes
+### Policy Engine Modes (on a gateway)
 
 | Mode       | Behavior                                                       |
-|------------|----------------------------------------------------------------|
-| `LOG_ONLY` | Evaluates policies and logs decisions; does not block requests  |
+| ---------- | -------------------------------------------------------------- |
+| `LOG_ONLY` | Evaluates policies and logs decisions; does not block requests |
 | `ENFORCE`  | Actively allows or denies based on policy evaluation           |
 
 :::tip
-Always deploy in `LOG_ONLY` first, inspect CloudWatch logs to verify correct behavior, then switch to `ENFORCE`.
+Always deploy in `LOG_ONLY` first, inspect CloudWatch logs to confirm correct behavior, then switch to `ENFORCE`.
 :::
 
 ---
 
-## Attaching Services to Each Other
+## Other Top-Level Arrays
 
-### Memory → Agent
+These sections exist in the schema but are less commonly hand-edited; use `agentcore add`/`agentcore status --type <type>` to manage them:
 
-Set the `memory` field on the agent entry:
-
-```json
-{"agents": [{"name": "MyAgent", "memory": "longAndShortTerm", ...}]}
-```
-
-Or reference a named memory from the `memories` array.
-
-### Gateway → Agent
-
-The agent connects to the Gateway URL at runtime via the MCP client in your agent code. The Gateway URL is injected as an environment variable during deployment.
-
-### Policy Engine → Gateway
-
-```json
-{
-  "agentCoreGateways": [{
-    "name": "MyGateway",
-    "policyEngineConfiguration": {
-      "policyEngineName": "MyPolicyEngine",
-      "mode": "ENFORCE"
-    },
-    "targets": [...]
-  }]
-}
-```
-
----
-
-## Complete Example
-
-A full `agentcore.json` for a workflow automation agent with memory, gateway, and policy:
-
-```json
-{
-  "agents": [
-    {
-      "name": "IncidentAgent",
-      "language": "Python",
-      "framework": "Strands",
-      "type": "create",
-      "codeLocation": "app/IncidentAgent",
-      "entrypoint": "main.py",
-      "build": "CodeZip",
-      "modelProvider": "Bedrock",
-      "protocol": "HTTP",
-      "networkMode": "PUBLIC",
-      "memory": "longAndShortTerm"
-    }
-  ],
-  "memories": [
-    {
-      "name": "IncidentMemory",
-      "eventExpiryDuration": 90,
-      "strategies": [
-        {
-          "type": "SEMANTIC",
-          "name": "incident_facts",
-          "namespaces": ["incidents/{actorId}/facts"]
-        },
-        {
-          "type": "SUMMARIZATION",
-          "name": "incident_summaries"
-        }
-      ]
-    }
-  ],
-  "agentCoreGateways": [
-    {
-      "name": "IncidentGateway",
-      "description": "Tools for incident response",
-      "policyEngineConfiguration": {
-        "policyEngineName": "IncidentPolicy",
-        "mode": "LOG_ONLY"
-      },
-      "targets": [
-        {
-          "name": "DiagnosticTools",
-          "targetType": "lambdaFunctionArn",
-          "lambdaArn": "arn:aws:lambda:us-east-1:123456789012:function:diagnostic-tools",
-          "toolDefinitions": [
-            {
-              "name": "get_metrics",
-              "description": "Get CloudWatch metrics for a service",
-              "inputSchema": {
-                "type": "object",
-                "properties": {
-                  "service_name": {"type": "string"},
-                  "metric_name": {"type": "string"},
-                  "period_minutes": {"type": "integer"}
-                },
-                "required": ["service_name", "metric_name"]
-              }
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "policyEngines": [
-    {
-      "name": "IncidentPolicy",
-      "description": "Bounded autonomy for incident response",
-      "policies": [
-        {
-          "name": "AllowDiagnostics",
-          "description": "Allow all diagnostic tools unconditionally",
-          "statement": "permit(principal, action == AgentCore::Action::\"DiagnosticTools___get_metrics\", resource is AgentCore::Gateway);"
-        }
-      ]
-    }
-  ]
-}
-```
+| Array               | Purpose                                                             |
+| ------------------- | ------------------------------------------------------------------- |
+| `evaluators`        | Custom LLM-as-judge or code-based evaluators                        |
+| `onlineEvalConfigs` | Continuous evaluation pipelines bound to a runtime                  |
+| `configBundles`     | Versioned bundles of component configuration, used by A/B tests     |
+| `abTests`           | A/B test experiments routing traffic between config bundle variants |
+| `datasets`          | Named datasets for Dataset Management                               |
+| `harnesses`         | Managed-harness agent definitions (no-code agent configuration)     |
 
 ---
 
@@ -458,18 +386,21 @@ agentcore validate
 
 This checks:
 - JSON syntax validity
-- Schema conformance (required fields, valid values)
-- Cross-references (memory names, policy engine names, gateway references)
-- Agent code location exists and contains the entrypoint file
+- Schema conformance (required fields, valid enum values, regex patterns)
+- Cross-references (memory names, policy engine names referenced by gateways)
+- That each runtime's `codeLocation` exists and contains the `entrypoint` file
+
+Prints `Valid` on success.
 
 ---
 
 ## Authoritative Sources
 
-| Topic                    | Source                                                                                                 |
-|--------------------------|--------------------------------------------------------------------------------------------------------|
-| Runtime configuration    | [AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/)           |
-| Memory strategies        | [AgentCore Memory docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html)    |
-| Gateway & targets        | [AgentCore Gateway docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html)  |
-| Cedar policy language    | [Cedar documentation](https://www.cedarpolicy.com/)                                                   |
-| CLI command reference    | `agentcore --help` and `agentcore <command> --help`                                                   |
+| Topic                             | Source                                                                                               |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Exact schema for your CLI version | `agentcore/.llm-context/agentcore.ts` in any project created with `agentcore create`                 |
+| Runtime configuration             | [AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/)          |
+| Memory strategies                 | [AgentCore Memory docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html)   |
+| Gateway and targets               | [AgentCore Gateway docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) |
+| Cedar policy language             | [Cedar documentation](https://www.cedarpolicy.com/)                                                  |
+| CLI command reference             | `agentcore --help` and `agentcore <command> --help`                                                  |

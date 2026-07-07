@@ -17,15 +17,19 @@ npm install -g @aws/agentcore
 agentcore --version
 ```
 
+:::tip Multiple installs on your machine?
+If `agentcore --version` shows an unexpected version, run `which -a agentcore` to check for multiple installations (for example, one via Homebrew and one via npm/nvm) and remove the stale one.
+:::
+
 ---
 
 ## Why AgentCore CLI?
 
-- **Local development**: Run your agent locally with `agentcore dev` before deploying. Hot reload included.
+- **Local development**: Run your agent locally with `agentcore dev` before deploying.
 - **No context switching**: Create, test, and deploy without leaving your terminal or IDE.
 - **Declarative config**: `agentcore.json` is the source of truth for all AgentCore resources (Runtime, Memory, Gateway, Policy Engine, Online Evaluations). See the [full schema reference](/docs/reference/agentcore-json).
-- **CDK support**: Infrastructure-as-code with AWS CDK for supplementary resources (DynamoDB, Lambda, EventBridge). Terraform support coming soon.
-- **Framework agnostic**: Works with Strands, LangGraph, CrewAI, Claude Agent SDK, or custom code.
+- **CDK support**: Infrastructure-as-code with AWS CDK for supplementary resources (DynamoDB, Lambda, EventBridge).
+- **Framework agnostic**: Works with Strands, LangChain/LangGraph, GoogleADK, OpenAIAgents, VercelAI, or your own code.
 
 ---
 
@@ -36,16 +40,19 @@ agentcore --version
 agentcore create --name MyAgent --framework Strands \
   --model-provider Bedrock --language Python --memory none
 
-# 2. Install Python dependencies
-cd app/MyAgent && uv venv && uv sync && cd ../..
+# 2. Install Python dependencies (skip if you didn't pass --skip-install)
+cd MyAgent/app/MyAgent && uv venv && uv sync && cd ../../..
 
-# 3. Develop locally
-agentcore dev
+# 3. Develop locally (run inside MyAgent/, needs a real terminal)
+cd MyAgent && agentcore dev
 
-# 4. Validate configuration
+# 4. In a second terminal, send a prompt
+agentcore dev "Hello, what can you do?"
+
+# 5. Validate configuration
 agentcore validate
 
-# 5. Deploy to AgentCore Runtime
+# 6. Deploy to AgentCore Runtime
 agentcore deploy
 ```
 
@@ -55,28 +62,37 @@ agentcore deploy
 
 ### Project Lifecycle
 
-| Command              | Description                                            |
-|----------------------|--------------------------------------------------------|
-| `agentcore create`   | Scaffold a new agent project                           |
-| `agentcore dev`      | Launch local development server (port 8080)            |
-| `agentcore validate` | Validate agentcore/ config files                       |
-| `agentcore deploy`   | Deploy to AgentCore Runtime via CDK                    |
-| `agentcore invoke`   | Invoke a deployed agent endpoint                       |
-| `agentcore status`   | Retrieve details of deployed AgentCore resources       |
-| `agentcore package`  | Package runtime artifacts                              |
-| `agentcore update`   | Check for and install CLI updates                      |
-| `agentcore remove`   | Remove resources from project config                   |
+| Command                     | Description                                             |
+| --------------------------- | ------------------------------------------------------- |
+| `agentcore create`          | Scaffold a new agent project                            |
+| `agentcore dev` (`d`)       | Launch local dev server, or invoke an agent locally     |
+| `agentcore validate`        | Validate `agentcore/` config files                      |
+| `agentcore deploy` (`dp`)   | Deploy project infrastructure to AWS via CDK            |
+| `agentcore invoke` (`i`)    | Invoke a deployed agent endpoint                        |
+| `agentcore status` (`s`)    | Show deployed resource details and status               |
+| `agentcore logs` (`l`)      | Stream or search agent runtime logs                     |
+| `agentcore traces` (`t`)    | View and download agent traces                          |
+| `agentcore exec`            | Open an interactive shell in a deployed agent container |
+| `agentcore package` (`pkg`) | Package agent artifacts without deploying               |
+| `agentcore update`          | Check for and install CLI updates                       |
+| `agentcore remove`          | Remove resources from project config                    |
+
+:::info Preview and internal commands
+This reference documents the day-to-day, stable command set (create, dev, add, remove, deploy, invoke, status, logs, traces, validate). The CLI also has commands under active development (`evals`, `run`, `ab-test`, `dataset`, `config-bundle`, `payment-manager`) marked `[preview]` in `agentcore --help`. Check `agentcore <command> --help` before relying on those.
+:::
 
 ### Resource Management
 
-| Command                      | Description                                              |
-|------------------------------|----------------------------------------------------------|
-| `agentcore add agent`          | Add another agent to the project                       |
-| `agentcore add memory`         | Add a memory resource to the project                   |
-| `agentcore add gateway`        | Add an MCP Gateway for tool federation                 |
-| `agentcore add gateway-target` | Add a tool target to a Gateway                         |
-| `agentcore add identity`       | Add a credential (API key or OAuth) to the project     |
-| `agentcore remove <resource>`  | Remove a resource from the project                     |
+| Command                        | Description                                       |
+| ------------------------------ | ------------------------------------------------- |
+| `agentcore add agent`          | Add another agent (runtime) to the project        |
+| `agentcore add memory`         | Add a memory resource to the project              |
+| `agentcore add gateway`        | Add an MCP gateway for tool federation            |
+| `agentcore add gateway-target` | Add a tool target to a gateway                    |
+| `agentcore add credential`     | Add an API key or OAuth credential to the project |
+| `agentcore add policy-engine`  | Add a Cedar policy engine to the project          |
+| `agentcore add policy`         | Add a Cedar policy to a policy engine             |
+| `agentcore remove <resource>`  | Remove any of the above from the project          |
 
 ---
 
@@ -85,40 +101,52 @@ agentcore deploy
 Scaffolds a complete agent project with all required structure and configuration.
 
 ```bash
-agentcore create --name <AgentName> --framework Strands \
+agentcore create --name MyAgent --framework Strands \
   --model-provider Bedrock --language Python \
-  --memory longAndShortTerm --build CodeZip --skip-python-setup
+  --memory longAndShortTerm --build CodeZip
 ```
 
-| Flag                  | Values                                                         | Default      |
-|----------------------|---------------------------------------------------------------|-------------|
-| `--name`             | Project name (alphanumeric, max 36 chars)                     | required    |
-| `--framework`        | `Strands`, `LangChain_LangGraph`, `CrewAI`, `GoogleADK`, `OpenAIAgents` | `Strands` |
-| `--model-provider`   | `Bedrock`, `Anthropic`, `OpenAI`, `Gemini`                    | `Bedrock`   |
-| `--language`         | `Python`                                                      | `Python`    |
-| `--memory`           | `none`, `shortTerm`, `longAndShortTerm`                       | `none`      |
-| `--build`            | `CodeZip`, `Container`                                        | `CodeZip`   |
-| `--skip-python-setup`| Skip Python virtual environment setup                         | false       |
-| `--skip-git`         | Skip git repository initialization                            | false       |
-| `--output-dir`       | Output directory for the project                              | current dir |
-| `--defaults`         | Use defaults (Python, Strands, Bedrock, no memory)            | false       |
-| `--dry-run`          | Preview what would be created without making changes          | false       |
+| Flag                  | Values                                                                    | Default     |
+| --------------------- | ------------------------------------------------------------------------- | ----------- |
+| `--name`              | Resource/project name (start with letter, alphanumeric, max 23 chars)     | required    |
+| `--framework`         | `Strands`, `LangChain_LangGraph`, `GoogleADK`, `OpenAIAgents`, `VercelAI` | `Strands`   |
+| `--model-provider`    | `Bedrock`, `Anthropic`, `OpenAI`, `Gemini`                                | `Bedrock`   |
+| `--language`          | `Python`, `TypeScript`                                                    | `Python`    |
+| `--protocol`          | `HTTP`, `MCP`, `A2A`, `AGUI`                                              | `HTTP`      |
+| `--memory`            | `none`, `shortTerm`, `longAndShortTerm`                                   | `none`      |
+| `--build`             | `CodeZip`, `Container`                                                    | `CodeZip`   |
+| `--network-mode`      | `PUBLIC`, `VPC`                                                           | `PUBLIC`    |
+| `--skip-install`      | Skip all dependency installation (npm install + uv sync)                  | false       |
+| `--skip-python-setup` | Skip only the Python virtual environment setup                            | false       |
+| `--skip-git`          | Skip git repository initialization                                        | false       |
+| `--output-dir`        | Output directory for the project                                          | current dir |
+| `--dry-run`           | Preview what would be created without making changes                      | false       |
+
+Run `agentcore create --help` for the complete list, including VPC networking, filesystem mounts, and harness-specific flags.
 
 ### Output Structure
 
 ```
-my-agent/
+MyAgent/
 ├── app/MyAgent/
-│   ├── __init__.py
 │   ├── main.py              # BedrockAgentCoreApp entrypoint
+│   ├── model/load.py        # Model client factory
+│   ├── mcp_client/client.py # Example MCP client wiring
 │   ├── pyproject.toml       # Python dependencies (managed with uv)
-│   └── tools/               # Custom tools (@tool decorator)
+│   └── README.md
 ├── agentcore/
-│   ├── agentcore.json       # Declarative AgentCore config
+│   ├── agentcore.json       # Declarative AgentCore config (see reference)
 │   ├── aws-targets.json     # Deployment targets (account + region)
-│   └── cdk/                 # Supplementary infrastructure
+│   ├── .env.local           # Local secrets (gitignored)
+│   ├── .llm-context/        # TypeScript schema definitions for AI assistants
+│   └── cdk/                 # AWS CDK project (@aws/agentcore-cdk constructs)
+├── AGENTS.md                # AI coding assistant context for this project
 └── README.md
 ```
+
+:::info Runtime version
+The CLI may scaffold `runtimeVersion: "PYTHON_3_14"` in `agentcore.json` (a pre-release version). Change it to `"PYTHON_3_13"` before deploying, unless you specifically need 3.14.
+:::
 
 ---
 
@@ -129,20 +157,21 @@ Adds AgentCore resources to your project. Each command updates `agentcore/agentc
 ### Add Memory
 
 ```bash
-# Short-term + long-term with semantic and summarization strategies
-agentcore add memory --name SharedMemory --strategies SEMANTIC,SUMMARIZATION --expiry 30
+agentcore add memory --name SharedMemory \
+  --strategies SEMANTIC,SUMMARIZATION --expiry 30
 ```
 
-| Flag           | Description                                                   |
-|----------------|---------------------------------------------------------------|
-| `--name`       | Memory resource name                                          |
-| `--strategies` | Comma-separated: `SEMANTIC`, `SUMMARIZATION`, `USER_PREFERENCE`, `EPISODIC` |
-| `--expiry`     | Event expiry in days (7–365, default 30)                      |
+| Flag            | Description                                                                 |
+| --------------- | --------------------------------------------------------------------------- |
+| `--name`        | Memory resource name                                                        |
+| `--strategies`  | Comma-separated: `SEMANTIC`, `SUMMARIZATION`, `USER_PREFERENCE`, `EPISODIC` |
+| `--expiry`      | Event expiry in days (default 30)                                           |
+| `--indexed-key` | Indexed metadata key as `key:TYPE` (repeatable, max 10)                     |
 
 ### Add Gateway
 
 ```bash
-# Development (no auth)
+# No auth (development)
 agentcore add gateway --name MyGateway
 
 # Production (JWT auth)
@@ -152,254 +181,277 @@ agentcore add gateway --name MyGateway \
   --allowed-clients my-client-id
 ```
 
-| Flag                 | Description                                                  |
-|----------------------|--------------------------------------------------------------|
-| `--name`             | Gateway name                                                 |
-| `--authorizer-type`  | `NONE`, `AWS_IAM`, or `CUSTOM_JWT`                           |
-| `--discovery-url`    | OIDC discovery URL (required for CUSTOM_JWT)                 |
-| `--allowed-clients`  | Allowed OAuth client IDs (for CUSTOM_JWT)                    |
-| `--allowed-audience` | JWT audience claim validation                                |
-| `--no-semantic-search` | Disable semantic tool search (enabled by default)          |
-| `--policy-engine`    | Attach a policy engine by name                               |
-| `--policy-engine-mode` | `LOG_ONLY` or `ENFORCE`                                   |
+| Flag                   | Description                                                |
+| ---------------------- | ---------------------------------------------------------- |
+| `--name`               | Gateway name                                               |
+| `--authorizer-type`    | `NONE`, `AWS_IAM`, or `CUSTOM_JWT`                         |
+| `--discovery-url`      | OIDC discovery URL (required for `CUSTOM_JWT`)             |
+| `--allowed-clients`    | Comma-separated allowed OAuth client IDs                   |
+| `--allowed-audience`   | Comma-separated allowed audiences                          |
+| `--no-semantic-search` | Disable semantic search for tool discovery (on by default) |
+| `--policy-engine`      | Attach a policy engine by name                             |
+| `--policy-engine-mode` | `LOG_ONLY` or `ENFORCE`                                    |
 
 ### Add Gateway Target
 
-Connect tools to your Gateway. Five target types supported:
-
 ```bash
 # Lambda function
-agentcore add gateway-target \
-  --name DiagnosticTools \
+agentcore add gateway-target --name DiagnosticTools \
   --type lambda-function-arn \
-  --lambda-arn arn:aws:lambda:us-east-1:123:function:diagnostics \
+  --lambda-arn arn:aws:lambda:us-east-1:123456789012:function:diagnostics \
   --tool-schema-file tool-schemas/diagnostics.json \
   --gateway MyGateway
 
 # Remote MCP server
-agentcore add gateway-target \
-  --name ExternalTools \
+agentcore add gateway-target --name ExternalTools \
   --type mcp-server \
   --endpoint https://mcp.example.com/mcp \
   --gateway MyGateway
 
-# OpenAPI schema (with OAuth outbound auth)
-agentcore add gateway-target \
-  --name PetStoreAPI \
+# OpenAPI schema with OAuth outbound auth
+agentcore add gateway-target --name PetStoreAPI \
   --type open-api-schema \
   --schema specs/petstore.json \
   --gateway MyGateway \
-  --outbound-auth oauth \
-  --credential-name MyOAuth
+  --outbound-auth oauth --credential-name MyOAuth
 ```
 
-| Target Type          | Key Flags                          | Use Case                 |
-|----------------------|------------------------------------|--------------------------|
-| `lambda-function-arn`| `--lambda-arn`, `--tool-schema-file`| Lambda as tool provider  |
-| `mcp-server`         | `--endpoint`                       | Remote MCP server        |
-| `open-api-schema`    | `--schema`                         | REST API via OpenAPI     |
-| `smithy-model`       | `--schema`                         | Smithy-described service |
-| `api-gateway`        | `--rest-api-id`, `--stage`         | API Gateway REST API     |
+| Target Type           | Key Flags                            | Use Case                 |
+| --------------------- | ------------------------------------ | ------------------------ |
+| `lambda-function-arn` | `--lambda-arn`, `--tool-schema-file` | Lambda as tool provider  |
+| `mcp-server`          | `--endpoint`                         | Remote MCP server        |
+| `open-api-schema`     | `--schema`                           | REST API via OpenAPI     |
+| `smithy-model`        | `--schema`                           | Smithy-described service |
+| `api-gateway`         | `--rest-api-id`, `--stage`           | API Gateway REST API     |
 
-### Add Identity (Credentials)
+### Add Credential
 
 ```bash
-# Add an API key credential
-agentcore add identity --name OpenAI --api-key sk-...
+# API key
+agentcore add credential --name OpenAI --api-key sk-...
 
-# Add an OAuth credential (interactive prompts for secrets)
-agentcore add identity --name MyOAuth
+# OAuth (client secret prompted interactively if omitted)
+agentcore add credential --name MyOAuth --type oauth \
+  --discovery-url https://idp.example.com/.well-known/openid-configuration \
+  --client-id my-client-id --scopes read,write
 ```
 
 :::info Security
-Secrets are stored in AWS Secrets Manager via the AgentCore token vault. They never appear in `agentcore.json` or your source code. The CLI reads credentials directly from the shell invocation without routing through LLM context.
+Secrets are stored in AWS Secrets Manager via the AgentCore token vault. They never appear in `agentcore.json` or your source code.
 :::
 
-:::info Policy Engine and Online Evaluations
-Policy engines and online evaluations are configured directly in `agentcore/agentcore.json` under the `policyEngines` section. See the [agentcore.json reference](/docs/reference/agentcore-json#policyengines) for full Cedar policy syntax.
-:::
+### Add Policy Engine and Policy
+
+```bash
+agentcore add policy-engine --name IncidentPolicy
+agentcore add policy --policy-engine IncidentPolicy --name AllowDiagnostics \
+  --statement 'permit(principal, action, resource is AgentCore::Gateway);'
+```
+
+See the [agentcore.json reference](/docs/reference/agentcore-json#policyengines) for Cedar policy syntax rules.
 
 ---
 
 ## `agentcore dev`
 
-Launches a local development server on port 8080.
+Launches a local dev server, or sends a prompt to one that's already running. **Requires a real interactive terminal** (not a pipe or redirected shell) to detect your project.
 
 ```bash
-# Start the dev server
+# Terminal 1: start the dev server (run from the project root)
 agentcore dev
 
-# Start with logs to stdout (useful in IDE terminals)
-agentcore dev --logs
-
-# Invoke the local agent
-agentcore dev --invoke '{"prompt": "Hello, what can you help with?"}'
+# Terminal 2: send a prompt as a positional argument
+agentcore dev "Hello, what can you do?"
 
 # Stream the response
-agentcore dev --invoke "Tell me a joke" --stream
+agentcore dev "Tell me a joke" --stream
 
-# Specify agent (when project has multiple agents)
-agentcore dev --agent MyAgent
+# Run with logs printed to stdout
+agentcore dev --logs
+
+# Use the terminal UI instead of the web chat UI
+agentcore dev --no-browser
+
+# Select a runtime, in a multi-agent project
+agentcore dev --runtime MyOtherAgent
 ```
 
-| Flag              | Description                                            |
-|-------------------|--------------------------------------------------------|
-| `-p, --port`      | Port for dev server (default: 8080)                    |
-| `-a, --agent`     | Agent to run (required if project has multiple agents) |
-| `-i, --invoke`    | Invoke the running dev server with a prompt            |
-| `-s, --stream`    | Stream response when using `--invoke`                  |
-| `-l, --logs`      | Run dev server with logs to stdout                     |
+| Flag                 | Description                                                       |
+| -------------------- | ----------------------------------------------------------------- |
+| `-p, --port`         | Port for the dev server (default: 8080)                           |
+| `-r, --runtime`      | Runtime to run or invoke (required if the project has multiple)   |
+| `-s, --stream`       | Stream the response when invoking                                 |
+| `-l, --logs`         | Run the dev server with logs to stdout                            |
+| `-b, --no-browser`   | Use the terminal UI instead of the web-based chat UI              |
+| `-H, --header`       | Custom header to forward to the agent (repeatable)                |
+| `--tool` / `--input` | Call a specific MCP tool directly with JSON arguments             |
+| `--skip-deploy`      | Skip automatic resource deployment before starting the dev server |
+
+There is **no `--invoke` flag**. Send a prompt to a running dev server by passing it as a plain positional argument: `agentcore dev "your prompt"`.
 
 ### How It Works
 
-1. The dev server loads your agent code from the configured `entrypoint`
-2. Changes to Python files trigger automatic reload
-3. The server listens on `http://localhost:8080/invocations`
-4. Each invocation wraps the input as `{"prompt": "<your input>"}`. Your entrypoint should handle this.
-
-### Payload Format
-
-When you invoke via `agentcore dev --invoke '<json>'`, the CLI wraps your input:
-
-```json
-{"prompt": "{\"entity_id\": \"INC-001\", \"event_type\": \"alert\"}"}
-```
-
-Your entrypoint should unwrap this if your agent expects structured events. See the [workflow agents guide](/docs/workloads/workflow) for the recommended unwrapping pattern.
+1. The dev server loads your agent code from the runtime's configured `entrypoint`.
+2. It listens on `http://localhost:8080/invocations` (or the next free port, printed on startup).
+3. `agentcore dev "prompt"` and `curl -X POST http://localhost:8080/invocations -d '{"prompt": "..."}'` both work. The CLI's positional-argument form is a thin wrapper around the same HTTP call.
 
 ### Common Issues
 
-| Issue                                    | Solution                                          |
-|------------------------------------------|---------------------------------------------------|
-| `error starting dev server: terminal`    | Use `--logs` flag or a native terminal window     |
-| `.venv not found` / module import errors | Run `cd app/<Name> && uv venv && uv sync`         |
-| Memory `ResourceNotFoundException`       | Memory requires deployment; wrap in try/except    |
-| Port 8080 in use                         | Kill the existing process or use `--port 8081`    |
+| Issue                                               | Solution                                                                                          |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `No agents defined in project` despite valid config | You're running in a non-TTY shell (piped output, some CI runners). Run in a real terminal window. |
+| `error starting dev server: terminal`               | Same TTY requirement; use a native terminal instead of a piped one.                               |
+| `.venv not found` / module import errors            | Run `cd app/<Name> && uv venv && uv sync`.                                                        |
+| `Port 8080 in use, using 8081`                      | Informational, not an error. The CLI picks the next free port automatically.                      |
+| Memory-related errors during local dev              | Memory resources require deployment; local dev runs without persisted memory.                     |
 
 ---
 
 ## `agentcore deploy`
 
-Deploys your agent to AgentCore Runtime via CDK.
+Deploys project infrastructure to AWS via CDK.
 
 ```bash
 # Deploy (prompts for confirmation)
 agentcore deploy
 
-# Deploy without prompts
+# Deploy without prompts, reading credentials from the environment
 agentcore deploy -y
 
-# Preview what would deploy (dry run)
-agentcore deploy --plan
+# Preview without deploying
+agentcore deploy --dry-run
 
-# Deploy with environment variables
-agentcore deploy --env API_KEY=abc123 --env DEBUG=true
+# Show a CDK diff without deploying
+agentcore deploy --diff
 
-# Stream response on invoke
-agentcore invoke --stream '{"prompt": "Hello"}'
-
-# Multi-turn conversation (reuse session)
-agentcore invoke --session-id my-session '{"prompt": "Continue..."}'
+# Deploy to a named target (see aws-targets.json)
+agentcore deploy --target prod
 ```
 
-### What Happens During Deploy
+| Flag            | Description                                             |
+| --------------- | ------------------------------------------------------- |
+| `--target`      | Deployment target name (default: `default`)             |
+| `-y, --yes`     | Auto-confirm prompts, read credentials from environment |
+| `-v, --verbose` | Show resource-level deployment events                   |
+| `--dry-run`     | Preview deployment without deploying                    |
+| `--diff`        | Show CDK diff without deploying                         |
+| `--json`        | Output as JSON                                          |
 
-1. Python code is packaged (CodeZip: zipped to S3; Container: Docker image to ECR)
-2. CDK synthesizes and deploys the AgentCore Runtime + configured resources
-3. Memory resources are provisioned (if configured)
-4. Gateway and targets are created (if configured)
-5. Endpoint becomes available for invocation
+There is no `--plan` flag; use `--dry-run` or `--diff`.
+
+---
+
+## `agentcore invoke`
+
+Invokes a **deployed** agent endpoint (use `agentcore dev` for local testing).
+
+```bash
+agentcore invoke "What is the weather in Tokyo?"
+
+# Stream the response
+agentcore invoke "Tell me a story" --stream
+
+# Multi-turn conversation (reuse a session)
+agentcore invoke "Continue our chat" --session-id my-session
+
+# Pipe a prompt from stdin
+echo "Summarize this" | agentcore invoke
+```
+
+| Flag                 | Description                                                   |
+| -------------------- | ------------------------------------------------------------- |
+| `--prompt-file`      | Read the prompt from a file (for long or structured payloads) |
+| `--runtime`          | Select a specific runtime, in a multi-agent project           |
+| `--session-id`       | Use a specific session ID for conversation continuity         |
+| `--user-id`          | User ID for the invocation (default: `default-user`)          |
+| `--stream`           | Stream the response in real time                              |
+| `--tool` / `--input` | Call a specific MCP tool directly with JSON arguments         |
+| `-H, --header`       | Custom header, format `"Name: Value"` (repeatable)            |
 
 ---
 
 ## `agentcore validate`
 
-Checks project structure and configuration validity.
+Checks `agentcore/` config files for schema conformance.
 
 ```bash
 agentcore validate
 ```
 
-Validates:
-- `agentcore.json` syntax and schema conformance
-- Required fields present with valid values
-- Cross-references (memory names, gateway names, policy engine references)
-- Agent code location exists and contains the entrypoint file
-- Python compile check on agent source
+Prints `Valid` on success, or a list of schema violations (missing required fields, invalid enum values, broken cross-references) on failure.
 
 ---
 
 ## `agentcore status`
 
-Retrieves details of deployed AgentCore resources.
+Shows deployed resource details and status.
 
 ```bash
-# Status of all resources
 agentcore status
-
-# Status of a specific agent
-agentcore status --agent MyAgent
-
-# Status by runtime ID
-agentcore status --agent-runtime-id abc123
-
-# Status for a specific deployment target
-agentcore status --target prod
+agentcore status --type memory
+agentcore status --runtime MyAgent
+agentcore status --json
 ```
 
-| Flag                  | Description                          |
-|-----------------------|--------------------------------------|
-| `--agent <name>`      | Select a specific agent              |
-| `--agent-runtime-id`  | Select by runtime ID                 |
-| `--target <name>`     | Select deployment target             |
+| Flag        | Description                                                                                                                                                                                             |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--type`    | Filter by resource type: `agent`, `runtime-endpoint`, `memory`, `credential`, `gateway`, `evaluator`, `online-eval`, `policy-engine`, `policy`, `config-bundle`, `dataset`, `knowledge-base`, `harness` |
+| `--state`   | Filter by deployment state: `deployed`, `local-only`, `pending-removal`                                                                                                                                 |
+| `--runtime` | Filter to a specific runtime                                                                                                                                                                            |
+| `--target`  | Select deployment target                                                                                                                                                                                |
+
+---
+
+## `agentcore logs` and `agentcore traces`
+
+```bash
+# Stream recent logs
+agentcore logs --runtime MyAgent
+
+# Search logs from the last hour
+agentcore logs --since 1h --level error
+
+# List recent traces
+agentcore traces list
+
+# Download a specific trace
+agentcore traces get <traceId>
+```
 
 ---
 
 ## `agentcore remove`
 
-Removes AgentCore resources from your project configuration. After removing, run `agentcore deploy` to apply the teardown to AWS.
+Removes resources from your project config. **This edits `agentcore.json` only** — run `agentcore deploy` afterward to apply the removal to AWS.
 
 ```bash
-# Remove a specific agent
 agentcore remove agent --name MyAgent
-
-# Remove a specific memory resource
-agentcore remove memory --name AgentMemory
-
-# Remove a gateway
+agentcore remove memory --name SharedMemory
 agentcore remove gateway --name MyGateway
 
-# Reset all config to empty (removes everything)
+# Reset the entire project config to empty
 agentcore remove all
 
-# Apply the removals to AWS
+# Apply the removal to AWS
 agentcore deploy
 ```
 
-Available subcommands:
-
-| Subcommand       | Description                                  |
-|------------------|----------------------------------------------|
-| `all`            | Reset all agentcore schemas to empty state   |
-| `agent`          | Remove an agent from the project             |
-| `memory`         | Remove a memory provider                     |
-| `identity`       | Remove an identity provider                  |
-| `gateway-target` | Remove a gateway target                      |
-| `gateway`        | Remove a gateway                             |
+There is **no `agentcore destroy` command**. Tearing down deployed resources is always `agentcore remove <resource>` (or `remove all`) followed by `agentcore deploy`.
 
 :::caution
-After `agentcore remove all` + `agentcore deploy`, all AgentCore resources (Runtime, endpoints, Memory, Gateways, Policy Engines) are permanently deleted from AWS. Supplementary infrastructure (DynamoDB, Lambda) is managed via CDK and must be removed separately if needed.
+After `agentcore remove all` and `agentcore deploy`, all AgentCore resources this project manages (Runtime, endpoints, Memory, Gateways, Policy Engines) are permanently deleted from AWS.
 :::
 
 ---
 
 ## Configuration Files
 
-| File                       | Purpose                                       |
-|----------------------------|-----------------------------------------------|
-| `agentcore/agentcore.json` | Declarative config for all AgentCore resources |
-| `agentcore/aws-targets.json` | AWS account ID + region for deployment       |
-| `app/<Name>/pyproject.toml`  | Python dependencies (managed with `uv`)      |
+| File                         | Purpose                                         |
+| ---------------------------- | ----------------------------------------------- |
+| `agentcore/agentcore.json`   | Declarative config for all AgentCore resources  |
+| `agentcore/aws-targets.json` | AWS account ID and region per deployment target |
+| `agentcore/.env.local`       | Local secrets (gitignored)                      |
+| `app/<Name>/pyproject.toml`  | Python dependencies (managed with `uv`)         |
 
 See the [agentcore.json schema reference](/docs/reference/agentcore-json) for complete documentation.
 
@@ -409,7 +461,5 @@ See the [agentcore.json schema reference](/docs/reference/agentcore-json) for co
 
 - [AgentCore CLI Reference (AWS Docs)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/cli-reference.html)
 - [agentcore.json Schema Reference](/docs/reference/agentcore-json)
-- [Strands SDK — Quickstart Python](https://strandsagents.com/docs/user-guide/quickstart/python/)
-- [Strands SDK — Quickstart TypeScript](https://strandsagents.com/docs/user-guide/quickstart/typescript/)
-- [AgentCore Deploy Guide](https://strandsagents.com/docs/user-guide/deploy/)
+- [Strands SDK Documentation](https://strandsagents.com)
 - [Sample Agents on GitHub](https://github.com/awslabs/agentcore-samples)

@@ -58,19 +58,7 @@ This updates `agentcore/agentcore.json` with a `memories` section:
 }
 ```
 
-Also update your agent's memory setting:
-
-```json
-{
-  "agents": [
-    {
-      "name": "MyAgent",
-      "memory": "longAndShortTerm",
-      ...
-    }
-  ]
-}
-```
+`agentcore add memory` only creates the memory resource. It does not automatically wire it to a runtime. Memory access is granted to your agent's execution role at deploy time, and your agent code reads the resulting memory ID from an environment variable (see Step 2).
 
 Validate the config:
 
@@ -219,9 +207,11 @@ agentcore invoke --session-id session-2 '{"prompt": "Do you remember my name?"}'
 During `agentcore dev`, memory isn't available. The agent works without it thanks to graceful degradation:
 
 ```bash
-# Local dev still works; just without cross-session recall
+# Terminal 1: start the dev server
 agentcore dev
-agentcore dev --invoke '{"prompt": "Hello, my name is Alex"}'
+
+# Terminal 2: send a prompt
+agentcore dev "Hello, my name is Alex"
 # Agent responds normally, but won't remember across restarts
 ```
 
@@ -251,12 +241,12 @@ Memory is scoped by `actor_id`. User A cannot access User B's memories, even if 
 
 ## Troubleshooting
 
-| Issue                                          | Solution                                      |
-|------------------------------------------------|-----------------------------------------------|
-| `ResourceNotFoundException` during local dev   | Expected; memory requires deployment. Wrap in try/except. |
-| Memory status stuck in CREATING                | Check IAM permissions on execution role. Use `agentcore status --type memory`. |
-| Agent doesn't remember across sessions         | Verify `longAndShortTerm` is set. Check that extraction jobs completed: view in CloudWatch logs. |
-| Different users seeing each other's memories   | Ensure `actor_id` is unique per user (not hardcoded to "default-user"). |
+| Issue                                        | Solution                                                                                         |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `ResourceNotFoundException` during local dev | Expected; memory requires deployment. Wrap in try/except.                                        |
+| Memory status stuck in CREATING              | Check IAM permissions on execution role. Use `agentcore status --type memory`.                   |
+| Agent doesn't remember across sessions       | Verify `longAndShortTerm` is set. Check that extraction jobs completed: view in CloudWatch logs. |
+| Different users seeing each other's memories | Ensure `actor_id` is unique per user (not hardcoded to "default-user").                          |
 
 ---
 
