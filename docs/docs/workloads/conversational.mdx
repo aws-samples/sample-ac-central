@@ -119,19 +119,22 @@ app.run()
 
 ```json
 {
-  "agents": [
+  "runtimes": [
     {
       "name": "ChatAgent",
-      "language": "Python",
-      "framework": "Strands",
-      "type": "create",
-      "codeLocation": "app/ChatAgent",
-      "entrypoint": "main.py",
       "build": "CodeZip",
-      "modelProvider": "Bedrock",
+      "entrypoint": "main.py",
+      "codeLocation": "app/ChatAgent/",
+      "runtimeVersion": "PYTHON_3_13",
       "protocol": "HTTP",
-      "networkMode": "PUBLIC",
-      "memory": "longAndShortTerm"
+      "networkMode": "PUBLIC"
+    }
+  ],
+  "memories": [
+    {
+      "name": "ChatAgentMemory",
+      "eventExpiryDuration": 90,
+      "strategies": [{"type": "SEMANTIC", "name": "facts"}]
     }
   ]
 }
@@ -140,16 +143,16 @@ app.run()
 ### Test It
 
 ```bash
-# Start locally
+# Terminal 1: start the dev server
 agentcore dev
 
-# Send a message (in another terminal)
-agentcore dev --invoke '{"prompt": "Look up account ACC-001"}'
+# Terminal 2: send a message
+agentcore dev "Look up account ACC-001"
 
 # Expected: "Acme Corp is on the Enterprise plan and their account is active."
 
-# Multi-turn (memory persists across turns)
-agentcore dev --invoke '{"prompt": "What plan are they on?"}'
+# Multi-turn (memory persists across turns within the same session)
+agentcore dev "What plan are they on?"
 
 # Expected: Agent remembers ACC-001 from the previous turn
 ```
@@ -393,10 +396,10 @@ Positioning guidance, competitive objections, and demo scripts for this workload
 
 ## Customer Stories
 
-| Customer                                              | What They Built                                                      | Key Metric                             |
-|-------------------------------------------------------|----------------------------------------------------------------------|----------------------------------------|
-| **[BGL](../customer/external/bgl)**                   | Slack-based NL-to-SQL agent for self-serve BI                        | 200+ employees self-serve instantly    |
-| **[Iberdrola](../customer/external/iberdrola)**       | Multi-agent IT operations with LangGraph + VPC-secured runtime       | Reduced resolution time                |
+| Customer                                                    | What They Built                                                      | Key Metric                             |
+| ----------------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------- |
+| **[BGL](../customer/external/bgl)**                         | Slack-based NL-to-SQL agent for self-serve BI                        | 200+ employees self-serve instantly    |
+| **[Iberdrola](../customer/external/iberdrola)**             | Multi-agent IT operations with LangGraph + VPC-secured runtime       | Reduced resolution time                |
 | **[Thomson Reuters](../customer/external/thomson-reuters)** | Central orchestrator routing to specialized service agents with HITL | Enterprise-scale multi-domain support  |
-| **[Kavak](../customer/external/kavak)**               | Autonomous concierge agent for automotive marketplace                | End-to-end customer journey automation |
-| **Swisscom**                                          | Enterprise-scale agentic AI platform                                 | Platform-level agent governance        |
+| **[Kavak](../customer/external/kavak)**                     | Autonomous concierge agent for automotive marketplace                | End-to-end customer journey automation |
+| **Swisscom**                                                | Enterprise-scale agentic AI platform                                 | Platform-level agent governance        |

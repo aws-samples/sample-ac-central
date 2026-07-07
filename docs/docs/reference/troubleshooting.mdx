@@ -12,18 +12,18 @@ Common issues and solutions when building agents on AgentCore.
 
 ## Local Development (`agentcore dev`)
 
-| Symptom                                   | Root Cause                            | Solution                                                        |
-|-------------------------------------------|---------------------------------------|-----------------------------------------------------------------|
-| `error starting dev server: terminal`     | IDE terminal can't allocate TTY       | Use `agentcore dev --logs` or run in a native terminal window   |
-| `.venv not found` / module import errors  | Python deps not installed             | Run `cd app/<Name> && uv venv && uv sync`                       |
-| Port 8080 already in use                  | Another process on the port           | Kill it, or use `agentcore dev --port 8081`                     |
-| Payload shows "unknown" or garbled JSON   | CLI wraps input in `{"prompt":"..."}`  | Add payload unwrapping logic (see below)                        |
-| `ModuleNotFoundError: bedrock_agentcore`  | Package not in venv                   | Run `uv add bedrock-agentcore` then `uv sync`                   |
-| Hot reload not working                    | File outside watched directory        | Ensure changes are inside `app/<Name>/`                         |
+| Symptom                                  | Root Cause                            | Solution                                                      |
+| ---------------------------------------- | ------------------------------------- | ------------------------------------------------------------- |
+| `error starting dev server: terminal`    | IDE terminal can't allocate TTY       | Use `agentcore dev --logs` or run in a native terminal window |
+| `.venv not found` / module import errors | Python deps not installed             | Run `cd app/<Name> && uv venv && uv sync`                     |
+| Port 8080 already in use                 | Another process on the port           | Kill it, or use `agentcore dev --port 8081`                   |
+| Payload shows "unknown" or garbled JSON  | CLI wraps input in `{"prompt":"..."}` | Add payload unwrapping logic (see below)                      |
+| `ModuleNotFoundError: bedrock_agentcore` | Package not in venv                   | Run `uv add bedrock-agentcore` then `uv sync`                 |
+| Hot reload not working                   | File outside watched directory        | Ensure changes are inside `app/<Name>/`                       |
 
 ### Payload Unwrapping
 
-When you invoke via `agentcore dev --invoke '<json>'`, the CLI wraps your JSON inside `{"prompt": "<your json as string>"}`. If your agent expects structured event payloads, unwrap it:
+When you send a prompt with `agentcore dev "<json>"`, the CLI wraps your JSON inside `{"prompt": "<your json as string>"}`. If your agent expects structured event payloads, unwrap it:
 
 ```python
 import json
@@ -46,13 +46,13 @@ def unwrap_payload(payload: dict) -> dict:
 
 ## Memory
 
-| Symptom                                      | Root Cause                          | Solution                                                       |
-|----------------------------------------------|-------------------------------------|----------------------------------------------------------------|
-| `ResourceNotFoundException: Memory not found` | Memory not deployed yet             | Deploy first (`agentcore deploy`), then test locally           |
-| Agent doesn't remember across sessions       | Memory mode is `shortTerm` only     | Use `longAndShortTerm` with SEMANTIC strategy                  |
-| Memory stuck in CREATING status              | IAM permissions or KMS issue        | Check execution role permissions; use `agentcore status`       |
-| Different users seeing each other's memories | `actor_id` hardcoded                | Use unique `actor_id` per user (from context or JWT)           |
-| Extraction jobs failing                      | Strategy misconfigured              | Check CloudWatch logs for the memory resource                  |
+| Symptom                                       | Root Cause                      | Solution                                                 |
+| --------------------------------------------- | ------------------------------- | -------------------------------------------------------- |
+| `ResourceNotFoundException: Memory not found` | Memory not deployed yet         | Deploy first (`agentcore deploy`), then test locally     |
+| Agent doesn't remember across sessions        | Memory mode is `shortTerm` only | Use `longAndShortTerm` with SEMANTIC strategy            |
+| Memory stuck in CREATING status               | IAM permissions or KMS issue    | Check execution role permissions; use `agentcore status` |
+| Different users seeing each other's memories  | `actor_id` hardcoded            | Use unique `actor_id` per user (from context or JWT)     |
+| Extraction jobs failing                       | Strategy misconfigured          | Check CloudWatch logs for the memory resource            |
 
 ### Graceful Degradation Pattern
 
@@ -73,37 +73,37 @@ agent = Agent(model=model, session_manager=session_manager, tools=tools)
 
 ## Gateway
 
-| Symptom                                  | Root Cause                               | Solution                                                    |
-|------------------------------------------|------------------------------------------|-------------------------------------------------------------|
-| Gateway stuck in CREATING                | IAM trust policy missing                 | Service role must trust `bedrock-agentcore.amazonaws.com`    |
-| Target stuck in SYNCHRONIZING            | MCP server version incompatible          | Must support MCP version 2025-06-18 or 2025-03-26           |
-| `AccessDeniedException` on tool call     | Missing Lambda invoke permission         | Add `lambda:InvokeFunction` to gateway service role         |
-| Agent can't find the tool                | Target not READY, or schema invalid      | Check `agentcore status`; verify JSON schema is valid       |
-| Tool returns unexpected format           | Lambda using HTTP envelope               | Return direct objects, not `{statusCode, body}` wrappers    |
-| `$ref` or `$defs` in tool schema         | Schemas must be self-contained           | Inline all references; no JSON Schema `$ref` allowed        |
+| Symptom                              | Root Cause                          | Solution                                                  |
+| ------------------------------------ | ----------------------------------- | --------------------------------------------------------- |
+| Gateway stuck in CREATING            | IAM trust policy missing            | Service role must trust `bedrock-agentcore.amazonaws.com` |
+| Target stuck in SYNCHRONIZING        | MCP server version incompatible     | Must support MCP version 2025-06-18 or 2025-03-26         |
+| `AccessDeniedException` on tool call | Missing Lambda invoke permission    | Add `lambda:InvokeFunction` to gateway service role       |
+| Agent can't find the tool            | Target not READY, or schema invalid | Check `agentcore status`; verify JSON schema is valid     |
+| Tool returns unexpected format       | Lambda using HTTP envelope          | Return direct objects, not `{statusCode, body}` wrappers  |
+| `$ref` or `$defs` in tool schema     | Schemas must be self-contained      | Inline all references; no JSON Schema `$ref` allowed      |
 
 ---
 
 ## Deployment
 
-| Symptom                                     | Root Cause                           | Solution                                                     |
-|---------------------------------------------|--------------------------------------|--------------------------------------------------------------|
-| `runtimeVersion PYTHON_3_14` warnings       | CLI scaffolded pre-release Python    | Change to `PYTHON_3_13` in `agentcore.json`                  |
-| Deploy fails with IAM error                 | Execution role not configured        | Check `agentcore.json` or let CLI create role automatically  |
-| Deploy takes very long (>10 min)            | Memory or Gateway provisioning       | Memory STM: ~60s, LTM: ~180s. Gateway: ~60s. Normal.        |
-| `CREATE_FAILED` on runtime                  | Code error or missing entrypoint     | Check `failureReason` via `agentcore status`                 |
-| `exec format error` in container deploy     | Docker image not ARM64               | Build with `--platform linux/arm64`                          |
+| Symptom                                 | Root Cause                        | Solution                                                    |
+| --------------------------------------- | --------------------------------- | ----------------------------------------------------------- |
+| `runtimeVersion PYTHON_3_14` warnings   | CLI scaffolded pre-release Python | Change to `PYTHON_3_13` in `agentcore.json`                 |
+| Deploy fails with IAM error             | Execution role not configured     | Check `agentcore.json` or let CLI create role automatically |
+| Deploy takes very long (>10 min)        | Memory or Gateway provisioning    | Memory STM: ~60s, LTM: ~180s. Gateway: ~60s. Normal.        |
+| `CREATE_FAILED` on runtime              | Code error or missing entrypoint  | Check `failureReason` via `agentcore status`                |
+| `exec format error` in container deploy | Docker image not ARM64            | Build with `--platform linux/arm64`                         |
 
 ---
 
 ## Cedar Policies
 
-| Symptom                            | Root Cause                          | Solution                                                         |
-|------------------------------------|-------------------------------------|------------------------------------------------------------------|
-| Policy deploy fails                | Bare `resource` without type        | Use `resource is AgentCore::Gateway`                             |
-| Policy has no effect               | Mode is `LOG_ONLY`                  | Switch to `ENFORCE` after validating in logs                     |
-| `ValidationException` on create    | Schema mismatch with Gateway tools  | Deploy Gateway first so tool schemas are available for validation |
-| Numeric comparison fails           | Using operators on Decimal type     | Use `"type": "integer"` in tool schema for direct `<` `>` ops   |
+| Symptom                         | Root Cause                         | Solution                                                          |
+| ------------------------------- | ---------------------------------- | ----------------------------------------------------------------- |
+| Policy deploy fails             | Bare `resource` without type       | Use `resource is AgentCore::Gateway`                              |
+| Policy has no effect            | Mode is `LOG_ONLY`                 | Switch to `ENFORCE` after validating in logs                      |
+| `ValidationException` on create | Schema mismatch with Gateway tools | Deploy Gateway first so tool schemas are available for validation |
+| Numeric comparison fails        | Using operators on Decimal type    | Use `"type": "integer"` in tool schema for direct `<` `>` ops     |
 
 ### Cedar Syntax Quick Reference
 
@@ -130,23 +130,23 @@ when {
 
 ## Authentication / Identity
 
-| Symptom                                   | Root Cause                        | Solution                                                  |
-|-------------------------------------------|-----------------------------------|-----------------------------------------------------------|
-| `AccessDeniedException` invoking agent    | Missing IAM permissions           | Caller needs `bedrock-agentcore:InvokeAgentRuntime`       |
-| JWT validation fails                      | Discovery URL or client mismatch  | Verify `--discovery-url` and `--allowed-clients` match IdP |
-| Credential provider not found             | Name mismatch or wrong region     | Names are case-sensitive and region-scoped                 |
-| OAuth callback fails                      | Callback URL not registered       | Register the `callbackUrl` from provider creation response |
+| Symptom                                | Root Cause                       | Solution                                                   |
+| -------------------------------------- | -------------------------------- | ---------------------------------------------------------- |
+| `AccessDeniedException` invoking agent | Missing IAM permissions          | Caller needs `bedrock-agentcore:InvokeAgentRuntime`        |
+| JWT validation fails                   | Discovery URL or client mismatch | Verify `--discovery-url` and `--allowed-clients` match IdP |
+| Credential provider not found          | Name mismatch or wrong region    | Names are case-sensitive and region-scoped                 |
+| OAuth callback fails                   | Callback URL not registered      | Register the `callbackUrl` from provider creation response |
 
 ---
 
 ## General
 
-| Symptom                            | Root Cause                    | Solution                                           |
-|------------------------------------|-------------------------------|----------------------------------------------------|
-| `Unknown service` in boto3         | boto3 too old                 | `pip install --upgrade boto3 botocore`              |
-| CLI command not recognized         | Outdated CLI version          | `npm install -g @aws/agentcore@latest`             |
-| Session terminated early           | Idle timeout too short        | Increase via `agentcore.json` or `agentcore add agent` |
-| 504 Gateway Timeout on invoke      | Agent took too long           | Check agent logs; optimize tool calls or model     |
+| Symptom                       | Root Cause             | Solution                                               |
+| ----------------------------- | ---------------------- | ------------------------------------------------------ |
+| `Unknown service` in boto3    | boto3 too old          | `pip install --upgrade boto3 botocore`                 |
+| CLI command not recognized    | Outdated CLI version   | `npm install -g @aws/agentcore@latest`                 |
+| Session terminated early      | Idle timeout too short | Increase via `agentcore.json` or `agentcore add agent` |
+| 504 Gateway Timeout on invoke | Agent took too long    | Check agent logs; optimize tool calls or model         |
 
 ---
 
