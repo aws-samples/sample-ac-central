@@ -139,26 +139,18 @@ Your `agentcore.json` now shows:
         {
           "name": "WeatherService",
           "targetType": "lambdaFunctionArn",
-          "lambdaArn": "arn:aws:lambda:us-east-1:YOUR_ACCOUNT:function:weather-tool",
-          "toolDefinitions": [
-            {
-              "name": "get_weather",
-              "description": "Get the current weather conditions for a city.",
-              "inputSchema": {
-                "type": "object",
-                "properties": {
-                  "city": {"type": "string", "description": "City name"}
-                },
-                "required": ["city"]
-              }
-            }
-          ]
+          "lambdaFunctionArn": {
+            "lambdaArn": "arn:aws:lambda:us-east-1:YOUR_ACCOUNT:function:weather-tool",
+            "toolSchemaFile": "tool-schemas/weather.json"
+          }
         }
       ]
     }
   ]
 }
 ```
+
+See the [agentcore.json reference](/docs/reference/agentcore-json#agentcoregateways) for the full target schema.
 
 ---
 
@@ -169,16 +161,15 @@ Update `app/MyAgent/main.py` to use the Gateway as an MCP tool source:
 ```python
 """Agent connected to AgentCore Gateway for tool access."""
 
-import logging
 import os
 
+from mcp.client.streamable_http import streamablehttp_client
 from strands import Agent
-from strands.tools.mcp import MCPClient
-
+from strands.tools.mcp.mcp_client import MCPClient
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 
-log = logging.getLogger(__name__)
 app = BedrockAgentCoreApp()
+log = app.logger
 
 # Gateway URL injected by AgentCore Runtime at deploy time
 GATEWAY_URL = os.environ.get("AGENTCORE_GATEWAY_URL")
@@ -187,40 +178,33 @@ SYSTEM_PROMPT = """You are a helpful assistant with access to weather tools.
 When users ask about weather in a city, use the get_weather tool.
 Always report temperature in Celsius and include the conditions."""
 
+# The MCPClient itself is passed as a tool; Strands calls tools/list on it
+# lazily and exposes every tool the Gateway serves.
+tools = []
+if GATEWAY_URL:
+    tools.append(MCPClient(lambda: streamablehttp_client(GATEWAY_URL)))
+else:
+    log.warning("No AGENTCORE_GATEWAY_URL configured; running without Gateway tools")
 
-def get_gateway_tools():
-    """Connect to AgentCore Gateway and retrieve available tools."""
-    if not GATEWAY_URL:
-        log.warning("No GATEWAY_URL configured — no gateway tools available")
-        return []
-
-    try:
-        mcp_client = MCPClient(url=GATEWAY_URL)
-        return mcp_client.list_tools()
-    except Exception as exc:
-        log.warning("Gateway connection failed: %s", exc)
-        return []
+agent = Agent(
+    model="global.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    system_prompt=SYSTEM_PROMPT,
+    tools=tools,
+)
 
 
 @app.entrypoint
-def invoke(payload, context):
+async def invoke(payload, context):
     """Agent entrypoint with Gateway tool access."""
     prompt = payload.get("prompt", "Hello!")
 
-    # Get tools from Gateway (graceful degradation if unavailable)
-    gateway_tools = get_gateway_tools()
-
-    agent = Agent(
-        model="us.anthropic.claude-sonnet-4-20250514-v1:0",
-        system_prompt=SYSTEM_PROMPT,
-        tools=gateway_tools,
-    )
-
-    result = agent(prompt)
-    return {"response": result.message}
+    async for event in agent.stream_async(prompt):
+        if "event" in event:
+            yield event
 
 
-app.run()
+if __name__ == "__main__":
+    app.run()
 ```
 
 :::info Tool Naming
@@ -242,7 +226,7 @@ agentcore deploy -y
 agentcore status --type gateway
 
 # Test the agent with a weather question
-agentcore invoke '{"prompt": "What is the weather in Tokyo?"}'
+agentcore invoke "What is the weather in Tokyo?"
 ```
 
 Expected response:
