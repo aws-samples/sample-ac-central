@@ -4,6 +4,10 @@ sidebar_label: Add Memory
 sidebar_position: 1
 ---
 
+:::info Versions
+Examples built with **Strands Agents SDK** `1.46.0` and **bedrock-agentcore** `1.17.0`. APIs may differ in other versions.
+:::
+
 # Tutorial: Add Memory to Your Agent
 
 Give your agent the ability to remember facts across sessions. In this tutorial, you'll add AgentCore Memory to an existing agent so it can recall user preferences, past decisions, and conversation history.
@@ -97,7 +101,7 @@ REGION = os.environ.get("AWS_REGION", "us-east-1")
 def get_memory_session_manager(session_id: str, actor_id: str):
     """Create a memory session manager. Returns None if memory is unavailable."""
     if not MEMORY_ID:
-        log.info("No MEMORY_ID configured — running without memory")
+        log.info("No MEMORY_ID configured - running without memory")
         return None
 
     try:
@@ -241,12 +245,16 @@ Memory is scoped by `actor_id`. User A cannot access User B's memories, even if 
 
 ## Troubleshooting
 
+<div className="fancy-table">
+
 | Issue                                        | Solution                                                                                         |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
 | `ResourceNotFoundException` during local dev | Expected; memory requires deployment. Wrap in try/except.                                        |
 | Memory status stuck in CREATING              | Check IAM permissions on execution role. Use `agentcore status --type memory`.                   |
 | Agent doesn't remember across sessions       | Verify `longAndShortTerm` is set. Check that extraction jobs completed: view in CloudWatch logs. |
 | Different users seeing each other's memories | Ensure `actor_id` is unique per user (not hardcoded to "default-user").                          |
+
+</div>
 
 ---
 

@@ -12,35 +12,39 @@ Fully managed, config-based agent service with no orchestration code needed. Sta
 
 ## Why Managed Harness?
 
-- **Zero orchestration code** — Define your agent declaratively via configuration. AgentCore handles routing, memory, and tool invocation.
-- **Stateful sessions** — Micro-VM isolation with sessions persisting up to 8 hours. No infrastructure to manage.
-- **Flexible tooling** — Connect tools via AgentCore Gateway (MCP). Add, remove, or swap tools without redeploying.
-- **Export to code** — Start managed, graduate to full code control when you need custom logic. No lock-in.
+- **Zero orchestration code**: define your agent declaratively via configuration. AgentCore handles routing, memory, and tool invocation.
+- **Stateful sessions**: micro-VM isolation with sessions persisting up to 8 hours. No infrastructure to manage.
+- **Flexible tooling**: connect tools via AgentCore Gateway (MCP). Add, remove, or swap tools without redeploying.
+- **Export to code**: start managed, graduate to full code control when you need custom logic. No lock-in.
 
 ---
 
 ## Get Started in 4 Steps
 
-| Step | Action | Details |
-|------|--------|---------|
-| 1 | **Open the AgentCore Console** | Navigate to the Amazon Bedrock AgentCore console in your AWS account |
-| 2 | **Create an Agent** | Use the guided wizard to define your agent — select a model, add a system prompt, and attach tools |
-| 3 | **Configure Tools** | Connect to APIs via AgentCore Gateway or add built-in tools (Code Interpreter, Browser Tool) |
-| 4 | **Test & Deploy** | Test in the console playground, then deploy to a production endpoint |
+<div className="fancy-table fancy-table--auto-first">
+
+| Step | Action                         | Details                                                                                            |
+| ---- | ------------------------------ | -------------------------------------------------------------------------------------------------- |
+| 1    | **Open the AgentCore Console** | Navigate to the Amazon Bedrock AgentCore console in your AWS account                               |
+| 2    | **Create an Agent**            | Use the guided wizard to define your agent - select a model, add a system prompt, and attach tools |
+| 3    | **Configure Tools**            | Connect to APIs via AgentCore Gateway or add built-in tools (Code Interpreter, Browser Tool)       |
+| 4    | **Test & Deploy**              | Test in the console playground, then deploy to a production endpoint                               |
+
+</div>
 
 ---
 
 ## Key Features
 
-- **Identity integration** — Attach an OAuth provider to enable user-scoped tool access
-- **Memory** — Enable session memory (short-term) and user memory (long-term) with a toggle
-- **Guardrails** — Add content filters, topic boundaries, and PII redaction from the console
-- **Observability** — Tracing enabled by default — view in CloudWatch or export via OTLP
+- **Identity integration**: attach an OAuth provider to enable user-scoped tool access
+- **Memory**: enable session memory (short-term) and user memory (long-term) with a toggle
+- **Guardrails**: add content filters, topic boundaries, and PII redaction from the console
+- **Observability**: tracing enabled by default. View in CloudWatch or export via OTLP
 
 ---
 
 ## Resources
 
-- [AgentCore Developer Guide — Getting Started](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started.html)
+- [AgentCore Developer Guide - Getting Started](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started.html)
 - [AgentCore Console Walkthrough](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/console-walkthrough.html)
-- [Strands SDK — Managed Deployment](https://strandsagents.com/docs/user-guide/deploy/)
+- [Strands SDK - Managed Deployment](https://strandsagents.com/docs/user-guide/deploy/)

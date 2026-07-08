@@ -4,6 +4,10 @@ sidebar_label: Troubleshooting
 sidebar_position: 3
 ---
 
+:::info Versions
+Examples built with **AgentCore CLI** `@aws/agentcore@0.23.0`. Commands or flags may differ in other versions. Run `agentcore --version` to check yours.
+:::
+
 # Troubleshooting
 
 Common issues and solutions when building agents on AgentCore.
@@ -11,6 +15,8 @@ Common issues and solutions when building agents on AgentCore.
 ---
 
 ## Local Development (`agentcore dev`)
+
+<div className="fancy-table">
 
 | Symptom                                  | Root Cause                            | Solution                                                      |
 | ---------------------------------------- | ------------------------------------- | ------------------------------------------------------------- |
@@ -20,6 +26,8 @@ Common issues and solutions when building agents on AgentCore.
 | Payload shows "unknown" or garbled JSON  | CLI wraps input in `{"prompt":"..."}` | Add payload unwrapping logic (see below)                      |
 | `ModuleNotFoundError: bedrock_agentcore` | Package not in venv                   | Run `uv add bedrock-agentcore` then `uv sync`                 |
 | Hot reload not working                   | File outside watched directory        | Ensure changes are inside `app/<Name>/`                       |
+
+</div>
 
 ### Payload Unwrapping
 
@@ -46,6 +54,8 @@ def unwrap_payload(payload: dict) -> dict:
 
 ## Memory
 
+<div className="fancy-table">
+
 | Symptom                                       | Root Cause                      | Solution                                                 |
 | --------------------------------------------- | ------------------------------- | -------------------------------------------------------- |
 | `ResourceNotFoundException: Memory not found` | Memory not deployed yet         | Deploy first (`agentcore deploy`), then test locally     |
@@ -53,6 +63,8 @@ def unwrap_payload(payload: dict) -> dict:
 | Memory stuck in CREATING status               | IAM permissions or KMS issue    | Check execution role permissions; use `agentcore status` |
 | Different users seeing each other's memories  | `actor_id` hardcoded            | Use unique `actor_id` per user (from context or JWT)     |
 | Extraction jobs failing                       | Strategy misconfigured          | Check CloudWatch logs for the memory resource            |
+
+</div>
 
 ### Graceful Degradation Pattern
 
@@ -73,6 +85,8 @@ agent = Agent(model=model, session_manager=session_manager, tools=tools)
 
 ## Gateway
 
+<div className="fancy-table">
+
 | Symptom                              | Root Cause                          | Solution                                                  |
 | ------------------------------------ | ----------------------------------- | --------------------------------------------------------- |
 | Gateway stuck in CREATING            | IAM trust policy missing            | Service role must trust `bedrock-agentcore.amazonaws.com` |
@@ -82,9 +96,13 @@ agent = Agent(model=model, session_manager=session_manager, tools=tools)
 | Tool returns unexpected format       | Lambda using HTTP envelope          | Return direct objects, not `{statusCode, body}` wrappers  |
 | `$ref` or `$defs` in tool schema     | Schemas must be self-contained      | Inline all references; no JSON Schema `$ref` allowed      |
 
+</div>
+
 ---
 
 ## Deployment
+
+<div className="fancy-table">
 
 | Symptom                                 | Root Cause                        | Solution                                                    |
 | --------------------------------------- | --------------------------------- | ----------------------------------------------------------- |
@@ -94,9 +112,13 @@ agent = Agent(model=model, session_manager=session_manager, tools=tools)
 | `CREATE_FAILED` on runtime              | Code error or missing entrypoint  | Check `failureReason` via `agentcore status`                |
 | `exec format error` in container deploy | Docker image not ARM64            | Build with `--platform linux/arm64`                         |
 
+</div>
+
 ---
 
 ## Cedar Policies
+
+<div className="fancy-table">
 
 | Symptom                         | Root Cause                         | Solution                                                          |
 | ------------------------------- | ---------------------------------- | ----------------------------------------------------------------- |
@@ -104,6 +126,8 @@ agent = Agent(model=model, session_manager=session_manager, tools=tools)
 | Policy has no effect            | Mode is `LOG_ONLY`                 | Switch to `ENFORCE` after validating in logs                      |
 | `ValidationException` on create | Schema mismatch with Gateway tools | Deploy Gateway first so tool schemas are available for validation |
 | Numeric comparison fails        | Using operators on Decimal type    | Use `"type": "integer"` in tool schema for direct `<` `>` ops     |
+
+</div>
 
 ### Cedar Syntax Quick Reference
 
@@ -130,6 +154,8 @@ when {
 
 ## Authentication / Identity
 
+<div className="fancy-table">
+
 | Symptom                                | Root Cause                       | Solution                                                   |
 | -------------------------------------- | -------------------------------- | ---------------------------------------------------------- |
 | `AccessDeniedException` invoking agent | Missing IAM permissions          | Caller needs `bedrock-agentcore:InvokeAgentRuntime`        |
@@ -137,9 +163,13 @@ when {
 | Credential provider not found          | Name mismatch or wrong region    | Names are case-sensitive and region-scoped                 |
 | OAuth callback fails                   | Callback URL not registered      | Register the `callbackUrl` from provider creation response |
 
+</div>
+
 ---
 
 ## General
+
+<div className="fancy-table">
 
 | Symptom                       | Root Cause             | Solution                                               |
 | ----------------------------- | ---------------------- | ------------------------------------------------------ |
@@ -147,6 +177,8 @@ when {
 | CLI command not recognized    | Outdated CLI version   | `npm install -g @aws/agentcore@latest`                 |
 | Session terminated early      | Idle timeout too short | Increase via `agentcore.json` or `agentcore add agent` |
 | 504 Gateway Timeout on invoke | Agent took too long    | Check agent logs; optimize tool calls or model         |
+
+</div>
 
 ---
 

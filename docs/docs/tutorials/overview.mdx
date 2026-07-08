@@ -4,6 +4,11 @@ sidebar_label: Overview
 sidebar_position: 0
 ---
 
+:::info Versions
+Examples built with **Strands Agents SDK** `1.46.0` and **bedrock-agentcore** `1.17.0`. APIs may differ in other versions.
+:::
+
+
 import Link from '@docusaurus/Link';
 
 # Tutorials
@@ -12,14 +17,12 @@ Step-by-step guides for common AgentCore tasks. Each tutorial takes 10–20 minu
 
 <div className="tile-grid">
   <Link to="/docs/tutorials/add-memory" className="tile-card">
-    <span className="tile-icon">🧠</span>
-    <h3>Add Memory to Your Agent</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--memory" aria-hidden="true" /><h3>Add Memory to Your Agent</h3></div>
     <p>Give your agent cross-session recall. Remember user preferences, facts, and conversation history with SEMANTIC and SUMMARIZATION strategies.</p>
   </Link>
 
   <Link to="/docs/tutorials/connect-gateway-tool" className="tile-card">
-    <span className="tile-icon">🔌</span>
-    <h3>Connect a Tool via Gateway</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--gateway" aria-hidden="true" /><h3>Connect a Tool via Gateway</h3></div>
     <p>Add external API access through AgentCore Gateway. Create a Lambda tool, register it, and call it from your agent via MCP.</p>
   </Link>
 </div>

@@ -1,8 +1,13 @@
 ---
-title: Quickstart: Your First Agent in 5 Minutes
+title: "Quickstart: Your First Agent in 5 Minutes"
 sidebar_label: Quickstart
 sidebar_position: 1
 ---
+
+:::info Versions
+Examples built with **AgentCore CLI** `@aws/agentcore@0.23.0`, **Strands Agents SDK** `1.46.0`, and **bedrock-agentcore** `1.17.0`. Commands or APIs may differ in other versions.
+:::
+
 
 import Link from '@docusaurus/Link';
 
@@ -205,26 +210,22 @@ The CLI may scaffold `runtimeVersion: "PYTHON_3_14"` (a pre-release version). Ch
 
 <div className="tile-grid">
   <Link to="/docs/get-started/agentcore-cli" className="tile-card">
-    <span className="tile-icon">💻</span>
-    <h3>Explore the CLI</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--terminal" aria-hidden="true" /><h3>Explore the CLI</h3></div>
     <p>Learn about <code>agentcore add</code>, <code>agentcore validate</code>, and the full command set.</p>
   </Link>
 
   <Link to="/docs/workloads/conversational" className="tile-card">
-    <span className="tile-icon">💬</span>
-    <h3>Build a Chat Agent</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--chat" aria-hidden="true" /><h3>Build a Chat Agent</h3></div>
     <p>Add memory, identity, and streaming for a production conversational agent.</p>
   </Link>
 
   <Link to="/docs/workloads/workflow" className="tile-card">
-    <span className="tile-icon">⚡</span>
-    <h3>Build a Workflow Agent</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--runtime" aria-hidden="true" /><h3>Build a Workflow Agent</h3></div>
     <p>Event-driven automation with bounded autonomy and Cedar policies.</p>
   </Link>
 
   <Link to="/docs/patterns/overview" className="tile-card">
-    <span className="tile-icon">🔀</span>
-    <h3>Explore Patterns</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--patterns" aria-hidden="true" /><h3>Explore Patterns</h3></div>
     <p>Multi-agent patterns: from single agent to swarm, graph, and A2A.</p>
   </Link>
 </div>

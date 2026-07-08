@@ -20,20 +20,17 @@ This page is a placeholder. Full content with reference architectures and detail
 
 <div className="tile-grid">
   <div className="tile-card">
-    <span className="tile-icon">🔐</span>
-    <h3>Why AgentCore for Coding</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--guardrails" aria-hidden="true" /><h3>Why AgentCore for Coding</h3></div>
     <p>Secure sandboxed execution, long-running task support, identity-aware access, and Code Interpreter integration.</p>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">📐</span>
-    <h3>Reference Architecture</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--blueprint" aria-hidden="true" /><h3>Reference Architecture</h3></div>
     <p>Architecture showing IDE/CI trigger → AgentCore → code generation → review gate with full traceability.</p>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">🔀</span>
-    <h3>Recommended Patterns</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--patterns" aria-hidden="true" /><h3>Recommended Patterns</h3></div>
     <p>Plan-Act-Reflect, Swarm (multi-file refactor), and HITL (code review gate). <Link to="/docs/patterns/overview">View shared patterns page →</Link></p>
   </div>
 </div>
@@ -42,6 +39,8 @@ This page is a placeholder. Full content with reference architectures and detail
 
 ## Coding Agent Configuration
 
+<div className="fancy-table">
+
 | Dimension | Coding Agent Setting |
 |-----------|---------------------|
 | **Identity** | Developer identity |
@@ -49,6 +48,8 @@ This page is a placeholder. Full content with reference architectures and detail
 | **Runtime** | Long-running (hours), Code Interpreter |
 | **Guardrails** | Code quality + security scanning |
 | **Observability** | Per-task tracing |
+
+</div>
 
 ---
 

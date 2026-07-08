@@ -4,6 +4,10 @@ sidebar_label: Conversational
 sidebar_position: 2
 ---
 
+:::info Versions
+Examples built with **Strands Agents SDK** `1.46.0` and **bedrock-agentcore** `1.17.0`. APIs may differ in other versions.
+:::
+
 # Field Guide: Conversational Agents
 
 Positioning, objection handling, and demo scripts for account teams.
@@ -12,6 +16,8 @@ Positioning, objection handling, and demo scripts for account teams.
 
 ## Common Objections & Responses
 
+<div className="fancy-table">
+
 | Objection                                          | Response                                                                                                                  |
 |----------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
 | "Why not just Lambda + API Gateway?"               | No session persistence, no memory, no microVM isolation, no identity token exchange. You'd rebuild half of AgentCore.     |
@@ -19,6 +25,8 @@ Positioning, objection handling, and demo scripts for account teams.
 | "How does this compare to Azure AI Agent Service?" | Multi-model (any provider via Strands), bring-your-own-framework, no vendor lock-in on the model layer.                   |
 | "What about cost at scale?"                        | Serverless pricing means no idle cost. Context optimization reduces per-turn token spend via summarization and retrieval. |
 | "Is it production-ready?"                          | Cox, Ryanair, BGL, Kavak, Thomson Reuters, and Swisscom are in production today.                                          |
+
+</div>
 
 ---
 
