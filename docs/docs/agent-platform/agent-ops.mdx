@@ -7,7 +7,7 @@ sidebar_position: 6
 import Link from '@docusaurus/Link';
 
 :::info Architectural Guidance
-This page describes the target-state architecture for agent operations at enterprise scale. Some capabilities (Agent Registry, percentage-based traffic splitting) represent platform patterns you build on top of AgentCore primitives, not GA managed services. AgentCore Runtime endpoint versioning enables blue-green deployments today; additional traffic management is a customer-built layer.
+This page describes the target-state architecture for agent operations at enterprise scale. AWS Agent Registry is a real, public-preview managed service, not a customer-built pattern. See the lifecycle table below for its actual status model. Percentage-based traffic splitting and quality-triggered rollback, by contrast, are platform patterns you build on top of AgentCore Runtime's native endpoint versioning; they are not built-in Gateway features.
 :::
 
 # Agent Ops
@@ -18,7 +18,7 @@ Agent Ops extends DevOps practices to the unique challenges of AI agents. Becaus
 
 ## Agent CI/CD Pipeline
 
-An agent deployment pipeline validates quality, safety, and performance at every stage — not just "does it build?"
+An agent deployment pipeline validates quality, safety, and performance at every stage. It goes beyond "does it build?"
 
 <div className="arch-flow">
   <span className="arch-flow-step">Commit</span>
@@ -36,14 +36,18 @@ An agent deployment pipeline validates quality, safety, and performance at every
 
 ### Pipeline Stages
 
-| Stage | What Happens | Gate Criteria |
-|---|---|---|
-| **Commit** | Code pushed, PR created | Linting, type checks, unit tests pass |
-| **Build & Test** | Container image built, integration tests run | All tests pass, image scans clean |
-| **Validate (Evals)** | Offline evaluations against test dataset | Quality ≥ threshold, safety 100%, latency ≤ SLA |
-| **Promote to Stage** | Deploy to staging environment | Smoke tests pass, no regression vs. baseline |
-| **Registry** | Agent version registered with metadata | Approval workflow complete (if required) |
-| **Promote to Prod** | Deploy to production with traffic ramp | Canary metrics healthy, no alerts triggered |
+<div className="fancy-table">
+
+| Stage                | What Happens                                 | Gate Criteria                                   |
+| -------------------- | -------------------------------------------- | ----------------------------------------------- |
+| **Commit**           | Code pushed, PR created                      | Linting, type checks, unit tests pass           |
+| **Build & Test**     | Container image built, integration tests run | All tests pass, image scans clean               |
+| **Validate (Evals)** | Offline evaluations against test dataset     | Quality ≥ threshold, safety 100%, latency ≤ SLA |
+| **Promote to Stage** | Deploy to staging environment                | Smoke tests pass, no regression vs. baseline    |
+| **Registry**         | Agent version registered with metadata       | Approval workflow complete (if required)        |
+| **Promote to Prod**  | Deploy to production with traffic ramp       | Canary metrics healthy, no alerts triggered     |
+
+</div>
 
 ### Quality Feedback Loop
 
@@ -62,7 +66,7 @@ When evaluations fail at the **Validate** stage, the pipeline provides actionabl
 </div>
 
 :::tip
-Treat evaluation failures like test failures — they block the pipeline. This ensures only validated agents reach production.
+Treat evaluation failures like test failures - they block the pipeline. This ensures only validated agents reach production.
 :::
 
 ---
@@ -75,67 +79,82 @@ Once an agent is in production, operations shift to continuous monitoring, exper
 
 Continuous operational health checks powered by AgentCore Observability, Evaluations, CloudWatch Alarms, and Cost Explorer.
 
-| Signal | Monitors | Action on Breach |
-|---|---|---|
-| **Quality** | Faithfulness, relevance, completeness scores | Alert owner, escalate if sustained |
-| **Cost** | Token spend, tool invocation costs per agent | Throttle, switch model, notify team |
-| **Behavior** | Response distribution, tool usage patterns | Investigate drift, trigger on-demand eval |
-| **Availability** | Success rate, timeout rate, error rate | Auto-scale, circuit break, rollback |
+<div className="fancy-table">
 
-### A/B Testing
+| Signal           | Monitors                                     | Action on Breach                          |
+| ---------------- | -------------------------------------------- | ----------------------------------------- |
+| **Quality**      | Faithfulness, relevance, completeness scores | Alert owner, escalate if sustained        |
+| **Cost**         | Token spend, tool invocation costs per agent | Throttle, switch model, notify team       |
+| **Behavior**     | Response distribution, tool usage patterns   | Investigate drift, trigger on-demand eval |
+| **Availability** | Success rate, timeout rate, error rate       | Auto-scale, circuit break, rollback       |
 
-Split traffic between agent versions to measure improvements with real users.
-
-<div className="tile-grid">
-  <div className="tile-card">
-    <span className="tile-icon">🔀</span>
-    <h3>Traffic Splitting via Gateway</h3>
-    <p>AgentCore Gateway routes a configurable percentage of traffic to each agent version. No code changes required — routing is policy-driven.</p>
-    <span className="service-tag tag--gateway">Gateway</span>
-  </div>
-
-  <div className="tile-card">
-    <span className="tile-icon">📈</span>
-    <h3>Metric Comparison</h3>
-    <p>AgentCore Observability tracks per-version metrics. Compare quality, latency, cost, and user satisfaction between variants.</p>
-    <span className="service-tag tag--observability">Observability</span>
-  </div>
-
-  <div className="tile-card">
-    <span className="tile-icon">✅</span>
-    <h3>Promotion Decision</h3>
-    <p>When the new version statistically outperforms the baseline, promote to 100% traffic. If not, roll back automatically.</p>
-    <span className="service-tag tag--evaluations">Evaluations</span>
-  </div>
 </div>
+
+### Versioning, Endpoints, and Canary Rollout
+
+AgentCore Runtime versions automatically. Any change that affects behavior (protocol settings, container image, network configuration) creates a new immutable version; unrelated changes do not. **Endpoints** are the mechanism for controlling which version actually serves traffic:
+
+<div className="fancy-table">
+
+| Change Type                   | Version Created | `DEFAULT` Endpoint | Named Endpoint (e.g. `PROD`)       |
+| ----------------------------- | --------------- | ------------------ | ---------------------------------- |
+| Initial creation              | V1              | Points to V1       | Not yet created                    |
+| Container image update        | V2              | Moves to V2        | Stays on V1 until updated manually |
+| Point `PROD` at V2 explicitly | No new version  | Unchanged          | Moves to V2                        |
+| Container image update again  | V3              | Moves to V3        | Stays on V2                        |
+
+</div>
+
+This gives you blue-green deployment out of the box: cut a new version, validate it behind a `staging` endpoint, then repoint `PROD` to it once you're confident. What Runtime does **not** provide natively is weighted or percentage-based traffic splitting across versions. That requires a routing layer in front of Runtime (for example, an API Gateway stage variable, an application load balancer weighted target group, or logic in your own orchestrator) that sends some percentage of requests to the `PROD` endpoint and the rest to a `canary` endpoint.
+
+A canary pattern built on top of endpoint versioning looks like:
+
+1. Deploy the new agent version, create a `canary` endpoint pointed at it, leave `PROD` on the current version.
+2. Route a small percentage of live traffic to `canary` through your routing layer.
+3. Compare quality, latency, and cost between `canary` and `PROD` using AgentCore Observability's per-version metrics.
+4. If the canary holds or improves on quality thresholds, repoint `PROD` to the new version and delete the `canary` endpoint. If it regresses, delete `canary` and repoint traffic back to `PROD`. No code change is needed since `PROD` never moved.
+
+:::info
+Endpoint versioning and blue-green promotion are native to AgentCore Runtime today. Percentage-based traffic splitting and automatic quality-triggered rollback are patterns you build on top using your own routing layer and Observability metrics. Treat any documentation or tutorial that implies Gateway does weighted traffic splitting natively as inaccurate.
+:::
 
 ### Agent Lifecycle Management
 
-Every agent follows a governed lifecycle managed through the Agent Registry.
+An agent's **operational lifecycle** (is it being built, tested, or serving traffic) and its **registry status** (is it discoverable and approved for reuse) are two different, loosely-coupled tracks. Runtime versioning and endpoints drive the first; AWS Agent Registry drives the second.
 
-| Phase | Actions | Registry State |
-|---|---|---|
-| **Development** | Build, test locally, iterate on prompts | `draft` |
-| **Staging** | Integration testing, offline evals | `staging` |
-| **Production** | Serving live traffic | `active` |
-| **Deprecated** | Marked for removal, users notified | `deprecated` |
-| **Retired** | No traffic, preserved for audit | `archived` |
+<div className="fancy-table">
+
+| Operational Phase | What's Happening                              | Typical Registry Status                    |
+| ----------------- | --------------------------------------------- | ------------------------------------------ |
+| **Development**   | Build, test locally, iterate on prompts       | `DRAFT`, not yet submitted                 |
+| **Review**        | Submitted for security/compliance review      | `PENDING_APPROVAL`                         |
+| **Production**    | Serving live traffic behind a `PROD` endpoint | `APPROVED`, discoverable for reuse         |
+| **Deprecated**    | Marked for removal, consumers notified        | `DEPRECATED`, no longer surfaced in search |
+
+</div>
+
+A record can also land in `REJECTED` if a reviewer declines it. That's not a phase an agent passes through on the way to production. It's a dead end that sends the publisher back to `DRAFT`.
 
 Key lifecycle operations:
 
-- **Version History** — Every deployment creates an immutable version record with metadata, eval results, and configuration snapshot.
-- **Rollback** — Instant revert to any previous version. The registry maintains deployment history for quick recovery.
-- **Deprecation Workflow** — Notify consumers, provide migration path, set sunset date, automatically redirect traffic after deadline.
+- **Version History**: AgentCore Runtime creates an immutable version on every behavior-affecting change (see the endpoint versioning table above). This is independent of Registry status.
+- **Rollback**: repoint the `PROD` endpoint to a previous Runtime version. Registry status does not need to change for a rollback. The record still describes the same logical agent.
+- **Deprecation Workflow**: move the Registry record to `DEPRECATED` so it stops appearing in search and the MCP discovery endpoint, notify known consumers, and set a sunset date for the underlying Runtime endpoint. Traffic redirection after the sunset date is handled by your routing layer, not by Registry itself.
 
 ---
 
 ## Services Summary
 
-| Capability | Primary Service |
-|---|---|
-| CI/CD Pipeline | CodePipeline + CodeBuild (or GitHub Actions) |
-| Evaluation Gates | AgentCore Evaluations |
-| Monitoring & Alerts | AgentCore Observability + CloudWatch Alarms |
-| Cost Tracking | AWS Cost Explorer + Cost Allocation Tags |
-| Traffic Splitting | AgentCore Gateway |
-| Version Management | AgentCore Registry |
+<div className="fancy-table">
+
+| Capability                 | Primary Service                                        |
+| -------------------------- | ------------------------------------------------------ |
+| CI/CD Pipeline             | CodePipeline + CodeBuild (or GitHub Actions)           |
+| Evaluation Gates           | AgentCore Evaluations                                  |
+| Monitoring & Alerts        | AgentCore Observability + CloudWatch Alarms            |
+| Cost Tracking              | AWS Cost Explorer + Cost Allocation Tags               |
+| Version Management         | AgentCore Runtime endpoint versioning                  |
+| Traffic Splitting / Canary | Customer-built routing layer + AgentCore Observability |
+| Agent Catalog              | AWS Agent Registry                                     |
+
+</div>

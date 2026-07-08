@@ -8,7 +8,7 @@ import Link from '@docusaurus/Link';
 
 # Build Your Agent Platform
 
-Enterprises have moved past experimentation. AI agents are in production — handling customer support, automating workflows, generating code, and orchestrating complex business processes. But scaling from a handful of pilots to dozens (or hundreds) of agents introduces challenges that individual teams cannot solve alone.
+Enterprises have moved past experimentation. AI agents are in production - handling customer support, automating workflows, generating code, and orchestrating complex business processes. But scaling from a handful of pilots to dozens (or hundreds) of agents introduces challenges that individual teams cannot solve alone.
 
 ---
 
@@ -20,38 +20,32 @@ The shift from "proof of concept" to "production fleet" exposes fundamental scal
 
 <div className="tile-grid">
   <div className="tile-card">
-    <span className="tile-icon">🌀</span>
-    <h3>Agent Sprawl</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--spiral" aria-hidden="true" /><h3>Agent Sprawl</h3></div>
     <p>Teams independently deploy agents with no central visibility. Duplicated capabilities, inconsistent quality, and no way to discover what already exists.</p>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">👻</span>
-    <h3>Shadow AI</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--ghost" aria-hidden="true" /><h3>Shadow AI</h3></div>
     <p>Developers and business users spin up agents outside governed channels. No security review, no cost tracking, no compliance checks.</p>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">🔍</span>
-    <h3>Observability Gap</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--search" aria-hidden="true" /><h3>Observability Gap</h3></div>
     <p>Agents operate as black boxes. No unified tracing, no quality metrics, no way to diagnose failures or measure drift across the fleet.</p>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">❓</span>
-    <h3>Ownership Ambiguity</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--question" aria-hidden="true" /><h3>Ownership Ambiguity</h3></div>
     <p>Who owns an agent after it's deployed? Who is paged when it hallucinates at 2 AM? No clear lifecycle ownership model.</p>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">💸</span>
-    <h3>Cost Blindness</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--cost" aria-hidden="true" /><h3>Cost Blindness</h3></div>
     <p>Token consumption, compute costs, and tool invocation charges are invisible at the team level. No attribution, no budgets, no accountability.</p>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">🔌</span>
-    <h3>Integration Chaos</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--gateway" aria-hidden="true" /><h3>Integration Chaos</h3></div>
     <p>Every team builds their own auth flows, tool connectors, and memory solutions. No shared infrastructure, no reusable patterns.</p>
   </div>
 </div>
@@ -66,6 +60,8 @@ The shift from "proof of concept" to "production fleet" exposes fundamental scal
 
 Platform thinking applies the same principles that transformed application development (Kubernetes, service meshes, developer portals) to the world of AI agents. Instead of each team solving infrastructure, security, and observability independently, a platform team provides curated, self-service capabilities that accelerate delivery while maintaining governance.
 
+<div className="fancy-table">
+
 | Without a Platform | With a Platform |
 |---|---|
 | Each team builds auth, memory, observability | Shared services, self-service onboarding |
@@ -75,44 +71,40 @@ Platform thinking applies the same principles that transformed application devel
 | Manual compliance reviews | Automated governance workflows |
 | Siloed knowledge | Reusable patterns and templates |
 
+</div>
+
 ---
 
 ## What This Section Covers
 
 <div className="tile-grid">
   <Link to="/docs/agent-platform/platform-stack" className="tile-card">
-    <span className="tile-icon">🏗️</span>
-    <h3>Platform Stack</h3>
-    <p>The full reference architecture — layers, pillars, and how domain teams consume the platform.</p>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--scaffold" aria-hidden="true" /><h3>Platform Stack</h3></div>
+    <p>The full reference architecture - layers, pillars, and how domain teams consume the platform.</p>
   </Link>
 
   <Link to="/docs/agent-platform/powered-by-agentcore" className="tile-card">
-    <span className="tile-icon">⚡</span>
-    <h3>Powered by AgentCore</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--runtime" aria-hidden="true" /><h3>Powered by AgentCore</h3></div>
     <p>How each platform layer maps to Amazon Bedrock AgentCore services and supported frameworks.</p>
   </Link>
 
   <Link to="/docs/agent-platform/governance" className="tile-card">
-    <span className="tile-icon">🛡️</span>
-    <h3>Governance & Security</h3>
-    <p>Governance and enforcement planes — policies, identity, guardrails, and compliance.</p>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--guardrails" aria-hidden="true" /><h3>Governance & Security</h3></div>
+    <p>Governance and enforcement planes - policies, identity, guardrails, and compliance.</p>
   </Link>
 
   <Link to="/docs/agent-platform/observability-evals" className="tile-card">
-    <span className="tile-icon">📊</span>
-    <h3>Observability & Evaluations</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--chart" aria-hidden="true" /><h3>Observability & Evaluations</h3></div>
     <p>The observe-evaluate-optimize loop for continuous agent quality.</p>
   </Link>
 
   <Link to="/docs/agent-platform/agent-ops" className="tile-card">
-    <span className="tile-icon">🚀</span>
-    <h3>Agent Ops</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--rocket" aria-hidden="true" /><h3>Agent Ops</h3></div>
     <p>CI/CD pipelines, A/B testing, lifecycle management, and operational excellence.</p>
   </Link>
 
   <Link to="/docs/agent-platform/multi-tenancy" className="tile-card">
-    <span className="tile-icon">🏢</span>
-    <h3>Multi-Tenancy & Reference Architecture</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--building" aria-hidden="true" /><h3>Multi-Tenancy & Reference Architecture</h3></div>
     <p>Isolation models, multi-account governance, operating models, and maturity path.</p>
   </Link>
 </div>

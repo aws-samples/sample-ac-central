@@ -15,18 +15,22 @@ Autonomous agents introduce a new class of enterprise risk. Unlike traditional s
 ## Why Agent Governance
 
 :::caution
-An unmonitored agent with broad tool access can — in a single session — access sensitive data, invoke external APIs, generate unauthorized content, and accumulate significant token costs. Traditional application security models are insufficient.
+An unmonitored agent with broad tool access can - in a single session - access sensitive data, invoke external APIs, generate unauthorized content, and accumulate significant token costs. Traditional application security models are insufficient.
 :::
 
 **Key risks that governance addresses:**
 
-| Risk | Impact | Example |
-|---|---|---|
-| Data Exfiltration | Sensitive data leaks to unauthorized destinations | Agent sends PII to an unvetted external API |
-| Cost Overruns | Uncontrolled token consumption and tool invocations | Recursive agent loop burns through monthly budget in hours |
-| Compliance Violations | Regulatory breach | Agent processes EU citizen data outside approved regions |
-| Hallucination at Scale | Incorrect information propagated to customers | Customer-facing agent provides fabricated policy details |
-| Unauthorized Actions | Agent takes actions beyond its intended scope | Agent modifies production database during a read-only task |
+<div className="fancy-table">
+
+| Risk                   | Impact                                              | Example                                                    |
+| ---------------------- | --------------------------------------------------- | ---------------------------------------------------------- |
+| Data Exfiltration      | Sensitive data leaks to unauthorized destinations   | Agent sends PII to an unvetted external API                |
+| Cost Overruns          | Uncontrolled token consumption and tool invocations | Recursive agent loop burns through monthly budget in hours |
+| Compliance Violations  | Regulatory breach                                   | Agent processes EU citizen data outside approved regions   |
+| Hallucination at Scale | Incorrect information propagated to customers       | Customer-facing agent provides fabricated policy details   |
+| Unauthorized Actions   | Agent takes actions beyond its intended scope       | Agent modifies production database during a read-only task |
+
+</div>
 
 ---
 
@@ -34,11 +38,15 @@ An unmonitored agent with broad tool access can — in a single session — acce
 
 Agent governance must account for emerging AI regulation:
 
-| Framework | Focus | Relevance to Agent Platforms |
-|---|---|---|
-| **EU AI Act** | Risk classification, transparency, human oversight | High-risk agents require documented governance, human-in-the-loop |
-| **NIST AI RMF** | Risk management lifecycle | Map, Measure, Manage, Govern — aligns with platform observability and evals |
-| **ISO 42001** | AI management systems | Organizational controls for AI systems lifecycle |
+<div className="fancy-table">
+
+| Framework       | Focus                                              | Relevance to Agent Platforms                                                |
+| --------------- | -------------------------------------------------- | --------------------------------------------------------------------------- |
+| **EU AI Act**   | Risk classification, transparency, human oversight | High-risk agents require documented governance, human-in-the-loop           |
+| **NIST AI RMF** | Risk management lifecycle                          | Map, Measure, Manage, Govern - aligns with platform observability and evals |
+| **ISO 42001**   | AI management systems                              | Organizational controls for AI systems lifecycle                            |
+
+</div>
 
 ---
 
@@ -46,43 +54,64 @@ Agent governance must account for emerging AI regulation:
 
 Effective agent governance separates **policy definition** from **runtime enforcement**. This separation enables centralized policy management with distributed enforcement at the point of execution.
 
-### Governance Plane — Define Policy
+### Governance Plane - Define Policy
 
 The governance plane is where policies are authored, agents are registered, identities are managed, and compliance is monitored.
 
 <div className="tile-grid">
   <div className="tile-card">
-    <span className="tile-icon">📜</span>
-    <h3>AgentCore Policy</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--scroll" aria-hidden="true" /><h3>AgentCore Policy</h3></div>
     <p>Declarative policies (Cedar) that define what agents can access, which tools they can invoke, and under what conditions. Version-controlled and auditable.</p>
     <span className="service-tag tag--identity">Policy Definition</span>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">📋</span>
-    <h3>Agent Registry</h3>
-    <p>Central catalog with versioning, ownership metadata, approval workflows, and capability declarations. The source of truth for all agents in the enterprise.</p>
-    <span className="service-tag tag--gateway">Lifecycle Mgmt</span>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--workflow" aria-hidden="true" /><h3>AWS Agent Registry</h3></div>
+    <p>Public-preview catalog for agents, tools, MCP servers, agent skills, and custom resources. Stores structured metadata (owner, protocol, capabilities, invocation details) and supports an approval workflow before a record is discoverable.</p>
+    <span className="service-tag tag--gateway">Public Preview</span>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">🔐</span>
-    <h3>AgentCore Identity + IAM + OAuth</h3>
-    <p>Agent identity issuance, authentication, authorization, and token brokering. Each agent gets a verifiable identity — no shared credentials.</p>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--guardrails" aria-hidden="true" /><h3>AgentCore Identity + IAM + OAuth</h3></div>
+    <p>Agent identity issuance, authentication, authorization, and token brokering. Each agent gets a verifiable identity - no shared credentials.</p>
     <span className="service-tag tag--identity">AuthN / AuthZ</span>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">📊</span>
-    <h3>AgentCore Observability + CloudWatch</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--chart" aria-hidden="true" /><h3>AgentCore Observability + CloudWatch</h3></div>
     <p>Logging, distributed tracing, metrics, audit trails, alerts, and cost tracking. The evidence layer for compliance and operational health.</p>
     <span className="service-tag tag--observability">Audit & Monitor</span>
   </div>
 </div>
 
+### AWS Agent Registry - Discovery and Approval Lifecycle
+
+AWS Agent Registry (public preview) is the catalog that answers "what agents, tools, and MCP servers already exist, and are they approved for use." Every record moves through the same status lifecycle, whether it was registered manually or pulled automatically from an MCP/A2A endpoint.
+
+<div className="fancy-table">
+
+| Status             | Meaning                                                                                 |
+| ------------------ | --------------------------------------------------------------------------------------- |
+| `DRAFT`            | Record created but not yet submitted for review                                         |
+| `PENDING_APPROVAL` | Submitted; awaiting reviewer decision (or auto-approval if the registry has it enabled) |
+| `APPROVED`         | Discoverable via search and the registry's MCP endpoint                                 |
+| `REJECTED`         | Reviewer declined the record; not discoverable                                          |
+| `DEPRECATED`       | Previously approved, now retired from active discovery                                  |
+
+</div>
+
+Two integration points make Registry useful as a governance control point, not just a catalog:
+
+- **EventBridge on submission**: when a publisher submits a record for approval, Registry emits an EventBridge notification that can trigger an existing review pipeline (security review, compliance check). The pipeline calls `UpdateRegistryRecordStatus` to approve or reject, so organizations plug Registry into review processes they already run instead of building a new one.
+- **MCP-native discovery**: the registry is queryable as an MCP server, so any MCP-compatible client (including IDE agents) can search for approved agents and tools directly, in addition to the console and control-plane API.
+
+:::info
+Only `APPROVED` records appear in search results or the registry's MCP endpoint. Approval is eventually consistent. Indexing can take a few seconds up to a few minutes after a record moves to `APPROVED`.
+:::
+
 ---
 
-### Enforcement Plane — Runtime Execution
+### Enforcement Plane - Runtime Execution
 
 The enforcement plane applies governance policies at runtime, at every point in the agent's execution flow.
 
@@ -102,57 +131,172 @@ The enforcement plane applies governance policies at runtime, at every point in 
   <span className="arch-flow-step">Tools & Resources</span>
 </div>
 
-#### Gateway — Inbound Enforcement
+#### Gateway - Inbound Enforcement
 
-| Check | Service | Description |
-|---|---|---|
-| Authentication | AgentCore Identity | Validate caller identity (JWT, API key, OAuth token) |
-| Cedar Policy Eval | AgentCore Policy | Evaluate fine-grained access control policies |
-| FGAC | IAM + Cedar | Field-level and resource-level authorization |
-| Rate Limiting | AgentCore Gateway | Throttle requests per tenant, per agent, per user |
+<div className="fancy-table">
 
-#### Agent Runtime — Execution
+| Check             | Service            | Description                                          |
+| ----------------- | ------------------ | ---------------------------------------------------- |
+| Authentication    | AgentCore Identity | Validate caller identity (JWT, API key, OAuth token) |
+| Cedar Policy Eval | AgentCore Policy   | Evaluate fine-grained access control policies        |
+| FGAC              | IAM + Cedar        | Field-level and resource-level authorization         |
+| Rate Limiting     | AgentCore Gateway  | Throttle requests per tenant, per agent, per user    |
 
-| Capability | Service | Description |
-|---|---|---|
-| Orchestration | AgentCore Runtime | Agent reasoning loop execution in sandboxed environment |
-| Memory & Context | AgentCore Memory | Scoped memory access — agents see only their authorized context |
-| Tool Invocation | AgentCore Gateway | Controlled tool execution with permission checks |
-| Reasoning | LLM via Bedrock | Model inference with guardrails applied |
+</div>
 
-#### Model Catalog — Model Governance
+#### Agent Runtime - Execution
 
-| Capability | Service | Description |
-|---|---|---|
-| Model Selection | Bedrock Model Catalog | Approved model list per agent or use case |
-| Model Routing | AgentCore Gateway | Route to appropriate model based on task, cost, latency |
+<div className="fancy-table">
 
-#### Guardrails — Content Safety
+| Capability       | Service           | Description                                                     |
+| ---------------- | ----------------- | --------------------------------------------------------------- |
+| Orchestration    | AgentCore Runtime | Agent reasoning loop execution in sandboxed environment         |
+| Memory & Context | AgentCore Memory  | Scoped memory access - agents see only their authorized context |
+| Tool Invocation  | AgentCore Gateway | Controlled tool execution with permission checks                |
+| Reasoning        | LLM via Bedrock   | Model inference with guardrails applied                         |
 
-| Check | Service | Description |
-|---|---|---|
-| Input Filtering | Bedrock Guardrails | Block harmful, off-topic, or policy-violating inputs |
-| Output Filtering | Bedrock Guardrails | Prevent harmful or non-compliant responses |
-| PII Redaction | Bedrock Guardrails | Detect and mask personally identifiable information |
-| Topic Denial | Bedrock Guardrails | Prevent agents from discussing restricted topics |
-| Hallucination Detection | Bedrock Guardrails | Grounded responses with citation requirements |
+</div>
 
-#### Gateway — Outbound Enforcement
+#### Model Catalog - Model Governance
 
-| Check | Service | Description |
-|---|---|---|
-| Cedar Policy Eval | AgentCore Policy | Evaluate outbound access policies before tool execution |
-| Outbound Auth (2LO/3LO) | AgentCore Identity | Broker OAuth tokens for external service access |
-| Tool Connectivity | AgentCore Gateway | Managed connections to MCP servers and external APIs |
+<div className="fancy-table">
+
+| Capability      | Service               | Description                                             |
+| --------------- | --------------------- | ------------------------------------------------------- |
+| Model Selection | Bedrock Model Catalog | Approved model list per agent or use case               |
+| Model Routing   | AgentCore Gateway     | Route to appropriate model based on task, cost, latency |
+
+</div>
+
+#### Guardrails - Content Safety
+
+<div className="fancy-table">
+
+| Check                   | Service            | Description                                          |
+| ----------------------- | ------------------ | ---------------------------------------------------- |
+| Input Filtering         | Bedrock Guardrails | Block harmful, off-topic, or policy-violating inputs |
+| Output Filtering        | Bedrock Guardrails | Prevent harmful or non-compliant responses           |
+| PII Redaction           | Bedrock Guardrails | Detect and mask personally identifiable information  |
+| Topic Denial            | Bedrock Guardrails | Prevent agents from discussing restricted topics     |
+| Hallucination Detection | Bedrock Guardrails | Grounded responses with citation requirements        |
+
+</div>
+
+#### Policy vs. Guardrails - Two Different Controls
+
+AgentCore Policy and Bedrock Guardrails both sit in the enforcement path, but they answer different questions and operate at different layers:
+
+<div className="fancy-table">
+
+| Aspect            | AgentCore Policy                                                    | Bedrock Guardrails                                                         |
+| ----------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Question answered | Can this principal call this tool on this resource?                 | Is this content safe to send or receive?                                   |
+| Layer             | Gateway, before a tool call reaches its target                      | Model input/output, around the inference call                              |
+| Language          | Cedar (`permit`/`forbid` over principal, action, resource, context) | Configured policy (denied topics, content filters, PII patterns)           |
+| Determinism       | Deterministic - same input always yields the same allow/deny        | Probabilistic scoring against configured thresholds                        |
+| Typical use       | "Only the billing role can call `refund_payment`"                   | "Never return unredacted SSNs" or "block discussion of competitor pricing" |
+
+</div>
+
+Both support a **log-only** mode for safe rollout. AgentCore Policy has two independent log-only controls that are easy to conflate: the policy engine's `mode` (`ENFORCE` or `LOG_ONLY`) governs whether the engine enforces anything at all, and each individual policy's `enforcementMode` (`ACTIVE` or `LOG_ONLY`) governs whether that specific policy's decision is enforced. Engine-level `LOG_ONLY` takes precedence. If the engine is in log-only mode, no policy can block a Gateway call, even if that policy's own `enforcementMode` is `ACTIVE`. Use policy-level `LOG_ONLY` to shadow-test one new rule in production. Use engine-level `LOG_ONLY` to observe an entire policy set before turning on enforcement.
+
+---
+
+#### Gateway - Outbound Enforcement
+
+<div className="fancy-table">
+
+| Check                   | Service            | Description                                             |
+| ----------------------- | ------------------ | ------------------------------------------------------- |
+| Cedar Policy Eval       | AgentCore Policy   | Evaluate outbound access policies before tool execution |
+| Outbound Auth (2LO/3LO) | AgentCore Identity | Broker OAuth tokens for external service access         |
+| Tool Connectivity       | AgentCore Gateway  | Managed connections to MCP servers and external APIs    |
+
+</div>
 
 #### Tools & Resources
 
-| Target | Protocol | Description |
-|---|---|---|
-| MCP Servers | MCP | Federated tool access via Model Context Protocol |
-| External APIs | HTTPS | REST/GraphQL APIs with managed credentials |
-| Databases | Various | Scoped read/write access with query policies |
-| Other Agents | A2A | Agent-to-agent delegation via A2A protocol |
+<div className="fancy-table">
+
+| Target        | Protocol | Description                                      |
+| ------------- | -------- | ------------------------------------------------ |
+| MCP Servers   | MCP      | Federated tool access via Model Context Protocol |
+| External APIs | HTTPS    | REST/GraphQL APIs with managed credentials       |
+| Databases     | Various  | Scoped read/write access with query policies     |
+| Other Agents  | A2A      | Agent-to-agent delegation via A2A protocol       |
+
+</div>
+
+---
+
+## Identity Propagation Across Agent Hops
+
+In a multi-agent system, the request that started with a human user often passes through several agents and tool calls before it produces a result. If each hop only checks "is the caller a valid agent," you lose the original user's identity along the way, and every downstream authorization decision is made against the wrong principal.
+
+AgentCore Identity's workload identity model is built to prevent that. A workload identity is the stable identity of the agent itself; the `GetWorkloadAccessTokenForUserId` API layers the acting user's identity on top of it, producing a token that is scoped to both "this agent" and "this user." Passing that token (not just the agent's own credentials) to every downstream tool call and sub-agent invocation keeps the original user's identity attached through the full chain:
+
+```python
+from bedrock_agentcore.services.identity import IdentityClient
+
+identity_client = IdentityClient("us-east-1")
+
+def handle_request(user_id: str, workload_name: str, request: dict) -> dict:
+    workload_token = identity_client.get_workload_access_token(
+        workload_name=workload_name,
+        user_id=user_id,
+    )
+    return invoke_downstream_tool(request, auth_token=workload_token)
+```
+
+Prefer the `user_token` parameter (a JWT for the end user) over `user_id` when a JWT is available. AgentCore Identity validates the JWT's signature, issuer, and expiry; a plain `user_id` string is not verified by the platform.
+
+Two practical implications for a platform built this way:
+
+- **Downstream policy checks should evaluate the propagated user identity, not the calling agent's identity.** An AgentCore Policy rule scoped to `principal == User::"alice"` only works if the user's identity actually reached the Gateway making the tool call.
+- **Sub-agent-to-sub-agent calls need the same discipline as agent-to-tool calls.** If Agent A calls Agent B on a user's behalf, A needs to forward (or re-request) a workload access token scoped to that user rather than calling B with its own agent identity, or B has no way to enforce per-user authorization.
+
+This pattern (propagate a user-scoped token through every hop, and enforce authorization independently at each hop rather than trusting the previous hop's decision) is the practical form of zero-trust for multi-agent systems: no single agent in the chain is implicitly trusted just because an earlier agent validated the request.
+
+---
+
+## Cost Governance with Application Inference Profiles
+
+Token spend is a governance concern, not just a FinOps concern. An ungoverned agent with an uncapped model budget is the cost equivalent of an ungoverned agent with unrestricted tool access. Amazon Bedrock's **application inference profiles** are the primitive that makes per-agent, per-team cost attribution possible without building a custom metering layer.
+
+An application inference profile is a Bedrock resource you create that wraps a foundation model (or a cross-region system-defined profile) and carries cost allocation tags. Callers pass the profile's ARN instead of a raw model ID; Bedrock attaches the profile's tags to the billing record for every request that flows through it.
+
+```python
+import boto3
+
+client = boto3.client("bedrock-runtime")
+
+response = client.converse(
+    modelId="arn:aws:bedrock:us-east-1:123456789012:inference-profile/finance-agent-prod",
+    messages=[{"role": "user", "content": [{"text": "Summarize this quarter's variance report"}]}],
+)
+```
+
+A common tagging pattern for platform teams is a fixed five-tag schema applied to every application inference profile at creation time:
+
+<div className="fancy-table">
+
+| Tag             | Purpose                                                                          |
+| --------------- | -------------------------------------------------------------------------------- |
+| `ApplicationCI` | Links spend to a configuration item in the CMDB                                  |
+| `Application`   | Human-readable application or agent name                                         |
+| `Owner`         | Team or individual accountable for the spend                                     |
+| `Environment`   | `dev` / `staging` / `prod` - separates experimentation cost from production cost |
+| `ModelID`       | Underlying foundation model, for model-level cost comparison                     |
+
+</div>
+
+Tagged profiles flow into AWS Cost Explorer and Cost and Usage Report (CUR) 2.0 at a per-usage-type-per-day granularity. The profile-level tags alone only get you to daily aggregates, not per-call cost. For finer-grained, per-request token detail (for example, cost per individual conversation), pair application inference profiles with per-request metadata tagging on model invocation logs.
+
+:::info
+Only **application inference profiles** support cost allocation tags. System-defined (cross-region) inference profiles route requests across regions but cannot be tagged, so they are not sufficient on their own for cost attribution.
+:::
+
+A **Central AI Account** pattern extends this further for organizations running many agents: model access is centralized in one account, and every team's traffic flows through an application inference profile scoped to that team. This gives the platform team a single place to enforce model allowlists and budget alarms, while still attributing spend back to the originating team through tags.
 
 ---
 

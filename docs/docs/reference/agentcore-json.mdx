@@ -4,6 +4,10 @@ sidebar_label: agentcore.json
 sidebar_position: 1
 ---
 
+:::info Versions
+Examples built with **AgentCore CLI** `@aws/agentcore@0.23.0`. Commands or flags may differ in other versions. Run `agentcore --version` to check yours.
+:::
+
 # agentcore.json Schema Reference
 
 `agentcore/agentcore.json` is the declarative source of truth for all AgentCore resources in your project. When you run `agentcore add`, `agentcore remove`, or `agentcore deploy`, this file determines what to create, update, or remove.
@@ -48,7 +52,7 @@ your-project/
 }
 ```
 
-The root object always has `name`, `version`, and `managedBy`. Every resource type is a flat top-level array — there is no nesting between resources. Agents discover memories, credentials, and gateways at runtime via environment variables or SDK calls, not via references inside `agentcore.json` (with the exception of `policyEngineConfiguration` on gateways, and `agent`/`runtimes` references on evaluators and A/B tests).
+The root object always has `name`, `version`, and `managedBy`. Every resource type is a flat top-level array - there is no nesting between resources. Agents discover memories, credentials, and gateways at runtime via environment variables or SDK calls, not via references inside `agentcore.json` (with the exception of `policyEngineConfiguration` on gateways, and `agent`/`runtimes` references on evaluators and A/B tests).
 
 :::caution Common mistake
 The array of agent runtimes is called **`runtimes`**, not `agents`. This is the single most common typo when hand-editing this file.
@@ -78,6 +82,8 @@ Defines the agent runtimes to deploy. Each entry corresponds to one AgentCore Ru
 
 ### Runtime Fields
 
+<div className="fancy-table">
+
 | Field                      | Type   | Required | Description                                                                                      |
 | -------------------------- | ------ | -------- | ------------------------------------------------------------------------------------------------ |
 | `name`                     | string | yes      | Pattern: `^[a-zA-Z][a-zA-Z0-9_]{0,47}$`, max 48 chars                                            |
@@ -89,19 +95,27 @@ Defines the agent runtimes to deploy. Each entry corresponds to one AgentCore Ru
 | `envVars`                  | array  | no       | List of `{name, value}` environment variables                                                    |
 | `networkMode`              | string | no       | `PUBLIC` (default) or `VPC`                                                                      |
 | `networkConfig`            | object | cond.    | `{subnets: string[], securityGroups: string[]}`, required when `networkMode` is `VPC`            |
-| `instrumentation`          | object | no       | `{enableOtel: boolean}` — wraps the entrypoint with `opentelemetry-instrument` (default: `true`) |
+| `instrumentation`          | object | no       | `{enableOtel: boolean}` - wraps the entrypoint with `opentelemetry-instrument` (default: `true`) |
 | `protocol`                 | string | no       | `HTTP` (default), `MCP`, `A2A`, or `AGUI`                                                        |
 | `tags`                     | object | no       | Key-value tags                                                                                   |
 | `filesystemConfigurations` | array  | no       | Session storage, EFS, or S3 Files mounts (max 5 total)                                           |
 
+</div>
+
 ### Build Types
+
+<div className="fancy-table">
 
 | Type        | How It Works                                                                  | Constraints                               |
 | ----------- | ----------------------------------------------------------------------------- | ----------------------------------------- |
 | `CodeZip`   | Python or Node source zipped and deployed directly to AgentCore Runtime       | Max 250MB zipped / 750MB unzipped         |
 | `Container` | Docker image built in CodeBuild (ARM64), pushed to a per-agent ECR repository | Requires a `Dockerfile` in `codeLocation` |
 
+</div>
+
 ### Protocol Details
+
+<div className="fancy-table">
 
 | Protocol | Description                                      |
 | -------- | ------------------------------------------------ |
@@ -109,6 +123,8 @@ Defines the agent runtimes to deploy. Each entry corresponds to one AgentCore Ru
 | `MCP`    | Agent exposed as a Model Context Protocol server |
 | `A2A`    | Agent-to-Agent protocol (Google A2A)             |
 | `AGUI`   | Agent GUI protocol for interactive front-ends    |
+
+</div>
 
 ### Runtime Version
 
@@ -150,6 +166,8 @@ Defines persistent memory resources for cross-session context.
 
 ### Memory Fields
 
+<div className="fancy-table">
+
 | Field                 | Type    | Required | Description                                             |
 | --------------------- | ------- | -------- | ------------------------------------------------------- |
 | `name`                | string  | yes      | Pattern: `^[a-zA-Z][a-zA-Z0-9_]{0,47}$`, max 48         |
@@ -159,14 +177,20 @@ Defines persistent memory resources for cross-session context.
 | `encryptionKeyArn`    | string  | no       | Customer-managed KMS key ARN                            |
 | `executionRoleArn`    | string  | no       | IAM role ARN for memory operations                      |
 
+</div>
+
 ### Strategy Types
+
+<div className="fancy-table">
 
 | Type              | Description                                        | Key Fields                                           |
 | ----------------- | -------------------------------------------------- | ---------------------------------------------------- |
 | `SEMANTIC`        | Extracts facts and knowledge as semantic vectors   | `namespaceTemplates`                                 |
-| `SUMMARIZATION`   | Creates conversation summaries                     | —                                                    |
-| `USER_PREFERENCE` | Captures user preferences and settings             | —                                                    |
+| `SUMMARIZATION`   | Creates conversation summaries                     | -                                                    |
+| `USER_PREFERENCE` | Captures user preferences and settings             | -                                                    |
 | `EPISODIC`        | Stores episodic memories with optional reflections | `namespaceTemplates`, `reflectionNamespaceTemplates` |
+
+</div>
 
 :::info Deprecated fields
 `namespaces` and `reflectionNamespaces` are deprecated aliases for `namespaceTemplates` and `reflectionNamespaceTemplates`. Use the `Templates` variants in new configs.
@@ -174,11 +198,15 @@ Defines persistent memory resources for cross-session context.
 
 ### Namespace Placeholders
 
+<div className="fancy-table">
+
 | Placeholder          | Resolves To                      |
 | -------------------- | -------------------------------- |
 | `{actorId}`          | The user/actor ID from the event |
 | `{sessionId}`        | The session ID                   |
 | `{memoryStrategyId}` | The strategy's internal ID       |
+
+</div>
 
 ---
 
@@ -206,6 +234,8 @@ Defines API key or OAuth credential providers stored in the AgentCore token vaul
 
 ### Credential Fields
 
+<div className="fancy-table">
+
 | Field            | Type   | Required | Description                                             |
 | ---------------- | ------ | -------- | ------------------------------------------------------- |
 | `authorizerType` | string | yes      | `ApiKeyCredentialProvider` or `OAuthCredentialProvider` |
@@ -215,7 +245,9 @@ Defines API key or OAuth credential providers stored in the AgentCore token vaul
 | `vendor`         | string | no       | OAuth vendor type (default: `CustomOauth2`)             |
 | `usage`          | string | no       | `inbound` or `outbound`                                 |
 
-The actual secret value (API key or client secret) is never stored in `agentcore.json` — it lives in the AgentCore token vault (backed by AWS Secrets Manager), referenced only by name.
+</div>
+
+The actual secret value (API key or client secret) is never stored in `agentcore.json` - it lives in the AgentCore token vault (backed by AWS Secrets Manager), referenced only by name.
 
 ---
 
@@ -253,6 +285,8 @@ Defines MCP gateways that federate tools for your agents.
 
 ### Gateway Fields
 
+<div className="fancy-table">
+
 | Field                       | Type    | Required | Description                                                    |
 | --------------------------- | ------- | -------- | -------------------------------------------------------------- |
 | `name`                      | string  | yes      | Pattern: `^[0-9a-zA-Z](?:[0-9a-zA-Z-]*[0-9a-zA-Z])?$`, max 100 |
@@ -262,9 +296,13 @@ Defines MCP gateways that federate tools for your agents.
 | `authorizerConfiguration`   | object  | cond.    | Required when `authorizerType` is `CUSTOM_JWT`                 |
 | `enableSemanticSearch`      | boolean | no       | Default `true`                                                 |
 | `exceptionLevel`            | string  | no       | `NONE` (default) or `DEBUG`                                    |
-| `policyEngineConfiguration` | object  | no       | `{policyEngineName, mode}` — attaches a Cedar policy engine    |
+| `policyEngineConfiguration` | object  | no       | `{policyEngineName, mode}` - attaches a Cedar policy engine    |
+
+</div>
 
 ### Target Types
+
+<div className="fancy-table">
 
 | `targetType`        | Key Config Field           | Use Case                                |
 | ------------------- | -------------------------- | --------------------------------------- |
@@ -273,6 +311,8 @@ Defines MCP gateways that federate tools for your agents.
 | `openApiSchema`     | `schemaSource`             | REST API described by OpenAPI           |
 | `smithyModel`       | `schemaSource`             | AWS service or Smithy-defined API       |
 | `apiGateway`        | `apiGateway` object        | API Gateway REST API                    |
+
+</div>
 
 ### Tool Naming Convention
 
@@ -310,6 +350,8 @@ Defines Cedar-based authorization for tool invocations.
 
 ### Policy Engine Fields
 
+<div className="fancy-table">
+
 | Field              | Type   | Required | Description                                                |
 | ------------------ | ------ | -------- | ---------------------------------------------------------- |
 | `name`             | string | yes      | Pattern: `^[A-Za-z][A-Za-z0-9_]{0,47}$`, max 48. Immutable |
@@ -317,7 +359,11 @@ Defines Cedar-based authorization for tool invocations.
 | `encryptionKeyArn` | string | no       | Customer-managed KMS key ARN                               |
 | `policies`         | array  | no       | Cedar policies managed by this engine (unique by name)     |
 
+</div>
+
 ### Policy Fields
+
+<div className="fancy-table">
 
 | Field            | Type   | Required | Description                                                             |
 | ---------------- | ------ | -------- | ----------------------------------------------------------------------- |
@@ -326,6 +372,8 @@ Defines Cedar-based authorization for tool invocations.
 | `statement`      | string | cond.    | Cedar policy text (35–10000 chars). Required unless `sourceFile` is set |
 | `sourceFile`     | string | cond.    | Path to a `.cedar` file, relative to the project root                   |
 | `validationMode` | string | no       | `FAIL_ON_ANY_FINDINGS` (default) or `IGNORE_ALL_FINDINGS`               |
+
+</div>
 
 ### Cedar Policy Syntax Rules
 
@@ -350,10 +398,14 @@ Defines Cedar-based authorization for tool invocations.
 
 ### Policy Engine Modes (on a gateway)
 
+<div className="fancy-table">
+
 | Mode       | Behavior                                                       |
 | ---------- | -------------------------------------------------------------- |
 | `LOG_ONLY` | Evaluates policies and logs decisions; does not block requests |
 | `ENFORCE`  | Actively allows or denies based on policy evaluation           |
+
+</div>
 
 :::tip
 Always deploy in `LOG_ONLY` first, inspect CloudWatch logs to confirm correct behavior, then switch to `ENFORCE`.
@@ -365,6 +417,8 @@ Always deploy in `LOG_ONLY` first, inspect CloudWatch logs to confirm correct be
 
 These sections exist in the schema but are less commonly hand-edited; use `agentcore add`/`agentcore status --type <type>` to manage them:
 
+<div className="fancy-table">
+
 | Array               | Purpose                                                             |
 | ------------------- | ------------------------------------------------------------------- |
 | `evaluators`        | Custom LLM-as-judge or code-based evaluators                        |
@@ -373,6 +427,8 @@ These sections exist in the schema but are less commonly hand-edited; use `agent
 | `abTests`           | A/B test experiments routing traffic between config bundle variants |
 | `datasets`          | Named datasets for Dataset Management                               |
 | `harnesses`         | Managed-harness agent definitions (no-code agent configuration)     |
+
+</div>
 
 ---
 
@@ -396,6 +452,8 @@ Prints `Valid` on success.
 
 ## Authoritative Sources
 
+<div className="fancy-table">
+
 | Topic                             | Source                                                                                               |
 | --------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | Exact schema for your CLI version | `agentcore/.llm-context/agentcore.ts` in any project created with `agentcore create`                 |
@@ -404,3 +462,5 @@ Prints `Valid` on success.
 | Gateway and targets               | [AgentCore Gateway docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) |
 | Cedar policy language             | [Cedar documentation](https://www.cedarpolicy.com/)                                                  |
 | CLI command reference             | `agentcore --help` and `agentcore <command> --help`                                                  |
+
+</div>
