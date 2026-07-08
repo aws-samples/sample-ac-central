@@ -470,11 +470,23 @@ code, kbd, pre, samp,
   text-decoration: none;
 }
 
+.tile-card .tile-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.tile-card .tile-heading .tile-icon-svg {
+  flex-shrink: 0;
+}
+
 .tile-card h3 {
   font-family: var(--font-family-display);
   font-weight: 600;
-  margin-top: 0.75rem;
-  margin-bottom: 0.5rem;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 .tile-card p {
@@ -484,17 +496,6 @@ code, kbd, pre, samp,
   line-height: 1.6;
   font-weight: 400;
 }
-
-.tile-card .tile-icon {
-  font-size: 2rem;
-  color: var(--ifm-color-primary);
-}
-
-/* ==========================================================================
-   Icon-mask tiles — static SVGs from /img/icons, brand-colored via mask.
-   Usage in MDX: <span className="tile-icon-svg tile-icon--identity" />
-   The SVG provides the shape; background-color provides the (themeable) color.
-   ========================================================================== */
 
 .tile-card .tile-icon-svg {
   display: inline-block;
@@ -509,6 +510,22 @@ code, kbd, pre, samp,
   mask-size: contain;
 }
 
+/* Standalone inline icon (outside tile-card, e.g. in customer profiles) */
+.tile-icon-svg {
+  display: inline-block;
+  width: 1.2em;
+  height: 1.2em;
+  vertical-align: middle;
+  background-color: var(--ifm-color-primary);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* --- Existing icons --- */
 .tile-icon--identity      { -webkit-mask-image: url('/img/icons/identity.svg');      mask-image: url('/img/icons/identity.svg'); }
 .tile-icon--memory        { -webkit-mask-image: url('/img/icons/memory.svg');        mask-image: url('/img/icons/memory.svg'); }
 .tile-icon--runtime       { -webkit-mask-image: url('/img/icons/runtime.svg');       mask-image: url('/img/icons/runtime.svg'); }
@@ -516,6 +533,52 @@ code, kbd, pre, samp,
 .tile-icon--observability { -webkit-mask-image: url('/img/icons/observability.svg'); mask-image: url('/img/icons/observability.svg'); }
 .tile-icon--guardrails    { -webkit-mask-image: url('/img/icons/guardrails.svg');    mask-image: url('/img/icons/guardrails.svg'); }
 .tile-icon--cost          { -webkit-mask-image: url('/img/icons/cost.svg');          mask-image: url('/img/icons/cost.svg'); }
+
+/* --- New icons --- */
+.tile-icon--rocket        { -webkit-mask-image: url('/img/icons/rocket.svg');        mask-image: url('/img/icons/rocket.svg'); }
+.tile-icon--gear          { -webkit-mask-image: url('/img/icons/gear.svg');          mask-image: url('/img/icons/gear.svg'); }
+.tile-icon--terminal      { -webkit-mask-image: url('/img/icons/terminal.svg');      mask-image: url('/img/icons/terminal.svg'); }
+.tile-icon--search        { -webkit-mask-image: url('/img/icons/search.svg');        mask-image: url('/img/icons/search.svg'); }
+.tile-icon--chat          { -webkit-mask-image: url('/img/icons/chat.svg');          mask-image: url('/img/icons/chat.svg'); }
+.tile-icon--patterns      { -webkit-mask-image: url('/img/icons/patterns.svg');      mask-image: url('/img/icons/patterns.svg'); }
+.tile-icon--agent         { -webkit-mask-image: url('/img/icons/agent.svg');         mask-image: url('/img/icons/agent.svg'); }
+.tile-icon--tree          { -webkit-mask-image: url('/img/icons/tree.svg');          mask-image: url('/img/icons/tree.svg'); }
+.tile-icon--swarm         { -webkit-mask-image: url('/img/icons/swarm.svg');         mask-image: url('/img/icons/swarm.svg'); }
+.tile-icon--workflow      { -webkit-mask-image: url('/img/icons/workflow.svg');       mask-image: url('/img/icons/workflow.svg'); }
+.tile-icon--globe         { -webkit-mask-image: url('/img/icons/globe.svg');         mask-image: url('/img/icons/globe.svg'); }
+.tile-icon--hitl          { -webkit-mask-image: url('/img/icons/hitl.svg');          mask-image: url('/img/icons/hitl.svg'); }
+.tile-icon--factory       { -webkit-mask-image: url('/img/icons/factory.svg');       mask-image: url('/img/icons/factory.svg'); }
+.tile-icon--knowledge     { -webkit-mask-image: url('/img/icons/knowledge.svg');     mask-image: url('/img/icons/knowledge.svg'); }
+.tile-icon--lightbulb     { -webkit-mask-image: url('/img/icons/lightbulb.svg');     mask-image: url('/img/icons/lightbulb.svg'); }
+.tile-icon--blueprint     { -webkit-mask-image: url('/img/icons/blueprint.svg');     mask-image: url('/img/icons/blueprint.svg'); }
+.tile-icon--cube          { -webkit-mask-image: url('/img/icons/cube.svg');          mask-image: url('/img/icons/cube.svg'); }
+.tile-icon--package       { -webkit-mask-image: url('/img/icons/package.svg');       mask-image: url('/img/icons/package.svg'); }
+.tile-icon--wrench        { -webkit-mask-image: url('/img/icons/wrench.svg');        mask-image: url('/img/icons/wrench.svg'); }
+.tile-icon--scaffold      { -webkit-mask-image: url('/img/icons/scaffold.svg');      mask-image: url('/img/icons/scaffold.svg'); }
+.tile-icon--spiral        { -webkit-mask-image: url('/img/icons/spiral.svg');        mask-image: url('/img/icons/spiral.svg'); }
+.tile-icon--ghost         { -webkit-mask-image: url('/img/icons/ghost.svg');         mask-image: url('/img/icons/ghost.svg'); }
+.tile-icon--question      { -webkit-mask-image: url('/img/icons/question.svg');      mask-image: url('/img/icons/question.svg'); }
+.tile-icon--building      { -webkit-mask-image: url('/img/icons/building.svg');      mask-image: url('/img/icons/building.svg'); }
+.tile-icon--institution   { -webkit-mask-image: url('/img/icons/institution.svg');   mask-image: url('/img/icons/institution.svg'); }
+.tile-icon--lock          { -webkit-mask-image: url('/img/icons/lock.svg');          mask-image: url('/img/icons/lock.svg'); }
+.tile-icon--chart         { -webkit-mask-image: url('/img/icons/chart.svg');         mask-image: url('/img/icons/chart.svg'); }
+.tile-icon--trending      { -webkit-mask-image: url('/img/icons/trending.svg');      mask-image: url('/img/icons/trending.svg'); }
+.tile-icon--trophy        { -webkit-mask-image: url('/img/icons/trophy.svg');        mask-image: url('/img/icons/trophy.svg'); }
+.tile-icon--flask         { -webkit-mask-image: url('/img/icons/flask.svg');         mask-image: url('/img/icons/flask.svg'); }
+.tile-icon--traffic       { -webkit-mask-image: url('/img/icons/traffic.svg');       mask-image: url('/img/icons/traffic.svg'); }
+.tile-icon--target        { -webkit-mask-image: url('/img/icons/target.svg');        mask-image: url('/img/icons/target.svg'); }
+.tile-icon--broadcast     { -webkit-mask-image: url('/img/icons/broadcast.svg');     mask-image: url('/img/icons/broadcast.svg'); }
+.tile-icon--telescope     { -webkit-mask-image: url('/img/icons/telescope.svg');     mask-image: url('/img/icons/telescope.svg'); }
+.tile-icon--refresh       { -webkit-mask-image: url('/img/icons/refresh.svg');       mask-image: url('/img/icons/refresh.svg'); }
+.tile-icon--scroll        { -webkit-mask-image: url('/img/icons/scroll.svg');        mask-image: url('/img/icons/scroll.svg'); }
+.tile-icon--dna           { -webkit-mask-image: url('/img/icons/dna.svg');           mask-image: url('/img/icons/dna.svg'); }
+.tile-icon--link          { -webkit-mask-image: url('/img/icons/link.svg');          mask-image: url('/img/icons/link.svg'); }
+.tile-icon--llama         { -webkit-mask-image: url('/img/icons/llama.svg');         mask-image: url('/img/icons/llama.svg'); }
+.tile-icon--team          { -webkit-mask-image: url('/img/icons/team.svg');          mask-image: url('/img/icons/team.svg'); }
+.tile-icon--tag           { -webkit-mask-image: url('/img/icons/tag.svg');           mask-image: url('/img/icons/tag.svg'); }
+.tile-icon--book          { -webkit-mask-image: url('/img/icons/book.svg');          mask-image: url('/img/icons/book.svg'); }
+.tile-icon--check         { -webkit-mask-image: url('/img/icons/check.svg');         mask-image: url('/img/icons/check.svg'); }
+.tile-icon--star          { -webkit-mask-image: url('/img/icons/star.svg');          mask-image: url('/img/icons/star.svg'); }
 
 .tile-card .tile-badge {
   display: inline-block;
@@ -895,4 +958,150 @@ code, kbd, pre, samp,
   .landing-tile--wide {
     flex-direction: column;
   }
+}
+
+/* ==========================================================================
+   Enhanced Tables
+   Wrap a markdown table in <div className="fancy-table"> for styled variant.
+   ========================================================================== */
+
+.fancy-table {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.fancy-table > div {
+  overflow: visible !important;
+  margin: 0 !important;
+}
+
+.fancy-table table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  border-radius: 0;
+  border: none;
+  width: 100% !important;
+  display: table !important;
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+/* Shrink first column to fit content, stretch the rest */
+.fancy-table--auto-first table {
+  table-layout: auto;
+}
+
+.fancy-table--auto-first th:first-child,
+.fancy-table--auto-first td:first-child {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.fancy-table thead tr {
+  background: var(--ifm-color-emphasis-100);
+}
+
+.fancy-table thead th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--ifm-color-emphasis-700);
+  padding: 0.85rem 1rem;
+  border-bottom: 2px solid var(--ifm-color-emphasis-200);
+  border-left: none;
+  border-right: none;
+  border-top: none;
+}
+
+.fancy-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.fancy-table tbody tr:nth-child(even) {
+  background: var(--ifm-background-surface-color);
+}
+
+.fancy-table tbody tr:hover {
+  background: var(--theme-chip-bg);
+}
+
+.fancy-table tbody td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-100);
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  vertical-align: top;
+}
+
+.fancy-table tbody td strong {
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+.fancy-table tbody td code,
+.fancy-table tbody td > code {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.85em;
+  color: var(--ifm-color-primary-light);
+  background: var(--theme-chip-bg);
+  border: 1px solid var(--theme-chip-border);
+  border-radius: 4px;
+  padding: 0.15em 0.4em;
+}
+
+.fancy-table thead th code {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.9em;
+  color: var(--ifm-color-primary-light);
+  background: var(--theme-chip-bg);
+  border: 1px solid var(--theme-chip-border);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.fancy-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Variant: compact (less padding, smaller text) */
+.fancy-table--compact table {
+  font-size: 0.85rem;
+}
+
+.fancy-table--compact thead th {
+  padding: 0.6rem 0.75rem;
+  font-size: 0.72rem;
+}
+
+.fancy-table--compact tbody td {
+  padding: 0.5rem 0.75rem;
+}
+
+/* Variant: primary header (colored header row) */
+.fancy-table--primary thead tr {
+  background: var(--ifm-color-primary);
+}
+
+.fancy-table--primary thead th {
+  color: #ffffff;
+  border-bottom-color: var(--ifm-color-primary-dark);
+}
+
+[data-theme='dark'] .fancy-table--primary thead th {
+  color: #111111;
+}
+
+/* Variant: borderless (no outer border, just row dividers) */
+.fancy-table--borderless {
+  border: none;
+  border-radius: 0;
+}
+
+.fancy-table--borderless thead th {
+  border-bottom: 2px solid var(--ifm-color-primary);
 }
