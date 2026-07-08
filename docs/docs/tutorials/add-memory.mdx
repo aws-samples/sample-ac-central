@@ -1,0 +1,265 @@
+---
+title: "Tutorial: Add Memory to Your Agent"
+sidebar_label: Add Memory
+sidebar_position: 1
+---
+
+:::info Versions
+Examples built with **Strands Agents SDK** `1.46.0` and **bedrock-agentcore** `1.17.0`. APIs may differ in other versions.
+:::
+
+# Tutorial: Add Memory to Your Agent
+
+Give your agent the ability to remember facts across sessions. In this tutorial, you'll add AgentCore Memory to an existing agent so it can recall user preferences, past decisions, and conversation history.
+
+**Time:** 15 minutes
+
+---
+
+## Prerequisites
+
+- A working agent project (created via `agentcore create`). If you don't have one, follow the [Quickstart](/docs/get-started/quickstart) first.
+- AWS credentials configured
+- AgentCore CLI installed (`npm install -g @aws/agentcore`)
+
+---
+
+## What You'll Build
+
+An agent that:
+1. Remembers user preferences across sessions (long-term memory)
+2. Maintains conversation context within a session (short-term memory)
+3. Gracefully degrades when memory is unavailable (local dev)
+
+---
+
+## Step 1: Add Memory to Your Project
+
+```bash
+agentcore add memory --name AgentMemory --strategies SEMANTIC,SUMMARIZATION --expiry 90
+```
+
+This updates `agentcore/agentcore.json` with a `memories` section:
+
+```json
+{
+  "memories": [
+    {
+      "name": "AgentMemory",
+      "eventExpiryDuration": 90,
+      "strategies": [
+        {
+          "type": "SEMANTIC",
+          "name": "semantic_strategy"
+        },
+        {
+          "type": "SUMMARIZATION",
+          "name": "summary_strategy"
+        }
+      ]
+    }
+  ]
+}
+```
+
+`agentcore add memory` only creates the memory resource. It does not automatically wire it to a runtime. Memory access is granted to your agent's execution role at deploy time, and your agent code reads the resulting memory ID from an environment variable (see Step 2).
+
+Validate the config:
+
+```bash
+agentcore validate
+```
+
+---
+
+## Step 2: Update Your Agent Code
+
+Add memory integration to your `main.py`. The key pattern is:
+1. Read the `BEDROCK_AGENTCORE_MEMORY_ID` environment variable (injected by AgentCore at deploy time)
+2. Create an `AgentCoreMemorySessionManager` for the current session
+3. Pass it to the `Agent` constructor
+4. Wrap everything in try/except so the agent works without memory during local dev
+
+```python
+"""Agent with memory integration."""
+
+import logging
+import os
+
+from strands import Agent, tool
+
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
+
+log = logging.getLogger(__name__)
+app = BedrockAgentCoreApp()
+
+# Environment variables injected by AgentCore Runtime at deploy time
+MEMORY_ID = os.environ.get("BEDROCK_AGENTCORE_MEMORY_ID")
+REGION = os.environ.get("AWS_REGION", "us-east-1")
+
+
+def get_memory_session_manager(session_id: str, actor_id: str):
+    """Create a memory session manager. Returns None if memory is unavailable."""
+    if not MEMORY_ID:
+        log.info("No MEMORY_ID configured - running without memory")
+        return None
+
+    try:
+        from bedrock_agentcore.memory.integrations.strands import (
+            AgentCoreMemorySessionManager,
+        )
+
+        return AgentCoreMemorySessionManager(
+            memory_id=MEMORY_ID,
+            region=REGION,
+            session_id=session_id,
+            actor_id=actor_id,
+        )
+    except Exception as exc:
+        log.warning("Memory unavailable (running without): %s", exc)
+        return None
+
+
+@tool
+def get_user_name() -> dict:
+    """Get the current user's name from memory context.
+
+    Returns:
+        The user's name if known, or a message that it's unknown.
+    """
+    return {
+        "status": "success",
+        "content": [{"text": "User name is not available from this tool. "
+                     "Check your memory for previously stored user information."}],
+    }
+
+
+SYSTEM_PROMPT = """You are a helpful assistant with memory.
+You remember facts about the user across conversations.
+When the user tells you their name or preferences, remember them.
+When they ask if you remember something, check your memory."""
+
+
+@app.entrypoint
+def invoke(payload, context):
+    """Agent entrypoint with memory integration."""
+    prompt = payload.get("prompt", "Hello!")
+
+    # Derive session and actor IDs from runtime context
+    session_id = getattr(context, "session_id", "default-session")
+    actor_id = getattr(context, "actor_id", "default-user")
+
+    # Create memory session manager (graceful degradation)
+    session_manager = get_memory_session_manager(session_id, actor_id)
+
+    agent = Agent(
+        model="us.anthropic.claude-sonnet-4-20250514-v1:0",
+        system_prompt=SYSTEM_PROMPT,
+        tools=[get_user_name],
+        session_manager=session_manager,
+    )
+
+    result = agent(prompt)
+    return {"response": result.message}
+
+
+app.run()
+```
+
+---
+
+## Step 3: Deploy (Memory Requires Deployment)
+
+Memory resources are provisioned in AWS and aren't available during `agentcore dev` local testing. Deploy first:
+
+```bash
+agentcore deploy -y
+```
+
+The deploy process:
+1. Creates the Memory resource in AgentCore (SEMANTIC + SUMMARIZATION strategies)
+2. Waits for Memory to become ACTIVE (~60–180 seconds)
+3. Deploys the agent runtime with `BEDROCK_AGENTCORE_MEMORY_ID` injected as an environment variable
+
+Check status:
+
+```bash
+agentcore status --type memory
+```
+
+---
+
+## Step 4: Test Memory Persistence
+
+```bash
+# First conversation: tell the agent something
+agentcore invoke --session-id session-1 '{"prompt": "My name is Alex and I prefer dark mode."}'
+
+# Same session: it remembers within the session (short-term)
+agentcore invoke --session-id session-1 '{"prompt": "What is my name?"}'
+# Expected: "Your name is Alex."
+
+# NEW session: it still remembers (long-term memory extracted the fact)
+agentcore invoke --session-id session-2 '{"prompt": "Do you remember my name?"}'
+# Expected: "Yes, your name is Alex. You also prefer dark mode."
+```
+
+---
+
+## Step 5: Local Development with Memory
+
+During `agentcore dev`, memory isn't available. The agent works without it thanks to graceful degradation:
+
+```bash
+# Terminal 1: start the dev server
+agentcore dev
+
+# Terminal 2: send a prompt
+agentcore dev "Hello, my name is Alex"
+# Agent responds normally, but won't remember across restarts
+```
+
+To test memory locally, deploy first (`agentcore deploy`), then use `agentcore invoke` against the deployed agent.
+
+---
+
+## How It Works
+
+### Short-Term Memory (Session)
+
+Every message in the current session is automatically available to the agent. No configuration needed beyond setting `memory: "shortTerm"` or `"longAndShortTerm"`.
+
+### Long-Term Memory (Cross-Session)
+
+When strategies are configured:
+- **SEMANTIC**: Extracts facts and knowledge as semantic vectors. Retrieved by relevance to the current query.
+- **SUMMARIZATION**: Creates conversation summaries that persist across sessions.
+
+After each conversation, AgentCore runs extraction jobs in the background to produce long-term memory records from the session events.
+
+### Namespace Isolation
+
+Memory is scoped by `actor_id`. User A cannot access User B's memories, even if they share the same agent deployment.
+
+---
+
+## Troubleshooting
+
+<div className="fancy-table">
+
+| Issue                                        | Solution                                                                                         |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `ResourceNotFoundException` during local dev | Expected; memory requires deployment. Wrap in try/except.                                        |
+| Memory status stuck in CREATING              | Check IAM permissions on execution role. Use `agentcore status --type memory`.                   |
+| Agent doesn't remember across sessions       | Verify `longAndShortTerm` is set. Check that extraction jobs completed: view in CloudWatch logs. |
+| Different users seeing each other's memories | Ensure `actor_id` is unique per user (not hardcoded to "default-user").                          |
+
+</div>
+
+---
+
+## Next Steps
+
+- [Connect a Tool via Gateway](/docs/tutorials/connect-gateway-tool): Add external API access
+- [agentcore.json Reference](/docs/reference/agentcore-json#memories): Full memory configuration schema
+- [AgentCore Memory Docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html): Official AWS documentation

@@ -10,15 +10,19 @@ Match your scenario to the recommended pattern combination.
 
 ## Quick Reference
 
-| Scenario | Recommended Pattern(s) | Complexity |
-|----------|----------------------|------------|
-| Simple FAQ / helpdesk | Single Agent + RAG + Tools | 🟢 Low |
-| Multi-domain support | Graph (router) + Agents-as-Tools | 🟡 Medium |
-| Complex case management | Agents-as-Tools + Workflow + HITL | 🔴 High |
-| Collaborative troubleshooting | Swarm | 🟠 Medium-High |
-| Regulated / compliance | Single Agent + Reflection + HITL | 🟡 Medium |
-| Multi-team platform | Bot Factory + Graph | 🔴 High |
-| Cross-platform federation | A2A + Agent-as-MCP | 🔴 High |
+<div className="fancy-table">
+
+| Scenario                      | Recommended Pattern(s)                  | Complexity      |
+|-------------------------------|-----------------------------------------|-----------------|
+| Simple FAQ / helpdesk         | Single Agent + RAG + Tools              | 🟢 Low          |
+| Multi-domain support          | Graph (router) + Agents-as-Tools        | 🟡 Medium       |
+| Complex case management       | Agents-as-Tools + Workflow + HITL       | 🔴 High         |
+| Collaborative troubleshooting | Swarm                                   | 🟠 Medium-High  |
+| Regulated / compliance        | Single Agent + Reflection + HITL        | 🟡 Medium       |
+| Multi-team platform           | Bot Factory + Graph                     | 🔴 High         |
+| Cross-platform federation     | A2A + Agent-as-MCP                      | 🔴 High         |
+
+</div>
 
 ---
 
@@ -47,7 +51,7 @@ Match your scenario to the recommended pattern combination.
 - Use **Swarm** for maximum agent autonomy
 
 **Hybrid** (some fixed, some dynamic):
-- Use **Agents-as-Tools** — parent LLM picks which child, but children have predictable behavior
+- Use **Agents-as-Tools** - parent LLM picks which child, but children have predictable behavior
 
 ### Cross-Organization Requirements
 
@@ -66,13 +70,17 @@ Match your scenario to the recommended pattern combination.
 
 ## Anti-Patterns to Avoid
 
-| Anti-Pattern | Why It's Bad | Better Approach |
-|--------------|--------------|-----------------|
-| Swarm for simple tasks | Unpredictable, hard to debug | Single Agent + Tools |
-| Graph without clear branches | Over-engineering, slow iteration | Start with single agent, add routing later |
-| HITL on every action | Defeats the purpose of automation | HITL only on high-risk/high-confidence-gap actions |
-| A2A for internal agents | Protocol overhead unnecessary | Agents-as-Tools within same runtime |
-| Skipping observability | "It worked in dev" → failure in prod | Always instrument from day one |
+<div className="fancy-table">
+
+| Anti-Pattern                  | Why It's Bad                                        | Better Approach                                     |
+|-------------------------------|-----------------------------------------------------|-----------------------------------------------------|
+| Swarm for simple tasks        | Unpredictable, hard to debug                        | Single Agent + Tools                                |
+| Graph without clear branches  | Over-engineering, slow iteration                    | Start with single agent, add routing later          |
+| HITL on every action          | Defeats the purpose of automation                   | HITL only on high-risk/high-confidence-gap actions  |
+| A2A for internal agents       | Protocol overhead unnecessary                       | Agents-as-Tools within same runtime                 |
+| Skipping observability        | "It worked in dev" → failure in prod                | Always instrument from day one                      |
+
+</div>
 
 ---
 
@@ -80,9 +88,9 @@ Match your scenario to the recommended pattern combination.
 
 As your agent matures, you may need to upgrade patterns:
 
-1. **Single Agent → Agents-as-Tools** — When tool count exceeds ~15, or domains need separate guardrails
-2. **Graph → Swarm** — When branching logic becomes too complex to predefine
-3. **Agents-as-Tools → A2A** — When agents cross team/framework boundaries
-4. **Any pattern → + HITL** — When deploying to regulated environments
+1. **Single Agent → Agents-as-Tools** - When tool count exceeds ~15, or domains need separate guardrails
+2. **Graph → Swarm** - When branching logic becomes too complex to predefine
+3. **Agents-as-Tools → A2A** - When agents cross team/framework boundaries
+4. **Any pattern → + HITL** - When deploying to regulated environments
 
 AgentCore Runtime supports all patterns, so migration is a code change, not an infrastructure change.

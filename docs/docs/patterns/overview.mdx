@@ -12,106 +12,94 @@ Multi-agent patterns supported by AgentCore and the Strands SDK. Choose based on
 
 ---
 
-## Pattern Landscape
+## Pattern Catalog
 
 12 patterns organized into three tiers based on documentation maturity and production evidence. All are deployable on AgentCore Runtime.
 
-### Tier 1 — Officially Documented AgentCore Patterns
+### Tier 1 - Officially Documented AgentCore Patterns
 
 <div className="tile-grid">
   <div className="tile-card">
-    <span className="tile-icon">🤖</span>
-    <h3>Single Agent + Tools</h3>
-    <p>One agent with multiple tools connected via AgentCore Gateway. The simplest production pattern — ideal for most initial deployments.</p>
-    <p><strong>Example:</strong> <a href="https://aws.amazon.com/blogs/machine-learning/democratizing-business-intelligence-bgls-journey-with-claude-agent-sdk-and-amazon-bedrock-agentcore/">BGL — NL-to-SQL Agent</a></p>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--agent" aria-hidden="true" /><h3>Single Agent + Tools</h3></div>
+    <p>One agent with multiple tools connected via AgentCore Gateway. The simplest production pattern - ideal for most initial deployments.</p>
+    <p><strong>Example:</strong> <a href="https://aws.amazon.com/blogs/machine-learning/democratizing-business-intelligence-bgls-journey-with-claude-agent-sdk-and-amazon-bedrock-agentcore/">BGL - NL-to-SQL Agent</a></p>
     <span className="service-tag tag--runtime">Low Complexity</span>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">🌳</span>
-    <h3>Agents-as-Tools (Subagents)</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--tree" aria-hidden="true" /><h3>Agents-as-Tools (Subagents)</h3></div>
     <p>Parent/orchestrator invokes child agents as callable tools. Hierarchical delegation with the parent deciding which child to invoke.</p>
-    <p><strong>Example:</strong> <a href="https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/">Thomson Reuters — Platform Hub</a></p>
+    <p><strong>Example:</strong> <a href="https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/">Thomson Reuters - Platform Hub</a></p>
     <span className="service-tag tag--identity">Medium Complexity</span>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">🔀</span>
-    <h3>Graph Pattern</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--patterns" aria-hidden="true" /><h3>Graph Pattern</h3></div>
     <p>Developer-defined flowchart where the LLM decides the path at each node. Supports conditional logic, branching, and loops.</p>
-    <p><strong>Example:</strong> <a href="https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/">Iberdrola — IT Ops</a></p>
+    <p><strong>Example:</strong> <a href="https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/">Iberdrola - IT Ops</a></p>
     <span className="service-tag tag--identity">Medium Complexity</span>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">🐝</span>
-    <h3>Swarm Pattern</h3>
-    <p>Dynamic collaborative team where agents autonomously hand off tasks to each other. Emergent execution path — no predefined orchestration.</p>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--swarm" aria-hidden="true" /><h3>Swarm Pattern</h3></div>
+    <p>Dynamic collaborative team where agents autonomously hand off tasks to each other. Emergent execution path - no predefined orchestration.</p>
     <span className="service-tag tag--observability">Medium-High Complexity</span>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">📋</span>
-    <h3>Workflow Pattern (DAG)</h3>
-    <p>Pre-defined task graph with deterministic execution. Independent tasks run in parallel. No cycles allowed — pure directed acyclic graph.</p>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--workflow" aria-hidden="true" /><h3>Workflow Pattern (DAG)</h3></div>
+    <p>Pre-defined task graph with deterministic execution. Independent tasks run in parallel. No cycles allowed - pure directed acyclic graph.</p>
     <span className="service-tag tag--identity">Medium Complexity</span>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">🌐</span>
-    <h3>Agent-to-Agent (A2A Protocol)</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--globe" aria-hidden="true" /><h3>Agent-to-Agent (A2A Protocol)</h3></div>
     <p>Peer agents communicate via the open A2A protocol. Cross-platform, cross-framework interoperability for federated agent ecosystems.</p>
     <span className="service-tag tag--evaluations">High Complexity</span>
   </div>
 </div>
 
-### Tier 2 — Production-Proven Patterns
+### Tier 2 - Production-Proven Patterns
 
 <div className="tile-grid">
   <div className="tile-card">
-    <span className="tile-icon">✋</span>
-    <h3>Human-in-the-Loop (HITL)</h3>
-    <p>Agent pauses execution for human approval on high-risk actions. Async event-driven — the agent yields, waits for approval, then resumes.</p>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--hitl" aria-hidden="true" /><h3>Human-in-the-Loop (HITL)</h3></div>
+    <p>Agent pauses execution for human approval on high-risk actions. Async event-driven - the agent yields, waits for approval, then resumes.</p>
     <p><strong>Example:</strong> <a href="https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/">Thomson Reuters</a></p>
     <span className="service-tag tag--identity">Medium Complexity</span>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">🏭</span>
-    <h3>Bot Factory / Platform</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--factory" aria-hidden="true" /><h3>Bot Factory / Platform</h3></div>
     <p>Reusable blueprint for standardized agent creation. Teams self-serve agent deployment using pre-approved templates, tools, and guardrails.</p>
-    <p><strong>Example:</strong> <a href="https://aws.amazon.com/blogs/machine-learning/how-autoscout24-built-a-bot-factory-to-standardize-ai-agent-development-with-amazon-bedrock/">AutoScout24 — Bot Factory</a></p>
+    <p><strong>Example:</strong> <a href="https://aws.amazon.com/blogs/machine-learning/how-autoscout24-built-a-bot-factory-to-standardize-ai-agent-development-with-amazon-bedrock/">AutoScout24 - Bot Factory</a></p>
     <span className="service-tag tag--evaluations">High Complexity</span>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">📚</span>
-    <h3>RAG-Augmented Agent</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--knowledge" aria-hidden="true" /><h3>RAG-Augmented Agent</h3></div>
     <p>Retrieves enterprise data to ground responses in facts. Tool-use pattern where retrieval is one of several tools available to the agent.</p>
     <span className="service-tag tag--runtime">Low-Medium Complexity</span>
   </div>
 </div>
 
-### Tier 3 — Industry Patterns Applicable on AgentCore
+### Tier 3 - Industry Patterns Applicable on AgentCore
 
 <div className="tile-grid">
   <div className="tile-card">
-    <span className="tile-icon">🔀</span>
-    <h3>Router / Dispatcher</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--patterns" aria-hidden="true" /><h3>Router / Dispatcher</h3></div>
     <p>Classification agent routes incoming requests to downstream specialist agents based on intent, channel, risk level, or domain.</p>
     <span className="service-tag tag--identity">Medium Complexity</span>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">💡</span>
-    <h3>Plan-Act-Reflect</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--lightbulb" aria-hidden="true" /><h3>Plan-Act-Reflect</h3></div>
     <p>Agent plans a multi-step approach, executes each step, reflects on results, and iterates. For complex tasks requiring strategic decomposition.</p>
     <span className="service-tag tag--evaluations">High Complexity</span>
   </div>
 
   <div className="tile-card">
-    <span className="tile-icon">🔍</span>
-    <h3>Reflection / Self-Check</h3>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--search" aria-hidden="true" /><h3>Reflection / Self-Check</h3></div>
     <p>A second agent reviews the primary agent's output before returning it to the user. Quality gate for regulated industries.</p>
     <span className="service-tag tag--identity">Medium Complexity</span>
   </div>
@@ -123,13 +111,17 @@ Multi-agent patterns supported by AgentCore and the Strands SDK. Choose based on
 
 Understanding how each pattern determines its execution path is key to selecting the right one.
 
-| Pattern | Path Determined By | Cycles? | Parallelism? |
-|---------|-------------------|---------|--------------|
-| **Graph** | LLM decision at each node | Yes | No |
-| **Swarm** | Agents autonomously decide handoffs | Yes | No |
-| **Workflow (DAG)** | Fixed dependency graph (DAG) | No | Yes |
-| **Agents-as-Tools** | Parent agent decides | Yes (re-call) | Depends |
-| **A2A** | Peer agents negotiate | Yes | Yes |
+<div className="fancy-table">
+
+| Pattern             | Path Determined By                  | Cycles?       | Parallelism? |
+| ------------------- | ----------------------------------- | ------------- | ------------ |
+| **Graph**           | LLM decision at each node           | Yes           | No           |
+| **Swarm**           | Agents autonomously decide handoffs | Yes           | No           |
+| **Workflow (DAG)**  | Fixed dependency graph (DAG)        | No            | Yes          |
+| **Agents-as-Tools** | Parent agent decides                | Yes (re-call) | Depends      |
+| **A2A**             | Peer agents negotiate               | Yes           | Yes          |
+
+</div>
 
 ---
 
@@ -137,20 +129,24 @@ Understanding how each pattern determines its execution path is key to selecting
 
 Which patterns are most relevant for each agent archetype.
 
-| Pattern | Conversational | Event-Driven | Coding Agents |
-|---------|---------------|--------------|---------------|
-| Single Agent + Tools | ✅ Core pattern | ✅ Trigger handler | ✅ IDE assistant |
-| Agents-as-Tools | ✅ Multi-domain | ✅ Pipeline stages | ✅ Specialized sub-tasks |
-| Graph | ✅ Complex flows | ✅ Decision trees | — Rare |
-| Swarm | ✅ Collaborative | — Less common | ✅ Multi-file refactor |
-| Workflow (DAG) | — Rare | ✅ Batch pipelines | ✅ CI/CD orchestration |
-| A2A Protocol | ✅ Cross-platform | ✅ Federation | ✅ Tool marketplace |
-| Human-in-the-Loop | ✅ Approvals | ✅ Escalation | ✅ Code review gate |
-| Bot Factory | ✅ Platform teams | ✅ Standardization | — Less common |
-| RAG-Augmented | ✅ Knowledge Q&A | ✅ Context enrichment | ✅ Codebase search |
-| Router / Dispatcher | ✅ Intent routing | ✅ Event classification | — Rare |
-| Plan-Act-Reflect | — Rare | — Rare | ✅ Complex tasks |
-| Reflection / Self-Check | ✅ Regulated | ✅ Compliance | ✅ Code quality |
+<div className="fancy-table">
+
+| Pattern                 | Conversational   | Event-Driven           | Coding Agents           |
+| ----------------------- | ---------------- | ---------------------- | ----------------------- |
+| Single Agent + Tools    | ✅ Core pattern   | ✅ Trigger handler      | ✅ IDE assistant         |
+| Agents-as-Tools         | ✅ Multi-domain   | ✅ Pipeline stages      | ✅ Specialized sub-tasks |
+| Graph                   | ✅ Complex flows  | ✅ Decision trees       | - Rare                  |
+| Swarm                   | ✅ Collaborative  | - Less common          | ✅ Multi-file refactor   |
+| Workflow (DAG)          | - Rare           | ✅ Batch pipelines      | ✅ CI/CD orchestration   |
+| A2A Protocol            | ✅ Cross-platform | ✅ Federation           | ✅ Tool marketplace      |
+| Human-in-the-Loop       | ✅ Approvals      | ✅ Escalation           | ✅ Code review gate      |
+| Bot Factory             | ✅ Platform teams | ✅ Standardization      | - Less common           |
+| RAG-Augmented           | ✅ Knowledge Q&A  | ✅ Context enrichment   | ✅ Codebase search       |
+| Router / Dispatcher     | ✅ Intent routing | ✅ Event classification | - Rare                  |
+| Plan-Act-Reflect        | - Rare           | - Rare                 | ✅ Complex tasks         |
+| Reflection / Self-Check | ✅ Regulated      | ✅ Compliance           | ✅ Code quality          |
+
+</div>
 
 ---
 

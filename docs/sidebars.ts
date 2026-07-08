@@ -9,9 +9,20 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'get-started/overview',
+        'get-started/quickstart',
         'get-started/managed-harness',
         'get-started/agentcore-cli',
         'get-started/pre-built-skills',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Tutorials',
+      collapsed: false,
+      items: [
+        'tutorials/overview',
+        'tutorials/add-memory',
+        'tutorials/connect-gateway-tool',
       ],
     },
     {
@@ -50,8 +61,27 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
-      label: 'Customers',
+      label: 'Reference',
       collapsed: false,
+      items: [
+        'reference/agentcore-json',
+        'reference/troubleshooting',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Field Guide (Internal)',
+      collapsed: true,
+      items: [
+        'field-guide/overview',
+        'field-guide/conversational',
+        'field-guide/workflow',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Customers',
+      collapsed: true,
       items: [
         'customer/overview',
         {
