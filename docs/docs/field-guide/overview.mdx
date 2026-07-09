@@ -6,11 +6,56 @@ sidebar_position: 1
 
 # Field Guide
 
-Positioning guidance, competitive responses, and demo scripts for account teams. This content is for internal SA/AM use, not customer-facing documentation.
+Positioning guidance, objection handling, and demo scripts for account teams. This content is for internal SA/AM use — not customer-facing documentation.
+
+---
+
+## Who This Is For
+
+- **Solutions Architects** preparing for customer meetings where AgentCore is on the agenda
+- **Account Managers** who need quick objection responses without deep technical context
+- **Technical Account Managers** helping customers choose between workload types
+
+## When to Use
+
+- **Before a first meeting**: Read the relevant workload page for objection responses and the 5-minute demo path
+- **During discovery**: Use the objection tables to address concerns in real-time
+- **After a meeting**: Reference the demo scripts to build a follow-up proof of concept
+
+For deep technical content (architecture, configuration, tutorials), use the main documentation sections instead.
 
 ---
 
 ## By Workload
 
-- [Conversational Agents](/docs/field-guide/conversational): Chat agent objections, demo path
-- [Workflow Agents](/docs/field-guide/workflow): Event-driven automation objections, demo path
+<div className="tile-grid">
+  <a href="/docs/field-guide/conversational" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--chat" aria-hidden="true" /><h3>Conversational Agents</h3></div>
+    <p>Objection handling for chat agents (vs Lambda, vs Azure, latency, cost). 5-minute demo script with streaming and observability.</p>
+  </a>
+
+  <a href="/docs/field-guide/workflow" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--runtime" aria-hidden="true" /><h3>Workflow Agents</h3></div>
+    <p>Objection handling for automation agents (vs Step Functions, vs Bedrock Agents, bounded autonomy). Demo script with EventBridge trigger and Cedar policies.</p>
+  </a>
+
+  <a href="/docs/field-guide/coding" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--terminal" aria-hidden="true" /><h3>Coding Agents</h3></div>
+    <p>Objection handling for code generation agents (vs Copilot, vs CodeWhisperer, sandboxing). Demo script with Code Interpreter. <em>Coming soon.</em></p>
+  </a>
+</div>
+
+---
+
+## Quick Reference: Which Page Handles Which Objection?
+
+| If the customer asks about...              | Go to              |
+|--------------------------------------------|--------------------|
+| "Why not Lambda + API Gateway?"            | Conversational     |
+| "Why not Step Functions?"                  | Workflow            |
+| "How does this compare to Azure/Google?"   | Conversational     |
+| "How does this compare to Bedrock Agents?" | Workflow            |
+| "What about latency?"                      | Conversational     |
+| "What if the agent makes a wrong decision?"| Workflow            |
+| "Is it production-ready?"                  | Both (customer list)|
+| "What about cost at scale?"                | Both               |
