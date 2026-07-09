@@ -1,0 +1,132 @@
+---
+title: Conversational Agents
+sidebar_label: Overview
+sidebar_position: 1
+---
+
+import Link from '@docusaurus/Link';
+
+# Conversational Agents
+
+Human-initiated chat agents that respond in real-time with multi-turn memory, enterprise identity, and streaming. AgentCore handles the platform complexity so you focus on the agent's intelligence.
+
+---
+
+## What Is It?
+
+A conversational agent is a chat-based AI that interacts directly with humans. Users type messages, the agent reasons and responds, optionally calling tools along the way. Unlike traditional chatbots with scripted flows, conversational agents on AgentCore use LLM reasoning to handle open-ended queries, maintain context across turns, and take actions on behalf of the user.
+
+---
+
+## Common Use Cases
+
+- **Customer support / helpdesk** — End-users ask questions about their account, orders, or services. The agent retrieves information, executes actions (refunds, resets), and escalates to humans when needed.
+- **Internal knowledge assistant** — Employees ask HR, IT, or policy questions. The agent searches internal knowledge bases and answers with auth-scoped, role-appropriate responses.
+- **Sales co-pilot / deal desk** — Sales reps get real-time guidance during customer calls. The agent pulls CRM data, pricing rules, and competitive intel on demand.
+- **NL-to-SQL / self-serve analytics** — Business users ask questions in plain English. The agent translates to SQL, runs the query, and returns results with charts or summaries.
+- **Onboarding concierge** — New customers or employees are guided through multi-step setup processes with personalized, context-aware assistance.
+- **Technical troubleshooting** — Developers or IT staff describe issues. The agent correlates logs, suggests fixes, and can execute diagnostic commands.
+
+---
+
+## When to Choose Conversational
+
+Choose this workload when:
+
+- A human is the primary trigger (they type a message)
+- The agent needs to respond in real-time with token-by-token streaming
+- Multi-turn conversation state matters (the agent should remember what was said)
+- The agent acts on behalf of a specific user with their identity and permissions
+- The primary output is natural language directed at a human
+
+---
+
+## Strengths and Limitations
+
+<div className="fancy-table">
+
+| Strengths                                            | Limitations                                                        |
+|------------------------------------------------------|--------------------------------------------------------------------|
+| Real-time streaming for responsive UX                | Higher per-session cost (long-lived compute)                       |
+| Multi-turn memory with session + long-term recall    | Complex context window management for long conversations           |
+| End-user identity propagation (zero-trust)           | Requires IdP integration (Entra ID, Okta, Cognito)                 |
+| Natural fit for human-facing applications            | Adversarial input surface (prompt injection, social engineering)    |
+| Rich UI feedback (typing indicators, tool activity)  | Session affinity means scale-per-user, not scale-per-event         |
+
+</div>
+
+---
+
+## How It Compares
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Dimension          | Conversational                         | Workflow                             | Coding                             |
+|--------------------|----------------------------------------|--------------------------------------|------------------------------------|
+| Trigger            | User message                           | System event                         | Ticket / PR / schedule             |
+| Session            | Long-lived, multi-turn                 | Short-lived, single invocation       | Long-lived, single task            |
+| Identity           | End-user (OAuth bearer token)          | Service principal                    | Developer identity                 |
+| Primary output     | Chat response to human                 | Actions + events emitted             | Code + PR comments                 |
+| Streaming          | Always (token-by-token)                | Rarely needed                        | Optional (progress updates)        |
+
+</div>
+
+---
+
+## AgentCore Configuration Summary
+
+<div className="fancy-table fancy-table--auto-first">
+
+| AgentCore Service | Configuration for Conversational                        | Why It Matters                                    |
+|-------------------|---------------------------------------------------------|---------------------------------------------------|
+| **Identity**      | End-user OAuth bearer tokens (Entra ID, Okta, Cognito)  | Agent acts on behalf of the user                  |
+| **Memory**        | Session + long-term, namespace per user                 | Multi-turn context + cross-session recall          |
+| **Runtime**       | Streaming enabled, session affinity, up to 8h lifecycle | Real-time UX, stateful conversations              |
+| **Guardrails**    | Content filters + topic boundaries + PII redaction      | Protect against adversarial inputs                |
+| **Evaluations**   | GoalSuccessRate, Helpfulness, Correctness               | Catch quality regressions before users feel them  |
+| **Observability** | Per-conversation tracing with user context              | Debug "the agent gave me wrong info"              |
+| **Gateway**       | User-scoped tool access with auth propagation           | Agent calls APIs as the user                      |
+
+</div>
+
+---
+
+## Customer Stories
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Customer                                                    | What They Built                                                      | Key Metric                             |
+|-------------------------------------------------------------|----------------------------------------------------------------------|----------------------------------------|
+| **[BGL](../../customer/external/bgl)**                      | Slack-based NL-to-SQL agent for self-serve BI                        | 200+ employees self-serve instantly    |
+| **[Iberdrola](../../customer/external/iberdrola)**          | Multi-agent IT operations with LangGraph + VPC-secured runtime       | Reduced resolution time                |
+| **[Thomson Reuters](../../customer/external/thomson-reuters)** | Central orchestrator routing to specialized service agents with HITL | Enterprise-scale multi-domain support  |
+| **[Kavak](../../customer/external/kavak)**                  | Autonomous concierge agent for automotive marketplace                | End-to-end customer journey automation |
+| **Swisscom**                                                | Enterprise-scale agentic AI platform                                 | Platform-level agent governance        |
+
+</div>
+
+---
+
+## Next Steps
+
+<div className="tile-grid">
+  <Link to="/docs/workloads/conversational/quickstart" className="tile-card">
+    <div className="tile-heading"><h3>Quick Start →</h3></div>
+    <p>Deploy a working conversational agent in 5 steps.</p>
+  </Link>
+
+  <Link to="/docs/workloads/conversational/enterprise-features" className="tile-card">
+    <div className="tile-heading"><h3>Enterprise Features →</h3></div>
+    <p>Identity, memory, runtime, gateway, and guardrails deep dive.</p>
+  </Link>
+
+  <Link to="/docs/workloads/conversational/session-management" className="tile-card">
+    <div className="tile-heading"><h3>Session Management →</h3></div>
+    <p>Sessions, context windows, streaming, and multi-tenant isolation.</p>
+  </Link>
+
+  <Link to="/docs/workloads/conversational/patterns-and-architecture" className="tile-card">
+    <div className="tile-heading"><h3>Patterns & Architecture →</h3></div>
+    <p>Reference architecture and recommended multi-agent patterns.</p>
+  </Link>
+</div>

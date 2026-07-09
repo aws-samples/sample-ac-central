@@ -1,0 +1,106 @@
+---
+title: Bounded Autonomy
+sidebar_label: Bounded Autonomy
+sidebar_position: 4
+---
+
+import Link from '@docusaurus/Link';
+
+# Bounded Autonomy: Policy Engine
+
+The single most important differentiator for production workflow agents. Without policy enforcement, an agent with access to infrastructure tools is a liability. With it, the agent operates within a provable boundary.
+
+---
+
+## Why This Matters
+
+Without bounded autonomy, you get one of two outcomes:
+
+- **Over-permissive agents** that can cause outages when they make mistakes
+- **Under-permissive agents** that require human approval for every action, defeating the purpose of automation
+
+Cedar policies let you precisely define the boundary. The agent reasons freely within its allowed actions, and the platform prevents it from exceeding them, regardless of what the LLM decides.
+
+---
+
+## Capabilities
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Capability                  | Detail                                                                      |
+|-----------------------------|-----------------------------------------------------------------------------|
+| Tool-level access control   | Allow or deny specific tools based on Cedar policies.                       |
+| Condition-based enforcement | Restrict tool use based on request context (time, entity type, priority).   |
+| LOG_ONLY vs ENFORCE modes   | Start with LOG_ONLY to observe decisions; switch to ENFORCE for production. |
+| Audit trail                 | Every policy evaluation is logged with full context in CloudWatch.          |
+| Multi-policy composition    | Combine multiple policies. Deny always wins over permit.                    |
+
+</div>
+
+---
+
+## Example: Priority-Based Autonomy
+
+```cedar
+// High-priority incidents: allow remediation actions
+permit(
+  principal is AgentCore::OAuthUser,
+  action == AgentCore::Action::"RemediationTools___restart_service",
+  resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-west-2:123456789012:gateway/incident-gateway"
+)
+when {
+  context.input.priority == "HIGH"
+};
+
+// Low-priority: only allow read-only diagnostic tools
+permit(
+  principal is AgentCore::OAuthUser,
+  action == AgentCore::Action::"DiagnosticTools___get_metrics",
+  resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-west-2:123456789012:gateway/incident-gateway"
+)
+when {
+  context.input.priority == "LOW"
+};
+```
+
+---
+
+## Policy Design Patterns
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Pattern                    | Description                                                            | Example                                           |
+|----------------------------|------------------------------------------------------------------------|---------------------------------------------------|
+| Priority-gated             | Different tool access based on event severity                          | HIGH = remediate, LOW = diagnose only             |
+| Time-windowed              | Allow destructive actions only during maintenance windows              | Restarts only between 2-4 AM UTC                  |
+| Entity-scoped              | Restrict actions to specific resource types or namespaces              | Only restart services in `staging` namespace      |
+| Escalation ladder          | Auto-execute low-risk, require approval for high-risk                  | Auto-restart → human-approve failover             |
+| Read-first, act-on-confirm | Agent can read anything, but write actions need policy permit           | Get metrics freely; restart needs explicit permit |
+
+</div>
+
+---
+
+## LOG_ONLY vs ENFORCE
+
+Start in LOG_ONLY mode to understand your agent's decision patterns before constraining it:
+
+1. **LOG_ONLY** — Policies are evaluated but not enforced. Violations are logged but the agent proceeds. Use during development and initial production deployment to build confidence.
+2. **ENFORCE** — Policies are evaluated and enforced. The agent cannot exceed its permitted actions. Switch to this once you've validated the policy set against real traffic.
+
+---
+
+## Deployment Workflow
+
+1. **Define policies** — Write Cedar policies that match your organization's autonomy boundaries.
+2. **Deploy in LOG_ONLY** — Observe the agent's behavior against real events. Review policy evaluation logs.
+3. **Tune policies** — Adjust based on false positives (blocking legitimate actions) and false negatives (allowing unintended actions).
+4. **Switch to ENFORCE** — Once satisfied, flip to enforcement mode. The agent is now bounded.
+5. **Iterate** — As you add new tools or domains, add corresponding policies before granting access.
+
+---
+
+## Related Pages
+
+- <Link to="/docs/workloads/workflow/tools-and-gateway">Tool Design & Gateway →</Link>
+- <Link to="/docs/workloads/workflow/evaluations">Evaluations →</Link>

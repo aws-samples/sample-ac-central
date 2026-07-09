@@ -1,0 +1,295 @@
+---
+title: "Quick Start: Coding Agent"
+sidebar_label: Quick Start
+sidebar_position: 2
+last_verified: 2026-07-08
+---
+
+:::info Versions
+Examples built with **Strands Agents SDK** `1.46.0` and **bedrock-agentcore** `1.17.0`. APIs may differ in other versions.
+:::
+
+import Link from '@docusaurus/Link';
+
+# Quick Start: Coding Agent
+
+Deploy a working test-generation agent in under 10 minutes. Given a Python source file, the agent analyzes it, generates unit tests, executes them in a sandbox, and returns validated results.
+
+---
+
+## 5 Steps to Deploy
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Step | Action          | Command                                   |
+|------|-----------------|-------------------------------------------|
+| 1    | Install CLI     | `npm install -g @aws/agentcore`           |
+| 2    | Create Agent    | `agentcore create`                        |
+| 3    | Add SDK         | `uv add strands-agents bedrock-agentcore` |
+| 4    | Develop Locally | `agentcore dev`                           |
+| 5    | Deploy          | `agentcore deploy`                        |
+
+</div>
+
+---
+
+## Complete Working Example
+
+A coding agent that follows the Plan → Generate → Validate loop. It reads source code, generates pytest-style tests, and executes them to confirm they pass. Copy this into `app/TestGenAgent/main.py`:
+
+```python
+"""Test generation agent - Plan → Generate → Validate."""
+
+import json
+import logging
+import subprocess
+import tempfile
+import textwrap
+from pathlib import Path
+
+from strands import Agent, tool
+
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
+
+log = logging.getLogger(__name__)
+app = BedrockAgentCoreApp()
+
+
+# --- Tools (Generate + Validate phases) ---
+
+
+@tool
+def read_source_file(file_content: str) -> dict:
+    """Parse and analyze a Python source file for testable functions.
+
+    Args:
+        file_content: The full content of a Python source file.
+
+    Returns:
+        Analysis of the file including function signatures, docstrings, and complexity.
+    """
+    import ast
+
+    try:
+        tree = ast.parse(file_content)
+    except SyntaxError as e:
+        return {"error": f"Syntax error in source: {e}"}
+
+    functions = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            args = [a.arg for a in node.args.args if a.arg != "self"]
+            docstring = ast.get_docstring(node) or "No docstring"
+            functions.append({
+                "name": node.name,
+                "args": args,
+                "docstring": docstring,
+                "line": node.lineno,
+                "is_async": isinstance(node, ast.AsyncFunctionDef),
+            })
+
+    return {
+        "function_count": len(functions),
+        "functions": functions,
+        "imports": [
+            ast.unparse(node)
+            for node in ast.walk(tree)
+            if isinstance(node, (ast.Import, ast.ImportFrom))
+        ],
+    }
+
+
+@tool
+def run_tests(source_code: str, test_code: str) -> dict:
+    """Execute generated tests against the source code in a sandboxed environment.
+
+    Args:
+        source_code: The original Python source file content.
+        test_code: The pytest-style test code to execute.
+
+    Returns:
+        Test execution results including pass/fail status and output.
+    """
+    with tempfile.TemporaryDirectory() as tmpdir:
+        src_path = Path(tmpdir) / "source_module.py"
+        test_path = Path(tmpdir) / "test_source_module.py"
+
+        src_path.write_text(source_code)
+        test_path.write_text(test_code)
+
+        try:
+            result = subprocess.run(
+                ["python", "-m", "pytest", str(test_path), "-v", "--tb=short"],
+                capture_output=True,
+                text=True,
+                timeout=30,
+                cwd=tmpdir,
+                env={"PATH": "/usr/bin:/usr/local/bin", "HOME": tmpdir},
+            )
+
+            passed = result.returncode == 0
+            return {
+                "passed": passed,
+                "returncode": result.returncode,
+                "stdout": result.stdout[-2000:] if len(result.stdout) > 2000 else result.stdout,
+                "stderr": result.stderr[-1000:] if len(result.stderr) > 1000 else result.stderr,
+            }
+
+        except subprocess.TimeoutExpired:
+            return {"passed": False, "error": "Tests timed out after 30 seconds"}
+        except FileNotFoundError:
+            return {"passed": False, "error": "pytest not available in sandbox"}
+
+
+# --- System prompt (Plan phase) ---
+
+SYSTEM_PROMPT = """You are a test generation agent. When you receive source code,
+follow this protocol:
+
+1. PLAN: Use read_source_file to analyze the code structure and identify testable
+   functions. Note edge cases, error paths, and boundary conditions.
+
+2. GENERATE: Write comprehensive pytest-style unit tests. For each function:
+   - Test the happy path with typical inputs
+   - Test edge cases (empty inputs, None, boundary values)
+   - Test error handling (invalid inputs that should raise exceptions)
+   - Use descriptive test names: test_<function>_<scenario>
+
+3. VALIDATE: Use run_tests to execute your tests against the source code.
+   - If tests fail, analyze the failure output and fix the test code.
+   - Iterate until all tests pass (max 3 attempts).
+
+4. DELIVER: Return the validated test code and a summary of coverage.
+
+Rules:
+- Import the source module as: from source_module import <functions>
+- Keep tests focused and independent (no shared mutable state)
+- Use pytest fixtures for common setup
+- Each test should verify one behavior
+- Do NOT modify the source code, only generate tests for it"""
+
+
+@app.entrypoint
+def invoke(payload, context):
+    """Agent entrypoint - generates tests for provided source code."""
+    source_code = payload.get("source_code", "")
+    prompt_text = payload.get("prompt", "")
+
+    if source_code:
+        prompt = (
+            f"Generate comprehensive unit tests for this Python module:\n\n"
+            f"```python\n{source_code}\n```\n\n"
+            f"Analyze the code, generate tests, and validate them."
+        )
+    elif prompt_text:
+        prompt = prompt_text
+    else:
+        return {"error": "Provide 'source_code' or 'prompt' in the payload."}
+
+    agent = Agent(
+        model="global.anthropic.claude-sonnet-4-5-20250929-v1:0",
+        system_prompt=SYSTEM_PROMPT,
+        tools=[read_source_file, run_tests],
+    )
+
+    result = agent(prompt)
+    return {"response": result.message}
+
+
+app.run()
+```
+
+---
+
+## Configuration
+
+### `agentcore/agentcore.json`
+
+```json
+{
+  "runtimes": [
+    {
+      "name": "TestGenAgent",
+      "build": "CodeZip",
+      "entrypoint": "main.py",
+      "codeLocation": "app/TestGenAgent/",
+      "runtimeVersion": "PYTHON_3_13",
+      "protocol": "HTTP",
+      "networkMode": "PUBLIC"
+    }
+  ]
+}
+```
+
+### `app/TestGenAgent/pyproject.toml` (additional dependency)
+
+Add `pytest` so the sandbox can execute tests:
+
+```toml
+[project]
+dependencies = [
+    "strands-agents>=1.46.0",
+    "bedrock-agentcore>=1.17.0",
+    "pytest>=8.0.0",
+]
+```
+
+---
+
+## Test It
+
+```bash
+# Terminal 1: start the dev server
+agentcore dev
+
+# Terminal 2: send source code for test generation
+agentcore dev '{
+  "source_code": "def add(a: int, b: int) -> int:\n    \"\"\"Add two numbers.\"\"\"\n    return a + b\n\ndef divide(a: float, b: float) -> float:\n    \"\"\"Divide a by b. Raises ZeroDivisionError if b is zero.\"\"\"\n    if b == 0:\n        raise ZeroDivisionError(\"Cannot divide by zero\")\n    return a / b\n\ndef fizzbuzz(n: int) -> str:\n    \"\"\"Return fizz, buzz, fizzbuzz, or the number as string.\"\"\"\n    if n % 15 == 0:\n        return \"fizzbuzz\"\n    if n % 3 == 0:\n        return \"fizz\"\n    if n % 5 == 0:\n        return \"buzz\"\n    return str(n)"
+}'
+```
+
+Expected behavior:
+
+1. Agent calls `read_source_file` to analyze `add`, `divide`, and `fizzbuzz`
+2. Generates pytest tests covering happy paths, edge cases, and error handling
+3. Calls `run_tests` to execute them in the sandbox
+4. If any test fails, analyzes the output and retries with a fix
+5. Returns validated test code and a coverage summary
+
+---
+
+## The Plan → Generate → Validate Loop
+
+```
+① PLAN      → Agent analyzes source: 3 functions, identifies edge cases
+② GENERATE  → Agent writes ~15 test cases (happy + edge + error paths)
+③ VALIDATE  → Agent runs tests in sandbox → sees 2 failures
+④ FIX       → Agent reads failure output, corrects test assertions
+⑤ VALIDATE  → Agent re-runs → all tests pass
+⑥ DELIVER   → Returns validated test code + summary
+```
+
+This iterative loop is the key differentiator of coding agents: they validate their own output before delivering it.
+
+---
+
+## What's Next?
+
+You have a working test generation agent. Extend it for production use:
+
+- **Add repository access** — Use Gateway tools to read files from GitHub/GitLab instead of inline payloads
+- **Add PR creation** — Wire a tool that commits tests and opens a pull request
+- **Add trigger automation** — Fire the agent from CI (on PR open) or a schedule (nightly coverage check)
+- **Add evaluation** — Measure test quality with online evaluations (mutation testing pass rate, coverage delta)
+
+<div className="tile-grid">
+  <Link to="/docs/workloads/coding/overview" className="tile-card">
+    <div className="tile-heading"><h3>Coding Overview →</h3></div>
+    <p>Full positioning, use cases, and comparison with other workloads.</p>
+  </Link>
+
+  <Link to="/docs/patterns/overview" className="tile-card">
+    <div className="tile-heading"><h3>Patterns →</h3></div>
+    <p>Multi-agent patterns for complex coding tasks (swarm for multi-file refactors, HITL for review gates).</p>
+  </Link>
+</div>

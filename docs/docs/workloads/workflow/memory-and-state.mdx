@@ -1,0 +1,92 @@
+---
+title: Memory & State
+sidebar_label: Memory & State
+sidebar_position: 6
+---
+
+import Link from '@docusaurus/Link';
+
+# Memory for Workflow Agents
+
+Workflow agents use memory differently than conversational agents. Instead of multi-turn conversation history, they remember facts about *entities* (tickets, incidents, devices) across invocations.
+
+---
+
+## Memory Strategies
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Strategy         | Use Case                                                       | Example                                             |
+|------------------|----------------------------------------------------------------|-----------------------------------------------------|
+| SEMANTIC         | Remember facts about entities that accumulate over time        | "INC-001 has been escalated twice before"           |
+| SUMMARIZATION    | Condense prior actions into context for the current invocation | "Last time this device alerted, we restarted nginx" |
+| None (stateless) | Simple event processing where each invocation is independent   | "Route this support email to the right queue"       |
+
+</div>
+
+---
+
+## When to Use Memory vs. External State
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Question                                         | If Yes → Use...             |
+|--------------------------------------------------|------------------------------|
+| Does the agent need context from prior events?   | AgentCore Memory (SEMANTIC)  |
+| Does the agent track entity state across events? | DynamoDB + Memory            |
+| Is each event fully self-contained?              | No memory needed             |
+| Does the agent learn patterns over time?         | Memory (long-term)           |
+
+</div>
+
+---
+
+## Memory vs. Conversational Agents
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Dimension         | Conversational Memory                      | Workflow Memory                                 |
+|-------------------|--------------------------------------------|-------------------------------------------------|
+| Scope             | Per-user conversation history              | Per-entity facts (ticket, incident, device)     |
+| Duration          | Session (minutes) + long-term (days/weeks) | Cross-invocation (hours/days/weeks)             |
+| Access pattern    | "What did the user say earlier?"           | "What happened to this entity last time?"       |
+| Namespace         | User ID                                    | Entity ID (e.g., incident ID, device ID)        |
+| Typical strategy  | Session + SEMANTIC                         | SEMANTIC or SUMMARIZATION                       |
+
+</div>
+
+---
+
+## Example: Entity-Scoped Memory
+
+When an incident recurs, the agent should know what happened last time:
+
+```python
+from bedrock_agentcore.memory.integrations.strands import (
+    AgentCoreMemorySessionManager,
+)
+
+# Use the entity ID (incident ID) as the session scope
+session_manager = AgentCoreMemorySessionManager(
+    memory_id=os.environ["BEDROCK_AGENTCORE_MEMORY_ID"],
+    region=os.environ.get("AWS_REGION", "us-east-1"),
+    session_id=f"incident-{incident_id}",  # entity-scoped
+    actor_id="incident-agent",  # service identity
+)
+
+agent = Agent(
+    model="global.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    system_prompt=SYSTEM_PROMPT,
+    tools=[get_service_health, restart_service],
+    session_manager=session_manager,
+)
+```
+
+With this configuration, when INC-001 fires again next week, the agent retrieves context like "Last time this incident occurred, we restarted the service and it resolved in 3 minutes."
+
+---
+
+## Related Pages
+
+- <Link to="/docs/workloads/workflow/event-processing">Event Processing →</Link>
+- <Link to="/docs/workloads/workflow/evaluations">Evaluations →</Link>
