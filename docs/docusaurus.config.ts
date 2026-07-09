@@ -15,7 +15,12 @@ const config: Config = {
   projectName: 'agentcore-central',
 
   onBrokenLinks: 'warn',
-  onBrokenMarkdownLinks: 'warn',
+
+  markdown: {
+    hooks: {
+      onBrokenMarkdownLinks: 'warn',
+    },
+  },
 
   headTags: [
     {
