@@ -129,9 +129,9 @@ const config: Config = {
         {
           title: 'Agent Workloads',
           items: [
-            {label: 'Conversational Agents', to: '/docs/workloads/conversational'},
-            {label: 'Workflow Agents', to: '/docs/workloads/workflow'},
-            {label: 'Coding Agents', to: '/docs/workloads/coding'},
+            {label: 'Conversational Agents', to: '/docs/workloads/conversational/overview'},
+            {label: 'Workflow Agents', to: '/docs/workloads/workflow/overview'},
+            {label: 'Coding Agents', to: '/docs/workloads/coding/overview'},
           ],
         },
         {

@@ -30,7 +30,7 @@ function TilesSection() {
       </p>
 
       <div className="landing-tiles__grid">
-        <Link to="/docs/workloads/conversational" className="landing-tile">
+        <Link to="/docs/workloads/conversational/overview" className="landing-tile">
           <span className="landing-tile__icon">💬</span>
           <h3 className="landing-tile__title">Conversational Agents</h3>
           <p className="landing-tile__desc">
@@ -39,7 +39,7 @@ function TilesSection() {
           <span className="landing-tile__arrow">→</span>
         </Link>
 
-        <Link to="/docs/workloads/workflow" className="landing-tile">
+        <Link to="/docs/workloads/workflow/overview" className="landing-tile">
           <span className="landing-tile__icon">⚡</span>
           <h3 className="landing-tile__title">Workflow Agents</h3>
           <p className="landing-tile__desc">
@@ -48,7 +48,7 @@ function TilesSection() {
           <span className="landing-tile__arrow">→</span>
         </Link>
 
-        <Link to="/docs/workloads/coding" className="landing-tile">
+        <Link to="/docs/workloads/coding/overview" className="landing-tile">
           <span className="landing-tile__icon">💻</span>
           <h3 className="landing-tile__title">Coding Agents</h3>
           <p className="landing-tile__desc">
