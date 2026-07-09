@@ -1,0 +1,143 @@
+---
+title: Workflow Agents
+sidebar_label: Overview
+sidebar_position: 1
+---
+
+import Link from '@docusaurus/Link';
+
+# Workflow Agents
+
+Event-driven automation agents that reason, act, and adapt. AgentCore runs your workflow agents at scale with built-in security, observability, and bounded autonomy, replacing brittle scripts with intelligent automation.
+
+---
+
+## What Is It?
+
+A workflow agent is an autonomous automation system triggered by events, not humans. When an alert fires, a document arrives, or a schedule ticks, the agent wakes up, gathers context, reasons about the situation, takes action, and goes back to sleep. Unlike traditional automation scripts with rigid if-then-else chains, workflow agents use LLM reasoning to handle ambiguous inputs, adapt to edge cases, and make judgment calls within defined guardrails.
+
+---
+
+## Common Use Cases
+
+- **Claims processing / adjudication** — Insurance or healthcare claims arrive as events. The agent enriches with policy data, reasons about coverage rules, approves/denies within policy limits, and escalates edge cases to a human adjuster.
+- **IT incident response / auto-remediation** — Monitoring alert fires. Agent pulls service health, correlates with recent changes, executes runbook steps (restart, scale, failover), and notifies on-call only when human judgment is needed.
+- **Document intake and routing** — Documents land in S3 or arrive via email. Agent classifies document type, extracts key fields, routes to the appropriate queue, and triggers downstream workflows.
+- **Compliance drift detection** — Scheduled scan finds configuration drift. Agent assesses severity, auto-remediates known patterns, and creates tickets for novel findings.
+- **Email / ticket triage and auto-response** — Inbound support emails are classified by intent and urgency. Auto-responded if the answer is clear, or routed to the right team with a pre-drafted response.
+- **Order exception handling** — Fulfillment system flags a stuck order. Agent investigates root cause (inventory, payment, shipping status), resolves if possible, or escalates with full context.
+
+---
+
+## When to Choose Workflow
+
+Choose this workload when:
+
+- A system event is the trigger (alert, webhook, schedule, file upload, message queue)
+- The agent needs to make decisions and take actions autonomously
+- You need bounded autonomy: the agent should act within defined guardrails, not freely
+- The primary output is actions taken and events emitted, not chat messages
+- Each invocation is short-lived (seconds to minutes), not a long conversation
+
+---
+
+## Strengths and Limitations
+
+<div className="fancy-table">
+
+| Strengths                                              | Limitations                                                      |
+|--------------------------------------------------------|------------------------------------------------------------------|
+| Scale-to-zero (no idle compute between events)         | Not suited for multi-turn human conversations                    |
+| Bounded autonomy via Cedar policies                    | Requires upfront policy design to constrain behavior             |
+| Event-driven fits existing AWS infrastructure          | More complex trigger setup than a simple API endpoint            |
+| LLM reasoning handles edge cases scripts cannot        | Non-deterministic: same event may produce different actions      |
+| Full audit trail for every decision                    | Higher latency than pure rule-based automation                   |
+| Programmatic evaluations at zero token cost            | Evaluation dataset requires curating ground-truth examples       |
+
+</div>
+
+---
+
+## How It Compares
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Dimension          | Workflow                                 | Conversational                         | Coding                             |
+|--------------------|------------------------------------------|----------------------------------------|------------------------------------|
+| Trigger            | System event (machine-initiated)         | User message (human-initiated)         | Ticket / PR / schedule             |
+| Session            | Short-lived, single invocation           | Long-lived, multi-turn                 | Long-lived, single task            |
+| Identity           | Service principal (machine-to-machine)   | End-user (OAuth bearer token)          | Developer identity                 |
+| Primary output     | Actions + events emitted                 | Chat response to human                 | Code + PR comments                 |
+| Guardrails         | Cedar policies (tool-level constraints)  | Content filters + PII redaction        | Code quality gates                 |
+| Memory             | Cross-invocation context per entity      | Session + long-term per user           | Project-scoped context             |
+
+</div>
+
+---
+
+## The 5-Step Execution Pattern
+
+Every workflow automation agent follows a consistent execution loop:
+
+<div className="arch-flow">
+  <span className="arch-flow-step">① Trigger (event arrives)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">② Enrich (gather context)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">③ Reason (LLM decides)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">④ Act (execute via tool)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">⑤ Emit (publish event)</span>
+</div>
+
+Where scripts need explicit branching for every case, the LLM reasons over the enriched context and decides the best action dynamically.
+
+---
+
+## AgentCore Configuration Summary
+
+<div className="fancy-table fancy-table--auto-first">
+
+| AgentCore Service | Configuration for Workflow                            | Why It Matters                                         |
+|-------------------|-------------------------------------------------------|--------------------------------------------------------|
+| **Identity**      | Service identity (client credentials, SigV4)          | Agent authenticates as a service, not a user           |
+| **Memory**        | SEMANTIC per entity, or stateless                     | Cross-invocation context about incidents/tickets       |
+| **Runtime**       | Short-lived sessions (up to 15 min), scale-to-zero   | Cost-efficient, no idle compute                        |
+| **Policy Engine** | Cedar policies for bounded autonomy                   | Constrain which tools the agent can call and when      |
+| **Evaluations**   | GoalSuccessRate, TrajectoryMatch, Correctness         | Continuous quality measurement in production           |
+| **Observability** | Per-invocation tracing with event context             | Full audit trail for every decision                    |
+| **Gateway**       | Service-scoped tool access with credential providers  | Agent calls APIs with managed credentials              |
+
+</div>
+
+---
+
+## Next Steps
+
+<div className="tile-grid">
+  <Link to="/docs/workloads/workflow/quickstart" className="tile-card">
+    <div className="tile-heading"><h3>Quick Start →</h3></div>
+    <p>Build and deploy an incident response agent in 5 steps.</p>
+  </Link>
+
+  <Link to="/docs/workloads/workflow/event-processing" className="tile-card">
+    <div className="tile-heading"><h3>Event Processing →</h3></div>
+    <p>Triggers, Lambda patterns, and the event-driven execution model.</p>
+  </Link>
+
+  <Link to="/docs/workloads/workflow/bounded-autonomy" className="tile-card">
+    <div className="tile-heading"><h3>Bounded Autonomy →</h3></div>
+    <p>Cedar policies and the Policy Engine deep dive.</p>
+  </Link>
+
+  <Link to="/docs/workloads/workflow/tools-and-gateway" className="tile-card">
+    <div className="tile-heading"><h3>Tools & Gateway →</h3></div>
+    <p>Tool design principles, hosting options, and MCP Gateway.</p>
+  </Link>
+
+  <Link to="/docs/workloads/workflow/evaluations" className="tile-card">
+    <div className="tile-heading"><h3>Evaluations →</h3></div>
+    <p>Online measurement, ground truth, and built-in evaluators.</p>
+  </Link>
+</div>
