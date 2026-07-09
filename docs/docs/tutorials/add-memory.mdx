@@ -2,6 +2,7 @@
 title: "Tutorial: Add Memory to Your Agent"
 sidebar_label: Add Memory
 sidebar_position: 1
+last_verified: 2026-07-08
 ---
 
 :::info Versions
@@ -153,7 +154,7 @@ def invoke(payload, context):
     session_manager = get_memory_session_manager(session_id, actor_id)
 
     agent = Agent(
-        model="us.anthropic.claude-sonnet-4-20250514-v1:0",
+        model="global.anthropic.claude-sonnet-4-5-20250929-v1:0",
         system_prompt=SYSTEM_PROMPT,
         tools=[get_user_name],
         session_manager=session_manager,

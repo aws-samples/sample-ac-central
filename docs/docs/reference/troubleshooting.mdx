@@ -2,6 +2,7 @@
 title: Troubleshooting
 sidebar_label: Troubleshooting
 sidebar_position: 3
+last_verified: 2026-07-08
 ---
 
 :::info Versions
@@ -120,30 +121,38 @@ agent = Agent(model=model, session_manager=session_manager, tools=tools)
 
 <div className="fancy-table">
 
-| Symptom                         | Root Cause                         | Solution                                                          |
-| ------------------------------- | ---------------------------------- | ----------------------------------------------------------------- |
-| Policy deploy fails             | Bare `resource` without type       | Use `resource is AgentCore::Gateway`                              |
-| Policy has no effect            | Mode is `LOG_ONLY`                 | Switch to `ENFORCE` after validating in logs                      |
-| `ValidationException` on create | Schema mismatch with Gateway tools | Deploy Gateway first so tool schemas are available for validation |
-| Numeric comparison fails        | Using operators on Decimal type    | Use `"type": "integer"` in tool schema for direct `<` `>` ops     |
+| Symptom                         | Root Cause                         | Solution                                                                                   |
+| ------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------ |
+| Policy deploy fails             | Bare `resource` without type       | Use `resource is AgentCore::Gateway` (any action) or `resource == AgentCore::Gateway::"<arn>"` (specific actions) |
+| Policy has no effect            | Mode is `LOG_ONLY`                 | Switch to `ENFORCE` after validating in logs                                               |
+| `ValidationException` on create | Schema mismatch with Gateway tools | Deploy Gateway first so tool schemas are available for validation                          |
+| Numeric comparison fails        | Using operators on Decimal type    | Use `"type": "integer"` in tool schema for direct `<` `>` ops                              |
+| Specific action + type constraint fails | Using `resource is` with `action ==` | When specifying specific actions, you must use the full Gateway ARN: `resource == AgentCore::Gateway::"<arn>"` |
 
 </div>
 
 ### Cedar Syntax Quick Reference
 
 ```cedar
-// Allow a specific tool unconditionally
+// Allow ALL tools on a gateway (type constraint OK here — no specific action)
 permit(
   principal,
-  action == AgentCore::Action::"TargetName___tool_name",
+  action,
   resource is AgentCore::Gateway
 );
 
-// Allow only when condition is met
+// Allow a specific tool (MUST use Gateway ARN)
 permit(
   principal,
   action == AgentCore::Action::"TargetName___tool_name",
-  resource is AgentCore::Gateway
+  resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-west-2:123456789012:gateway/my-gateway"
+);
+
+// Allow a specific tool only when condition is met (MUST use Gateway ARN)
+permit(
+  principal,
+  action == AgentCore::Action::"TargetName___tool_name",
+  resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-west-2:123456789012:gateway/my-gateway"
 )
 when {
   context.input.priority == "HIGH"
