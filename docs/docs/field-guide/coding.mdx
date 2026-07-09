@@ -1,0 +1,49 @@
+---
+title: "Field Guide: Coding Agents"
+sidebar_label: Coding
+sidebar_position: 4
+---
+
+# Field Guide: Coding Agents
+
+Positioning, objection handling, and demo scripts for account teams.
+
+:::caution Coming Soon
+This page is under development. For now, refer to the [Coding Agents workload overview](/docs/workloads/coding/overview) for technical details and use cases.
+:::
+
+---
+
+## Common Objections & Responses
+
+<div className="fancy-table">
+
+| Objection                                          | Response                                                                                                                         |
+|----------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| "Why not just GitHub Copilot / Cursor?"            | IDE copilots assist a human in real-time. AgentCore coding agents run autonomously on tasks (PRs, migrations, test gen) at scale. |
+| "What about code quality and hallucinations?"      | Sandboxed Code Interpreter validates output (compile, test, lint) before committing. The agent iterates until tests pass.         |
+| "How is this different from CodeWhisperer?"        | CodeWhisperer does inline completions. AgentCore coding agents do multi-file, multi-step tasks with full repo context.            |
+| "What about security of generated code?"           | MicroVM isolation, no network access by default, and security scanning gates before any PR is opened.                             |
+| "Is it production-ready?"                          | Blue Origin is running coding agents on AgentCore for aerospace software development.                                             |
+
+</div>
+
+---
+
+## What to Demo (5-Minute Path)
+
+*Demo script in development. Target: deploy a coding agent that takes a Jira ticket description, generates implementation + tests, and opens a PR.*
+
+---
+
+## Key Differentiators vs Alternatives
+
+| Capability                  | IDE Copilots       | AgentCore Coding Agents                      |
+|-----------------------------|--------------------|----------------------------------------------|
+| Execution model             | Human-in-the-loop  | Autonomous (with review gates)               |
+| Scope                       | Single file / block | Multi-file, cross-repo                       |
+| Validation                  | Human reviews      | Automated (compile, test, lint in sandbox)   |
+| Trigger                     | Keystroke          | Ticket, PR, schedule, CI event               |
+| Session duration            | Seconds            | Minutes to hours                             |
+| Sandbox isolation           | None               | MicroVM with Code Interpreter                |
+| Scale                       | 1 developer        | Concurrent tasks across many repos           |
