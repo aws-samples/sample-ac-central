@@ -1,0 +1,121 @@
+---
+title: Session Management & Streaming
+sidebar_label: Session Management
+sidebar_position: 4
+---
+
+import Link from '@docusaurus/Link';
+
+# Session Management & Streaming
+
+Conversational agents need stateful, long-lived sessions, not the request/response model of traditional APIs. AgentCore handles this at the platform level.
+
+---
+
+## How Sessions Work
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Capability          | What AgentCore Provides                                                              |
+|---------------------|--------------------------------------------------------------------------------------|
+| Session isolation   | Each session runs in a dedicated microVM. No shared state between users.             |
+| Session duration    | Compute lifecycle lasts up to 8 hours. Long enough for complex multi-step workflows. |
+| Session persistence | If a session disconnects, it resumes where it left off. No lost context.             |
+| Session ID tracking | Pass a `runtimeSessionId` on each invoke. Same ID = same conversation.               |
+| Scale-to-zero       | Idle sessions terminate (default 15 min). You pay only for active time.              |
+
+</div>
+
+---
+
+## Multi-Turn Conversations
+
+AgentCore Memory keeps your agent coherent across turns without manual context plumbing:
+
+- **Short-term memory (session)** — automatic. Every message in the current session is available to the agent. No prompt stuffing required.
+- **Long-term memory (cross-session)** — opt-in. Store user preferences, past decisions, and facts that should persist across sessions. Namespace per user for isolation.
+- **Summarization** — for conversations that exceed context window limits, AgentCore Memory can summarize older turns so the agent retains the gist without exhausting tokens.
+
+---
+
+## Handling Interruptions and Resume
+
+Real users close laptops, switch devices, and come back hours later. AgentCore handles this:
+
+1. **Session persists server-side** — the microVM maintains state even when the client disconnects.
+2. **Resume with the same session ID** — the next invoke picks up where the user left off.
+3. **Timeout behavior** — after the idle timeout (default 15 minutes, configurable up to 8 hours), the session terminates gracefully and durable state is retained in AgentCore Memory.
+
+---
+
+## Cross-Channel Continuity
+
+Users may start on Slack, switch to a web app, then follow up on mobile. Because sessions are server-side and identified by `runtimeSessionId` + user identity:
+
+- Same user + same session ID = continuation regardless of channel.
+- AgentCore Identity links the user across channels via their IdP token, not a device cookie.
+
+---
+
+## Context Window Management
+
+Long conversations consume context windows quickly. As multi-turn conversations with tool calls grow, raw message history can exhaust the model's context window, degrading answer quality, increasing cost, and eventually hitting hard model limits. Without management, agents degrade silently: they don't crash, they just start giving worse answers.
+
+**Short-term memory with automatic summarization** — recent turns are kept verbatim; older turns are summarized into concise recaps that preserve key facts and decisions.
+
+**Semantic retrieval from long-term memory** — when the agent needs a fact from many turns ago, AgentCore Memory embeds the current query and retrieves the most relevant past events by semantic similarity. Only the relevant snippets are injected into context.
+
+**Namespace scoping per user** — memory is isolated by user/actor ID. One user's long conversation doesn't pollute another's context.
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Practice                             | Why                                                                 |
+|--------------------------------------|---------------------------------------------------------------------|
+| Use short-term + long-term memory    | Short-term for the active thread; long-term for cross-session facts |
+| Set a summarization window           | Summarize after N turns to keep active context within model limits  |
+| Retrieve, don't replay               | Fetch relevant history on demand instead of replaying all messages  |
+| Separate system prompt from history  | Pin critical instructions outside the sliding window                |
+| Monitor token usage per conversation | Track via CloudWatch to catch runaway conversations early           |
+
+</div>
+
+---
+
+## Streaming & Real-Time UX
+
+Conversational agents live or die on perceived responsiveness. AgentCore streams tokens to the client as they're generated, with no buffering.
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Capability               | Detail                                                                              |
+|--------------------------|-------------------------------------------------------------------------------------|
+| Token-by-token streaming | SSE from the `/invocations` endpoint for progressive response delivery.             |
+| Tool-activity feedback   | During tool calls, emit status events so the UI shows "Looking up account…"         |
+| Partial response display | Stream the answer while tools run in parallel behind the scenes.                    |
+| WebSocket support        | Bidirectional streaming via WebSocket (`/ws` endpoint) for real-time UX.            |
+
+</div>
+
+Without streaming, users wait on a blank screen while the agent reasons and calls tools. Perceived latency is a leading cause of enterprise chat-agent abandonment.
+
+---
+
+## Multi-Tenant Isolation
+
+Enterprise deployments serve multiple teams, business units, or customers from shared infrastructure. AgentCore provides tenant isolation at the platform level.
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Layer         | Isolation Mechanism                                                     |
+|---------------|-------------------------------------------------------------------------|
+| Compute       | Dedicated microVM per session. No shared OS processes between tenants.  |
+| Memory        | Namespace-per-user. One tenant cannot retrieve another's memory events. |
+| Gateway/Tools | Auth propagation ensures each tool call is scoped to the user's token.  |
+| Observability | Traces and logs carry user context; RBAC on CloudWatch log groups.      |
+| Data at rest  | Encryption with customer-managed keys (CMK) supported.                  |
+
+</div>
+
+:::info Why this matters
+Without platform-level isolation, teams build custom tenant partitioning into every layer: DynamoDB partition keys, S3 prefix policies, Lambda authorizers, log filtering. AgentCore does this once, correctly, at the infrastructure level.
+:::

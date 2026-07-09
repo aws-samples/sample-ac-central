@@ -1,0 +1,176 @@
+---
+title: "Quick Start: Conversational Agent"
+sidebar_label: Quick Start
+sidebar_position: 2
+last_verified: 2026-07-08
+---
+
+:::info Versions
+Examples built with **Strands Agents SDK** `1.46.0` and **bedrock-agentcore** `1.17.0`. APIs may differ in other versions.
+:::
+
+import Link from '@docusaurus/Link';
+
+# Quick Start: Conversational Agent
+
+Deploy a working chat agent with memory in under 10 minutes.
+
+---
+
+## 5 Steps to Deploy
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Step | Action          | Command                                   |
+|------|-----------------|-------------------------------------------|
+| 1    | Install CLI     | `npm install -g @aws/agentcore`           |
+| 2    | Create Agent    | `agentcore create`                        |
+| 3    | Add SDK         | `uv add strands-agents bedrock-agentcore` |
+| 4    | Develop Locally | `agentcore dev`                           |
+| 5    | Deploy          | `agentcore deploy`                        |
+
+</div>
+
+---
+
+## Complete Working Example
+
+A conversational agent with memory that remembers user preferences across sessions. Copy this into `app/ChatAgent/main.py`:
+
+```python
+"""Conversational agent with memory and a lookup tool."""
+
+import logging
+
+from strands import Agent, tool
+
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
+
+log = logging.getLogger(__name__)
+app = BedrockAgentCoreApp()
+
+
+@tool
+def lookup_account(account_id: str) -> dict:
+    """Look up account details by ID.
+
+    Args:
+        account_id: The customer account identifier.
+
+    Returns:
+        Account information including name, plan, and status.
+    """
+    # Replace with real API call in production
+    accounts = {
+        "ACC-001": {"name": "Acme Corp", "plan": "Enterprise", "status": "active"},
+        "ACC-002": {"name": "Startup Inc", "plan": "Growth", "status": "active"},
+    }
+    account = accounts.get(account_id)
+    if not account:
+        return {"error": f"Account {account_id} not found"}
+    return {
+        "status": "success",
+        "content": [{"text": str(account)}],
+    }
+
+
+SYSTEM_PROMPT = """You are a helpful customer support assistant.
+You can look up account information when users provide an account ID.
+Be concise, friendly, and accurate. If you don't know something, say so."""
+
+
+@app.entrypoint
+def invoke(payload, context):
+    """Agent entrypoint - called by AgentCore Runtime on each request."""
+    prompt = payload.get("prompt", "Hello!")
+
+    # Memory session manager injected by AgentCore when memory is configured.
+    # Works without memory too (session_manager=None is fine).
+    session_manager = None
+    try:
+        from bedrock_agentcore.memory.integrations.strands import (
+            AgentCoreMemorySessionManager,
+        )
+
+        memory_id = __import__("os").environ.get("BEDROCK_AGENTCORE_MEMORY_ID")
+        if memory_id:
+            session_manager = AgentCoreMemorySessionManager(
+                memory_id=memory_id,
+                region=__import__("os").environ.get("AWS_REGION", "us-east-1"),
+                session_id=context.session_id,
+                actor_id=getattr(context, "actor_id", "default-user"),
+            )
+    except Exception as exc:
+        log.warning("Memory unavailable (running without): %s", exc)
+
+    agent = Agent(
+        model="global.anthropic.claude-sonnet-4-5-20250929-v1:0",
+        system_prompt=SYSTEM_PROMPT,
+        tools=[lookup_account],
+        session_manager=session_manager,
+    )
+
+    result = agent(prompt)
+    return {"response": result.message}
+
+
+app.run()
+```
+
+---
+
+## Configuration
+
+### `agentcore/agentcore.json`
+
+```json
+{
+  "runtimes": [
+    {
+      "name": "ChatAgent",
+      "build": "CodeZip",
+      "entrypoint": "main.py",
+      "codeLocation": "app/ChatAgent/",
+      "runtimeVersion": "PYTHON_3_13",
+      "protocol": "HTTP",
+      "networkMode": "PUBLIC"
+    }
+  ],
+  "memories": [
+    {
+      "name": "ChatAgentMemory",
+      "eventExpiryDuration": 90,
+      "strategies": [{"type": "SEMANTIC", "name": "facts"}]
+    }
+  ]
+}
+```
+
+---
+
+## Test It
+
+```bash
+# Terminal 1: start the dev server
+agentcore dev
+
+# Terminal 2: send a message
+agentcore dev "Look up account ACC-001"
+
+# Expected: "Acme Corp is on the Enterprise plan and their account is active."
+
+# Multi-turn (memory persists across turns within the same session)
+agentcore dev "What plan are they on?"
+
+# Expected: Agent remembers ACC-001 from the previous turn
+```
+
+---
+
+## What's Next?
+
+You have a working agent. Now add enterprise capabilities:
+
+- <Link to="/docs/workloads/conversational/enterprise-features">Add Identity, Memory, and Gateway →</Link>
+- <Link to="/docs/workloads/conversational/session-management">Configure session management and streaming →</Link>
+- <Link to="/docs/workloads/conversational/patterns-and-architecture">Explore multi-agent patterns →</Link>

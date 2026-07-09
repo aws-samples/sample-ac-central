@@ -15,29 +15,41 @@ sidebar_label: Rede Mater Dei
 
 Event-driven multi-agent pipeline for healthcare revenue cycle management.
 
-<div className="arch-flow">
-  <span className="arch-flow-step">Hospital EHR/Billing Systems</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Event Triggers (claims, authorizations)</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">12 Specialized AI Agents</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">AgentCore Runtime</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Observability & Evaluations</span>
-</div>
+```mermaid
+flowchart LR
+    A[Billing Event] --> B[Event Router]
+    B --> C[Specialized Agent]
+    C --> D[AgentCore Runtime]
+    D --> E[Bedrock Models]
+    E --> F[Claim Data + Docs]
+    F --> G[Update Status]
+    G --> H[Observability]
+```
 
 ## Customer Story
 
-**Customer:** Rede Mater Dei de Saúde - Major Brazilian hospital network (45+ years, 8+ locations)
+**Customer:** Rede Mater Dei de Saúde, a major Brazilian hospital network with 45+ years of service and 8+ locations
 
-**Challenge:** Claim denials jumped to ~16% sector-wide (~R$10B lost revenue), driven by manual, fragmented billing processes.
+**Challenge:** Claim denials jumped to approximately 16% sector-wide, representing about R$10B in lost revenue. Manual, fragmented billing processes were unable to keep pace with regulatory complexity and volume, creating bottlenecks in authorization, coding, and claim validation.
 
-**Solution:** 12 AI agents on Amazon Bedrock AgentCore automating contracts, authorization, and billing - with built-in observability and governance.
+**Solution:** 12 specialized AI agents deployed on Amazon Bedrock AgentCore, each focused on a distinct revenue cycle function including claim validation, denial analysis, medical coding checks, authorization requests, and contract verification. Each agent is containerized and runs on AgentCore Runtime, triggered by billing events from hospital EHR systems. Built-in observability captures every execution for audit and continuous improvement.
 
-## AgentCore Services
+## AgentCore Configuration
 
-<span className="service-tag tag--runtime">Runtime</span> <span className="service-tag tag--observability">Observability</span> <span className="service-tag tag--evaluations">Evaluations</span>
+<div className="fancy-table">
+
+| AgentCore Service | Configuration for Rede Mater Dei                          | Why It Matters                                                    |
+|-------------------|-----------------------------------------------------------|-------------------------------------------------------------------|
+| Runtime           | 12 containerized agents, event-driven triggers            | Each agent focuses on a specific billing task, scales on demand  |
+| Observability     | Full trace capture of every agent execution               | Regulatory compliance and continuous process improvement         |
+
+</div>
+
+## Key Technical Decisions
+
+- **Multi-agent decomposition by business function** rather than a monolithic agent. Each agent (claim validation, denial analysis, coding checks, authorization) has bounded scope and clear responsibilities.
+- **Custom agents deployed as containers** using the bring-your-own-code pattern. This gave the team full control over agent logic and integration with existing hospital systems.
+- **Event-driven architecture** where billing events from EHR systems trigger the relevant agent on demand, keeping compute costs proportional to workload.
 
 ## Results
 
@@ -47,3 +59,9 @@ Event-driven multi-agent pipeline for healthcare revenue cycle management.
   <span className="result-chip">33% reduction in surgery start times</span>
   <span className="result-chip">Full audit trail for regulatory compliance</span>
 </div>
+
+## Lessons Learned
+
+- **Start with narrow, high-impact tasks** like authorization validation before expanding to complex workflows. Early wins build organizational trust.
+- **Observability is not optional in healthcare** where every decision must be traceable for compliance and quality improvement.
+- **Multi-agent beats monolith** when each task has distinct data sources, validation rules, and failure modes.

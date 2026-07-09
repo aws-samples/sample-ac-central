@@ -31,9 +31,39 @@ const sidebars: SidebarsConfig = {
       collapsed: false,
       items: [
         'workloads/overview',
-        'workloads/conversational',
-        'workloads/workflow',
-        'workloads/coding',
+        {
+          type: 'category',
+          label: 'Conversational Agents',
+          items: [
+            'workloads/conversational/overview',
+            'workloads/conversational/quickstart',
+            'workloads/conversational/enterprise-features',
+            'workloads/conversational/session-management',
+            'workloads/conversational/patterns-and-architecture',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Workflow Agents',
+          items: [
+            'workloads/workflow/overview',
+            'workloads/workflow/quickstart',
+            'workloads/workflow/event-processing',
+            'workloads/workflow/bounded-autonomy',
+            'workloads/workflow/tools-and-gateway',
+            'workloads/workflow/memory-and-state',
+            'workloads/workflow/evaluations',
+            'workloads/workflow/patterns-and-architecture',
+          ],
+        },
+        {
+          type: 'category',
+          label: 'Coding Agents',
+          items: [
+            'workloads/coding/overview',
+            'workloads/coding/quickstart',
+          ],
+        },
       ],
     },
     {
@@ -76,6 +106,7 @@ const sidebars: SidebarsConfig = {
         'field-guide/overview',
         'field-guide/conversational',
         'field-guide/workflow',
+        'field-guide/coding',
       ],
     },
     {

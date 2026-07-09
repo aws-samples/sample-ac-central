@@ -1,0 +1,122 @@
+---
+title: Coding Agents
+sidebar_label: Overview
+sidebar_position: 1
+---
+
+import Link from '@docusaurus/Link';
+
+# Coding Agents
+
+Long-running code generation, review, and migration agents with sandboxed execution, governance, and scalability. AgentCore provides the secure runtime for tasks that produce code as output.
+
+---
+
+## What Is It?
+
+A coding agent is an autonomous AI that produces, modifies, or reviews source code. Triggered by tickets, pull requests, schedules, or CI events, it performs long-running tasks like feature implementation, refactoring, test generation, or code review, then surfaces results for human approval. Unlike conversational agents that respond in real-time to humans, coding agents run in the background and produce structured artifacts (code, PRs, comments).
+
+---
+
+## Common Use Cases
+
+- **Feature implementation from Jira tickets** — A ticket is created or moves to "Ready for Dev." The agent reads requirements, generates implementation code, writes tests, and opens a PR for human review.
+- **Automated code review / security scanning** — A PR is opened. The agent reviews for bugs, security issues, style violations, and architectural concerns, leaving inline comments.
+- **Codebase migration / refactoring** — Batch transformation across hundreds of files: framework upgrades, API version bumps, pattern standardization. The agent plans, transforms, tests, and commits.
+- **Test generation from specifications** — When specs or code change, the agent generates or updates test suites to maintain coverage targets.
+- **Documentation generation from code** — Code merges trigger automatic generation or update of API docs, architecture diagrams, or README files.
+- **Dependency updates and vulnerability fixes** — Security advisories trigger the agent to patch dependencies, verify tests pass, and submit PRs.
+
+---
+
+## When to Choose Coding
+
+Choose this workload when:
+
+- The primary output is code, tests, documentation, or PR comments
+- Tasks are long-running (minutes to hours) and involve file system or repository operations
+- You need sandbox isolation for code execution, build, and validation
+- Results go through a human review gate before merging
+- The agent operates on a codebase with version control
+
+---
+
+## Strengths and Limitations
+
+<div className="fancy-table">
+
+| Strengths                                             | Limitations                                                  |
+|-------------------------------------------------------|--------------------------------------------------------------|
+| Long-running execution (hours) for complex tasks      | Non-deterministic output requires human review gates         |
+| Sandboxed Code Interpreter for safe execution         | Context window limits constrain codebase understanding       |
+| Identity-aware access to repositories and CI systems  | Nascent archetype; patterns are still maturing               |
+| Scale-to-zero between tasks                           | Build/test feedback loops add latency                        |
+| Full traceability from trigger to PR                  | Complex multi-file reasoning still challenging for models    |
+
+</div>
+
+---
+
+## How It Compares
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Dimension          | Coding                             | Workflow                             | Conversational                         |
+|--------------------|------------------------------------|--------------------------------------|----------------------------------------|
+| Trigger            | Ticket / PR / schedule             | System event (alert, webhook)        | User message (human-initiated)         |
+| Session            | Long-lived, single task            | Short-lived, single invocation       | Long-lived, multi-turn                 |
+| Identity           | Developer identity                 | Service principal                    | End-user (OAuth bearer token)          |
+| Primary output     | Code + PR comments                 | Actions + events emitted             | Chat response to human                 |
+| Execution model    | Plan → Generate → Build → Test → PR | Trigger → Enrich → Reason → Act → Emit | Message → Reason → Respond           |
+| Sandbox            | Code Interpreter (file I/O, build) | Not typically needed                 | Not typically needed                   |
+| Review gate        | Always (PR or human approval)      | Optional (confidence-gated)          | Rarely (inline during conversation)    |
+
+</div>
+
+---
+
+## AgentCore Configuration Summary
+
+<div className="fancy-table fancy-table--auto-first">
+
+| AgentCore Service | Configuration for Coding                      | Why It Matters                            |
+|-------------------|-----------------------------------------------|-------------------------------------------|
+| **Identity**      | Developer identity                            | Agent accesses repos as the developer     |
+| **Memory**        | Project-scoped context                        | Codebase understanding across invocations |
+| **Runtime**       | Long-running (hours), Code Interpreter        | Complex tasks need sustained compute      |
+| **Guardrails**    | Code quality + security scanning gates        | Catch vulnerabilities before merge        |
+| **Observability** | Per-task tracing                              | Understand what the agent changed and why |
+
+</div>
+
+---
+
+## Coming Soon
+
+<div className="tile-grid">
+  <div className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--guardrails" aria-hidden="true" /><h3>Why AgentCore for Coding</h3></div>
+    <p>Secure sandboxed execution, long-running task support, identity-aware access, and Code Interpreter integration.</p>
+  </div>
+
+  <div className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--blueprint" aria-hidden="true" /><h3>Reference Architecture</h3></div>
+    <p>Architecture showing IDE/CI trigger → AgentCore → code generation → review gate with full traceability.</p>
+  </div>
+
+  <div className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--patterns" aria-hidden="true" /><h3>Recommended Patterns</h3></div>
+    <p>Plan-Act-Reflect, Swarm (multi-file refactor), and HITL (code review gate). <Link to="/docs/patterns/overview">View shared patterns page →</Link></p>
+  </div>
+</div>
+
+---
+
+## Next Steps
+
+<div className="tile-grid">
+  <Link to="/docs/workloads/coding/quickstart" className="tile-card">
+    <div className="tile-heading"><h3>Quick Start →</h3></div>
+    <p>Build a test generation agent with sandboxed validation in under 10 minutes.</p>
+  </Link>
+</div>

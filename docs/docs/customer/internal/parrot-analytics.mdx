@@ -12,15 +12,15 @@ sidebar_position: 4
 
 ## Architecture
 
-<div className="arch-flow">
-  <span className="arch-flow-step">Media Executive (Query)</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Content Intelligence Agent</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Audience Data Analysis</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Insights & Recommendations</span>
-</div>
+```mermaid
+flowchart LR
+    User[Media Executive] --> Agent[Intelligence Agent]
+    Agent --> Query[Query Translator]
+    Query --> Data[Audience Data Lake]
+    Data --> Analysis[Analytics Engine]
+    Analysis --> Response[Insights & Viz]
+    Response --> User
+```
 
 ---
 
@@ -28,9 +28,22 @@ sidebar_position: 4
 
 **Customer:** Parrot Analytics - Global content analytics company
 
-**Challenge:** Media executives needing real-time audience and content intelligence but lacking technical skills to query complex datasets
+**Challenge:** Media executives needing real-time audience and content intelligence but lacking technical skills to query complex datasets. Business teams were dependent on data analysts for every question, creating bottlenecks and limiting exploration.
 
-**Solution:** Conversational agents providing content intelligence insights, enabling media executives to query audience data through natural language. The agent translates business questions into analytical queries and presents results with context.
+**Solution:** Conversational agents providing content intelligence insights, enabling media executives to query audience data through natural language. The agent translates business questions into analytical queries and presents results with context and recommendations. Session memory allows follow-up questions to refine analysis.
+
+---
+
+## AgentCore Configuration
+
+<div className="fancy-table">
+
+| Service         | Configuration                                  | Purpose                                      |
+|-----------------|------------------------------------------------|----------------------------------------------|
+| Runtime         | Streaming enabled, 30-minute session timeout   | Real-time conversational experience          |
+| Memory          | Session memory only, user-scoped               | Multi-turn context for iterative queries     |
+
+</div>
 
 ---
 
@@ -48,3 +61,20 @@ sidebar_position: 4
   <span className="result-chip">Faster decision-making</span>
   <span className="result-chip">Reduced analyst dependency</span>
 </div>
+
+<!-- TODO: Update with actual metrics from customer -->
+**Key Metrics:**
+- Analyst request volume reduction: [X%]
+- Average query response time: [Y seconds]
+- Executive self-service adoption: [X%]
+- Questions answered per session: [N average]
+
+---
+
+## Lessons Learned
+
+**Session memory is essential for analytics:** Business users naturally ask follow-up questions ("show that by region", "what about last quarter?"). Without session memory, each question requires full context re-entry.
+
+**Show the query, not just the answer:** Displaying the translated SQL or API call helps users learn the data model and builds trust that the agent understood their question correctly.
+
+**Visualizations beat tables:** For non-technical users, a simple chart is more actionable than a table of numbers. Build visualization primitives into your tool layer.

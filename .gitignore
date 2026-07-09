@@ -5,6 +5,7 @@
 .cursor/
 .kiro/
 .agents/
+.venv/
 node_modules/
 build/
 .docusaurus/

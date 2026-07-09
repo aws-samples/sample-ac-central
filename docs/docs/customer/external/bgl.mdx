@@ -16,35 +16,41 @@ sidebar_position: 3
 
 ![BGL Architecture](/img/image71.jpeg)
 
-<div className="arch-flow">
-  <span className="arch-flow-step">Slack (User Query)</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Claude Agent SDK</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">NL → SQL Translation</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">dbt + Athena</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Python Analytics</span>
-</div>
-
----
+```mermaid
+flowchart LR
+    A[User in Slack] --> B[Agent on Runtime]
+    B --> C[Schema Discovery]
+    C --> D[SQL Generation]
+    D --> E[SQL Validator]
+    E --> F[Athena Execution]
+    F --> G[Python Analytics]
+    G --> H[Answer in Slack]
+```
 
 ## Customer Story
 
-**Customer:** BGL - SMSF administration software (12,700+ businesses, 15 countries)
+**Customer:** BGL, a provider of SMSF administration software serving 12,700+ businesses across 15 countries
 
-**Challenge:** Business users dependent on data team for every analytics query, creating bottlenecks and delays
+**Challenge:** Business users were dependent on the data team for every analytics query. Even simple questions like "what were tax law filing trends last quarter?" required a ticket, a queue, and days of waiting. The data team was overwhelmed with repetitive ad-hoc requests, leaving no capacity for strategic work.
 
-**Solution:** Slack-based AI agent that converts natural language to SQL to Python analytics, powered by Claude Agent SDK on a strong data foundation
+**Solution:** Slack-based AI agent built with Claude Agent SDK that converts natural language to SQL to Python analytics. Users ask questions in Slack, the agent discovers the schema from 400+ analytics tables (dbt + Athena), generates SQL, validates it (only SELECT queries allowed), executes it, and returns the answer. Agent Skills partition knowledge by domain (Tax Law, Investment Performance) so the agent focuses on the relevant tables.
 
----
+## AgentCore Configuration
 
-## AgentCore Services
+<div className="fancy-table">
 
-<span className="service-tag tag--runtime">Runtime</span> <span className="service-tag tag--identity">Identity</span>
+| AgentCore Service | Configuration for BGL                                     | Why It Matters                                                    |
+|-------------------|-----------------------------------------------------------|-------------------------------------------------------------------|
+| Runtime           | Claude Agent SDK, Slack integration                       | Familiar interface, session isolation per user                   |
+| Identity          | User-level auth propagated through agent                  | Enforce data access policies at query execution time             |
 
----
+</div>
+
+## Key Technical Decisions
+
+- **SQL validator enforces read-only queries** because business users need insight, not the ability to modify data. The agent can only execute SELECT queries, blocking INSERT, UPDATE, DELETE, DROP.
+- **Agent Skills partition the 400+ table schema by domain** (Tax Law, Investment Performance, etc.). Without this, the agent would try to reason over the entire schema and fail.
+- **Slack as the interface** rather than a custom web app. Users already live in Slack, and the chat interface is more natural for exploratory BI than dashboard filters.
 
 ## Results
 
@@ -54,3 +60,9 @@ sidebar_position: 3
   <span className="result-chip">Data team freed for strategic work</span>
   <span className="result-chip">Compliance-aligned session isolation</span>
 </div>
+
+## Lessons Learned
+
+- **Schema partitioning is critical** when working with hundreds of tables. Without Agent Skills to focus the agent on relevant domains, context overload kills accuracy.
+- **Security through validation, not trust.** The SQL validator prevents accidental (or malicious) data modification even if the agent generates bad SQL.
+- **Meet users where they are.** Slack was the right interface because adoption was immediate. No training, no new tool.

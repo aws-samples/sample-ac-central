@@ -12,41 +12,53 @@ sidebar_position: 8
 
 ## Architecture
 
-<div className="arch-flow">
-  <span className="arch-flow-step">Engineering Specifications</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Coding Agent</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Design Generation & Validation</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Sandboxed Computation (AgentCore)</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Hardware Design Output</span>
-</div>
-
----
+```mermaid
+flowchart LR
+    A[User Query] --> B[LLM Gateway]
+    B --> C[Agent Marketplace]
+    C --> D[Multi-Agent Orchestration]
+    D --> E[RAG via OpenSearch]
+    D --> F[Memory via AgentCore]
+    D --> G[EKS Runtime]
+    G --> H[Lambda Automation]
+```
 
 ## Customer Story
 
-**Customer:** Blue Origin - Aerospace manufacturer and spaceflight services company
+**Customer:** Blue Origin, an aerospace manufacturer and spaceflight services company developing reusable rockets and lunar landers
 
-**Challenge:** Lunar hardware design requires iterative computation-heavy validation cycles that are time-consuming and expensive
+**Challenge:** Engineers across the company needed secure access to LLMs for design work, but enterprise requirements (data security, audit trails, cost control) meant public LLM interfaces were not an option. Teams also needed agents to remember context across long-running hardware development cycles and to access internal documentation.
 
-**Solution:** Coding agents assisting in the design and validation of lunar hardware components, using long-running computation in sandboxed environments on AgentCore. Agents generate, validate, and iterate on hardware designs autonomously.
+**Solution:** Enterprise AI platform called "BlueGPT" providing secure LLM access, an agent marketplace, multi-agent orchestration, RAG for internal docs (OpenSearch), and hierarchical memory (AgentCore Memory with short-term and long-term storage). Agents run on EKS for compute-heavy tasks and Lambda for automation. Memory captures context across sessions so agents remember prior design decisions and constraints.
 
----
+## AgentCore Configuration
 
-## AgentCore Services
+<div className="fancy-table">
 
-<span className="service-tag tag--runtime">Runtime</span> <span className="service-tag tag--observability">Observability</span>
+| AgentCore Service | Configuration for Blue Origin                             | Why It Matters                                                    |
+|-------------------|-----------------------------------------------------------|-------------------------------------------------------------------|
+| Memory            | Hierarchical: short-term (session) + long-term (entity)  | Lunar hardware design spans weeks; agents need cross-session context |
 
----
+</div>
+
+## Key Technical Decisions
+
+- **Hierarchical memory architecture** (short-term for within-session context, long-term for cross-session learnings) because lunar hardware design is iterative over weeks. Agents need to remember prior design decisions.
+- **Agent marketplace model** where teams publish and discover agents rather than centrally managing all agents. This scaled agent development across 2,700+ agents without a bottleneck.
+- **Secure LLM gateway** rather than direct model access. All LLM calls routed through a governance layer that enforced data classification and audit trails.
 
 ## Results
 
 <div className="results-grid">
-  <span className="result-chip">Accelerated hardware design cycles</span>
-  <span className="result-chip">Sandboxed long-running computation</span>
-  <span className="result-chip">AI-assisted engineering validation</span>
-  <span className="result-chip">Reduced iteration time</span>
+  <span className="result-chip">2,700+ agents</span>
+  <span className="result-chip">3.5M interactions/month</span>
+  <span className="result-chip">70% company-wide adoption</span>
+  <span className="result-chip">75% faster lunar hardware development</span>
+  <span className="result-chip">70% faster work-order resolution</span>
 </div>
+
+## Lessons Learned
+
+- **Memory is critical for long-running engineering workflows.** Without cross-session memory, agents repeatedly asked engineers to re-explain design constraints.
+- **Agent marketplace beats centralized catalog** at scale. Teams built and shared agents organically rather than waiting for central approval.
+- **Secure gateway enables enterprise adoption.** The data security and audit trail requirements would have blocked LLM adoption without the gateway layer.

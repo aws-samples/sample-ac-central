@@ -1,0 +1,97 @@
+---
+title: Patterns & Architecture
+sidebar_label: Patterns & Architecture
+sidebar_position: 5
+---
+
+import Link from '@docusaurus/Link';
+
+# Patterns & Architecture for Conversational Agents
+
+Reference architecture and recommended multi-agent patterns for chat workloads on AgentCore.
+
+---
+
+## Reference Architecture
+
+A production-ready conversational agent architecture on AgentCore.
+
+![Conversational Agent Architecture](/img/conv-agent-ref-arch.png)
+
+<div className="arch-flow">
+  <span className="arch-flow-step">End User (Web/Mobile/Slack)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Identity Provider (OAuth 2.0)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">API Gateway / WebSocket</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">AgentCore runtime</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Agent</span>
+</div>
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Agent</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">memory</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">gateway (MCP)</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">Guardrails</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">Observability</span>
+</div>
+
+---
+
+## Recommended Patterns
+
+AgentCore supports [a range of multi-agent patterns](/docs/patterns/overview). The ones below are the most common starting points for chat workloads.
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Pattern                   | When to Use                                               | Example                                                                                                                                                               |
+|---------------------------|-----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Single Agent + Tools**  | Single domain, fewer than 10 tools, straightforward flows | [BGL - NL-to-SQL](https://aws.amazon.com/blogs/machine-learning/democratizing-business-intelligence-bgls-journey-with-claude-agent-sdk-and-amazon-bedrock-agentcore/) |
+| **Agentic RAG + Tools**   | Knowledge-grounded Q&A with action capability             | [BGL - NL-to-SQL](https://aws.amazon.com/blogs/machine-learning/democratizing-business-intelligence-bgls-journey-with-claude-agent-sdk-and-amazon-bedrock-agentcore/) |
+| **Agents-as-Tools**       | Multi-domain support, complex routing                     | [Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/)         |
+| **Graph (Intent Router)** | Structured flows with conditional branching               | [Iberdrola](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/)                                           |
+| **Human-in-the-Loop**     | Regulated industries, high-stakes decisions               | [Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/)         |
+
+</div>
+
+:::info
+All AgentCore patterns work for conversational agents. For the full catalog including Swarm, Workflow, and A2A, see the [Architectural Patterns Reference](/docs/patterns/overview).
+:::
+
+---
+
+## Pattern Selection Guide
+
+**Start with Single Agent + Tools** when:
+- Your domain is focused (one department, one system)
+- You have fewer than 10 tools
+- Conversations follow relatively predictable flows
+
+**Move to Agents-as-Tools** when:
+- You need multi-domain coverage (HR + IT + Finance from one chat)
+- Different domains require different tool sets and system prompts
+- You want to add domains without modifying the orchestrator
+
+**Use Graph / Intent Router** when:
+- Conversations have clear decision points with distinct branches
+- You need guaranteed flow control (not just LLM-decided routing)
+- Compliance requires auditable decision paths
+
+**Add Human-in-the-Loop** when:
+- Actions have real-world consequences (refunds, account changes, escalations)
+- Regulatory requirements mandate human approval
+- Confidence scoring indicates the agent is unsure
+
+---
+
+## Field Guide
+
+:::info For Account Teams
+Positioning guidance, competitive objections, and demo scripts for this workload are in the [Field Guide: Conversational Agents](/docs/field-guide/conversational).
+:::

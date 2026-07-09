@@ -1,0 +1,123 @@
+---
+title: Patterns & Architecture
+sidebar_label: Patterns & Architecture
+sidebar_position: 8
+---
+
+import Link from '@docusaurus/Link';
+
+# Patterns & Architecture for Workflow Agents
+
+Reference architecture and recommended multi-agent patterns for event-driven automation on AgentCore.
+
+---
+
+## Reference Architecture
+
+A production-ready event-driven workflow automation agent on AgentCore.
+
+![Workflow Automation Agent Reference Architecture](/img/workflow-agent-ref-arch.png)
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Event Sources (EventBridge/SNS/S3)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Trigger Lambda</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">AgentCore runtime</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Agent</span>
+</div>
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Agent</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">memory</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">policy engine</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">gateway (MCP)</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">Observability</span>
+</div>
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Agent</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Enterprise Tools (Jira/APIs)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Emit Events (EventBridge)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Audit Trail</span>
+</div>
+
+---
+
+## Recommended Patterns
+
+AgentCore supports [a range of multi-agent patterns](/docs/patterns/overview). The ones below are the most common starting points for workflow automation.
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Pattern                       | When to Use                                               | Example                                                                                                                                                       |
+|-------------------------------|-----------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Single Agent + Tools**      | One decision domain, clear input → output mapping         | [IT Incident Response](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents)                                     |
+| **Dual-Agent (Decide + Act)** | Separation of reasoning from execution for compliance     | [Claims Processing](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents)                                        |
+| **Agents-as-Tools**           | Multi-domain orchestration with specialized sub-agents    | [Iberdrola IT Ops](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/)                            |
+| **Human-in-the-Loop**         | High-stakes actions requiring approval before execution   | [Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/) |
+| **Confidence-Gated**          | Auto-execute above threshold, escalate below              | Triage (auto-route easy, escalate hard)                                                                                                                       |
+| **Fan-Out (parallel tools)**  | Enrich from multiple sources simultaneously before reason | Incident enrichment from 5+ data sources                                                                                                                      |
+
+</div>
+
+:::info
+All AgentCore patterns work for workflow agents. For the full catalog including Swarm, Graph, and A2A, see the [Architectural Patterns Reference](/docs/patterns/overview).
+:::
+
+---
+
+## Pattern Selection Guide
+
+**Start with Single Agent + Tools** when:
+- Your workflow has one decision domain
+- Input → output mapping is relatively clear
+- You have fewer than 10 tools
+
+**Move to Dual-Agent (Decide + Act)** when:
+- Compliance requires separation of reasoning from execution
+- You want to audit the decision independently of the action
+- Different models or permissions for deciding vs. acting
+
+**Use Agents-as-Tools** when:
+- The workflow spans multiple domains (IT + security + compliance)
+- Specialized agents handle distinct sub-problems
+- You want to add capabilities without modifying the orchestrator
+
+**Add Human-in-the-Loop** when:
+- Actions are irreversible or high-stakes
+- Confidence scoring is below threshold
+- Regulatory requirements mandate human approval
+
+**Use Confidence-Gated** when:
+- You want gradual automation (auto-handle easy cases, escalate hard ones)
+- The same workflow applies to both high and low confidence scenarios
+- You're building trust in the system incrementally
+
+---
+
+## Your Journey to Production
+
+From event handler to autonomous workflow agent in five stages.
+
+1. **Define Your Trigger** — Identify the event that starts the workflow (alert, ticket, schedule, webhook).
+2. **Build Your Tools** — Wrap your APIs, databases, and services as Lambda-backed MCP tools with typed schemas.
+3. **Implement the Agent** — Write the system prompt, wire tools, and define the reasoning loop with Strands SDK.
+4. **Add Guardrails** — Configure Cedar policies to bound the agent's autonomy. Set up online evaluations.
+5. **Deploy & Monitor** — Push to AgentCore Runtime. Monitor tool selection accuracy and goal success via CloudWatch.
+
+---
+
+## Related Pages
+
+- <Link to="/docs/workloads/workflow/quickstart">Quick Start →</Link>
+- <Link to="/docs/workloads/workflow/bounded-autonomy">Bounded Autonomy →</Link>
+- <Link to="/docs/workloads/workflow/evaluations">Evaluations →</Link>

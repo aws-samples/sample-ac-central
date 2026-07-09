@@ -1,0 +1,118 @@
+---
+title: Tools & Gateway
+sidebar_label: Tools & Gateway
+sidebar_position: 5
+---
+
+import Link from '@docusaurus/Link';
+
+# Tool Design & Gateway for Workflow Agents
+
+Tools are the hands of the agent. Well-designed tools make the difference between an agent that works and one that hallucinates actions.
+
+---
+
+## Tool Design Principles
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Principle                        | Why                                                                       |
+|----------------------------------|---------------------------------------------------------------------------|
+| One tool = one action            | Compound tools confuse the LLM. Split "get and update" into two tools.    |
+| Descriptive names and docstrings | The LLM decides tool selection based on name + description. Be specific.  |
+| Validate all inputs              | The LLM sends arbitrary values. Check types, formats, and bounds.         |
+| Return errors as values          | Don't raise exceptions. Return `{"error": "..."}` so the agent can adapt. |
+| Typed schemas                    | Every tool gets a JSON schema defining inputs. No "catch-all" parameters. |
+| Idempotent where possible        | Agent might retry on failure. Make tools safe to call multiple times.      |
+
+</div>
+
+---
+
+## Example: Well-Designed Tool
+
+```python
+@tool
+def get_incident_details(incident_id: str) -> str:
+    """Retrieve full details for an incident by its ID.
+
+    Call this tool when you need to understand the current state,
+    severity, affected services, and timeline of an incident.
+
+    Args:
+        incident_id: The incident identifier (format: INC-NNNNN).
+    """
+    if not incident_id or not re.match(r"^INC-\d{3,7}$", incident_id):
+        return "Error: incident_id must match format INC-NNNNN"
+
+    try:
+        item = incidents_table.get_item(Key={"id": incident_id}).get("Item")
+        if not item:
+            return f"Error: Incident {incident_id} not found"
+        return json.dumps(item, default=str)
+    except Exception as exc:
+        return f"Error: {type(exc).__name__}: {exc}"
+```
+
+---
+
+## Tool Hosting: Co-Located vs. Gateway
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Approach       | When to Use                                            | Trade-off                       |
+|----------------|--------------------------------------------------------|---------------------------------|
+| Co-located     | Simple tools, few dependencies, fast iteration         | No separate deployment or IAM   |
+| Gateway target | Complex or shared tools, many tools, cross-agent reuse | More infrastructure, more reuse |
+
+</div>
+
+---
+
+## MCP Gateway
+
+The Gateway aggregates all MCP targets into a single virtual MCP server, exposing one consolidated `tools/list` to the agent. **Semantic tool search** lets the agent select the right tool even when hundreds are registered. This is important for autonomous workflows that span many enterprise systems.
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Target Type               | Use For                                                                |
+|---------------------------|------------------------------------------------------------------------|
+| Lambda function           | Custom business logic in any language; gateway invokes and maps to MCP |
+| OpenAPI / API Gateway     | Turn an existing REST API into MCP tools with no code                  |
+| Smithy model              | Generate tools for AWS services or Smithy-defined APIs                 |
+| MCP server                | Connect a remote MCP server's tools, prompts, and resources            |
+| Integrations / connectors | Pre-built templates and connectors for common tools                    |
+
+</div>
+
+---
+
+## Authentication Model
+
+The Gateway separates the two directions of authentication, which matters for autonomous agents that run without a human in the loop:
+
+- **Inbound (agent → gateway):** use **IAM (SigV4)** so the agent calls as a service identity. OAuth (JWT) is also supported; `authenticate-only` validates the token but defers authorization to the target.
+- **Outbound (gateway → backend):** Lambda and Smithy targets use the gateway's execution role; OpenAPI and MCP-server targets use an **AgentCore credential provider** (API key, OAuth, or SigV4), so credentials for Jira, ServiceNow, or internal APIs stay in the gateway rather than the agent.
+
+:::info Beyond tools
+Gateway targets come in three categories. **MCP targets** (the tools above) are aggregated into the virtual MCP server. **HTTP targets** proxy directly to other agents or A2A services, which is useful when a workflow agent orchestrates specialized sub-agents. **Inference targets** route LLM traffic to multiple model providers through one endpoint.
+:::
+
+---
+
+## Managed Tool Access
+
+<div className="tile-grid">
+  <div className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--gateway" aria-hidden="true" /><h3>Managed Tool Access via MCP Gateway</h3></div>
+    <p>Connect agents to internal APIs, databases, ticketing systems, and cloud infrastructure through a managed MCP gateway. Targets can be Lambda functions, OpenAPI or Smithy APIs, or remote MCP servers. The gateway aggregates them into one virtual MCP server with semantic tool search, so the agent finds the right tool even across hundreds. Inbound access is secured with IAM (SigV4) or OAuth; outbound calls to each backend use a managed credential provider so secrets never live in the agent.</p>
+    <span className="service-tag tag--gateway">Gateway</span>
+  </div>
+</div>
+
+---
+
+## Related Pages
+
+- <Link to="/docs/workloads/workflow/bounded-autonomy">Bounded Autonomy with Cedar Policies →</Link>
+- <Link to="/docs/workloads/workflow/evaluations">Evaluations →</Link>

@@ -12,15 +12,15 @@ sidebar_position: 3
 
 ## Architecture
 
-<div className="arch-flow">
-  <span className="arch-flow-step">Security Events</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Threat Detection Agent</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Analysis & Classification</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Remediation Recommendations</span>
-</div>
+```mermaid
+flowchart LR
+    Events[Security Events] --> Agent[Detection Agent]
+    Agent --> Classify[Threat Classifier]
+    Classify --> Low[Auto-Remediate]
+    Classify --> High[SOC Escalation]
+    Agent --> Actions[Remediation API]
+    Agent --> Logs[Security Logs]
+```
 
 ---
 
@@ -28,9 +28,22 @@ sidebar_position: 3
 
 **Customer:** Druva - Cloud data protection and management company
 
-**Challenge:** Growing volume and sophistication of data security threats requiring faster detection and response than manual processes can provide
+**Challenge:** Growing volume and sophistication of data security threats requiring faster detection and response than manual processes can provide. Security team was overwhelmed by alert volume and unable to respond to genuine threats quickly enough.
 
-**Solution:** Event-driven agents monitoring data security events, automatically responding to threats and providing intelligent remediation recommendations. Agents classify threat severity and orchestrate appropriate response workflows.
+**Solution:** Event-driven agents monitoring data security events, automatically responding to threats and providing intelligent remediation recommendations. Agents classify threat severity and orchestrate appropriate response workflows, handling routine threats autonomously and escalating critical issues with full context.
+
+---
+
+## AgentCore Configuration
+
+<div className="fancy-table">
+
+| Service         | Configuration                                  | Purpose                                      |
+|-----------------|------------------------------------------------|----------------------------------------------|
+| Runtime         | Event-driven, parallel execution               | Process security events in real time         |
+| Observability   | Traces linked to security incident IDs         | Incident investigation and forensics         |
+
+</div>
 
 ---
 
@@ -48,3 +61,20 @@ sidebar_position: 3
   <span className="result-chip">Faster incident response</span>
   <span className="result-chip">Reduced security team toil</span>
 </div>
+
+<!-- TODO: Update with actual metrics from customer -->
+**Key Metrics:**
+- Mean time to detect (MTTD): [X minutes → Y seconds]
+- Mean time to remediate (MTTR): [X hours → Y minutes]
+- False positive reduction: [X%]
+- Security analyst time saved: [X hours/week]
+
+---
+
+## Lessons Learned
+
+**Classification before action:** Clear threat severity classification (low/medium/high/critical) with distinct workflows per tier prevents both under-response and alert fatigue.
+
+**Context matters for escalation:** When escalating to human analysts, agents should include not just the alert but also the analysis and attempted remediation steps. This reduces investigation time.
+
+**Test your remediation actions:** Automated remediation in security workflows can cause outages if misconfigured. Dry-run mode and gradual rollout are essential.
