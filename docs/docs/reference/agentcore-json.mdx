@@ -2,6 +2,7 @@
 title: agentcore.json Schema Reference
 sidebar_label: agentcore.json
 sidebar_position: 1
+last_verified: 2026-07-08
 ---
 
 :::info Versions
@@ -377,14 +378,25 @@ Defines Cedar-based authorization for tool invocations.
 
 ### Cedar Policy Syntax Rules
 
-1. **Always constrain the resource type:**
+1. **Always constrain the resource:**
    ```cedar
-   // CORRECT
+   // CORRECT — type constraint (for policies covering any action)
    permit(principal, action, resource is AgentCore::Gateway);
 
-   // WRONG, fails at deploy
+   // CORRECT — specific ARN (REQUIRED when targeting specific actions)
+   permit(
+     principal,
+     action == AgentCore::Action::"TargetName___tool_name",
+     resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-west-2:123456789012:gateway/my-gateway"
+   );
+
+   // WRONG — bare resource without type or ARN, fails at deploy
    permit(principal, action, resource);
    ```
+
+   :::warning Resource specificity rule
+   When your policy specifies one or more **specific actions** (`action ==` or `action in [...]`), you **must** use a specific Gateway ARN (`resource == AgentCore::Gateway::"<arn>"`). The type constraint (`resource is AgentCore::Gateway`) is only valid when matching **any action**.
+   :::
 
 2. **Action names use the `TargetName___tool_name` format:**
    ```cedar
