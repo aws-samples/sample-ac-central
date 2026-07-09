@@ -12,39 +12,55 @@ sidebar_position: 7
 
 ## Architecture
 
-<div className="arch-flow">
-  <span className="arch-flow-step">Multiple Business Lines</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">17 AI Solutions</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Mixed Patterns (Chat, Event, Platform)</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">AgentCore Runtime</span>
-</div>
-
----
+```mermaid
+flowchart LR
+    A[Business Line 1] --> E[AgentCore Runtime]
+    B[Business Line 2] --> E
+    C[Business Line 3] --> E
+    D[Business Line 4] --> E
+    E --> F[Observability]
+    E --> G[Browser Tool]
+    E --> H[Code Interpreter]
+```
 
 ## Customer Story
 
-**Customer:** Cox Automotive - Leading automotive services company
+**Customer:** Cox Automotive, a leading automotive services company serving dealers, consumers, and manufacturers across the vehicle lifecycle
 
-**Challenge:** Diverse AI needs across multiple business lines - from dealer tools to consumer experiences - requiring different agent patterns
+**Challenge:** Diverse AI needs across multiple business lines including dealer tools, consumer experiences, inventory management, and marketplace operations. Each business line required different agent patterns (conversational, event-driven, platform) but needed consistent governance, observability, and operational patterns.
 
-**Solution:** Large-scale deployment of 17 AI-powered solutions across the automotive marketplace, using multiple agent patterns for different use cases including conversational, event-driven, and platform approaches.
+**Solution:** Large-scale deployment of AI-powered solutions using Strands Agents framework across the automotive marketplace. Multiple agent patterns deployed for different use cases including conversational customer service, event-driven workflow automation, and platform assistants. All agents run on AgentCore Runtime with unified observability and governance.
 
----
+## AgentCore Configuration
 
-## AgentCore Services
+<div className="fancy-table">
 
-<span className="service-tag tag--runtime">Runtime</span> <span className="service-tag tag--observability">Observability</span> <span className="service-tag tag--gateway">Gateway</span>
+| AgentCore Service | Configuration for Cox Automotive                          | Why It Matters                                                    |
+|-------------------|-----------------------------------------------------------|-------------------------------------------------------------------|
+| Runtime           | Multi-pattern support (chat, event, platform)             | Different business lines need different agent patterns           |
+| Observability     | Unified trace capture across all 17 solutions             | Central visibility into agent performance across business lines  |
+| Browser Tool      | Web automation for data extraction tasks                  | Many automotive workflows require web scraping and form filling  |
+| Code Interpreter  | Dynamic data analysis and visualization                   | Dealers need ad-hoc analytics on inventory and pricing data      |
 
----
+</div>
+
+## Key Technical Decisions
+
+- **Multi-pattern deployment** rather than forcing all business lines into one agent archetype. Conversational agents for customer service, event-driven agents for workflows, platform agents for internal tooling.
+- **Strands Agents framework** for multi-agent orchestration and coordination. Some solutions required agent-to-agent communication and handoffs.
+- **5 agentic AI products launched in 5 weeks** by building on a common platform rather than custom-building each one. Shared runtime, observability, and governance accelerated delivery.
 
 ## Results
 
 <div className="results-grid">
-  <span className="result-chip">17 solutions in production</span>
+  <span className="result-chip">5 agentic AI products launched in 5 weeks</span>
   <span className="result-chip">Multiple agent patterns deployed</span>
   <span className="result-chip">Consistent governance across solutions</span>
   <span className="result-chip">Scaled AI adoption enterprise-wide</span>
 </div>
+
+## Lessons Learned
+
+- **Platform approach accelerates delivery** when you have multiple agent use cases. The first agent takes time, the fifth takes days.
+- **Different patterns for different workloads.** Conversational agents for customer service, event-driven agents for backend workflows, platform agents for internal tools. One pattern would not have fit all needs.
+- **Unified observability is critical at scale.** With 17 solutions in production, central visibility into agent performance and errors was non-negotiable.

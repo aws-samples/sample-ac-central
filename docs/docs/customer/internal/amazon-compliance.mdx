@@ -12,15 +12,15 @@ sidebar_position: 2
 
 ## Architecture
 
-<div className="arch-flow">
-  <span className="arch-flow-step">Compliance Events</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Screening Agent</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Sanctions Database Check</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Flagging & Audit Trail</span>
-</div>
+```mermaid
+flowchart LR
+    Events[Compliance Events] --> Agent[Screening Agent]
+    Agent --> DB[Sanctions DB]
+    Agent --> Analysis[Risk Analysis]
+    Analysis --> Auto[Auto-Clear]
+    Analysis --> Escalate[Human Review]
+    Agent --> Audit[Audit Trail]
+```
 
 ---
 
@@ -28,9 +28,23 @@ sidebar_position: 2
 
 **Customer:** Amazon Compliance Team
 
-**Challenge:** High volume of transactions requiring sanctions screening with manual review creating bottlenecks and risking compliance gaps
+**Challenge:** High volume of transactions requiring sanctions screening with manual review creating bottlenecks and risking compliance gaps. Manual processes could not keep pace with transaction volume while maintaining required audit trails.
 
-**Solution:** Automated sanctions screening with AI agents processing compliance events and flagging potential violations with full audit trails. Agents triage routine cases and escalate complex scenarios to human reviewers.
+**Solution:** Automated sanctions screening with AI agents processing compliance events and flagging potential violations with full audit trails. Agents triage routine cases and escalate complex scenarios to human reviewers. The system maintains detailed logs of all decisions for regulatory compliance.
+
+---
+
+## AgentCore Configuration
+
+<div className="fancy-table">
+
+| Service         | Configuration                                  | Purpose                                      |
+|-----------------|------------------------------------------------|----------------------------------------------|
+| Runtime         | Event-driven invocation, 5-minute timeout      | Process compliance events in real time       |
+| Observability   | Structured logs with compliance event IDs      | Full audit trail for regulatory reporting    |
+| Evaluations     | Human review feedback loop for accuracy        | Continuous model quality improvement         |
+
+</div>
 
 ---
 
@@ -48,3 +62,20 @@ sidebar_position: 2
   <span className="result-chip">Reduced manual review burden</span>
   <span className="result-chip">Faster compliance processing</span>
 </div>
+
+<!-- TODO: Update with actual metrics from customer -->
+**Key Metrics:**
+- Processing time per transaction: [X minutes → Y seconds]
+- Auto-clear rate: [X%]
+- False positive reduction: [X%]
+- Annual transactions processed: [N million]
+
+---
+
+## Lessons Learned
+
+**Audit first, optimize second:** In compliance workflows, the audit trail is not an afterthought. Structured logging with immutable event IDs must be part of the initial design.
+
+**Human-in-the-loop refines the model:** Capturing feedback from escalated cases and feeding it back into evaluations creates a continuous improvement loop for agent accuracy.
+
+**Conservative thresholds early:** Starting with aggressive escalation thresholds (when uncertain, escalate) builds trust with compliance teams. Thresholds can be relaxed as the agent proves accuracy.

@@ -12,15 +12,15 @@ sidebar_position: 8
 
 ## Architecture
 
-<div className="arch-flow">
-  <span className="arch-flow-step">RFP Submission</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Document Processing Agent</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Data Gathering & Analysis</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Tailored Response Generation</span>
-</div>
+```mermaid
+flowchart LR
+    RFP[RFP Submission] --> Parser[Doc Parser]
+    Parser --> Agent[Response Agent]
+    Agent --> Data[Multi-Source Data]
+    Agent --> Draft[Response Draft]
+    Draft --> Review[Sales Review]
+    Review --> Deliver[Final Response]
+```
 
 ---
 
@@ -28,9 +28,22 @@ sidebar_position: 8
 
 **Customer:** Warner Bros. Discovery (WBD) - Global media and entertainment company
 
-**Challenge:** Advertising RFP responses requiring manual data gathering across multiple systems, consuming significant sales team time
+**Challenge:** Advertising RFP responses requiring manual data gathering across multiple systems, consuming significant sales team time. Sales teams spent hours compiling audience metrics, pricing data, and content schedules for each RFP instead of focusing on client relationships.
 
-**Solution:** Agents automatically processing advertising RFP requests, gathering relevant data from multiple sources, and generating tailored responses for the media sales team. Reduces response time from days to hours while maintaining quality.
+**Solution:** Agents automatically processing advertising RFP requests, gathering relevant data from multiple sources (audience systems, inventory databases, content calendars), and generating tailored responses for the media sales team. Reduces response time from days to hours while maintaining quality and accuracy.
+
+---
+
+## AgentCore Configuration
+
+<div className="fancy-table">
+
+| Service         | Configuration                                  | Purpose                                      |
+|-----------------|------------------------------------------------|----------------------------------------------|
+| Runtime         | Document processing optimized, 10-min timeout  | Handle large RFP documents                   |
+| Memory          | RFP context stored for follow-up questions     | Multi-stage response refinement              |
+
+</div>
 
 ---
 
@@ -48,3 +61,20 @@ sidebar_position: 8
   <span className="result-chip">Faster response turnaround</span>
   <span className="result-chip">Sales team freed for strategic work</span>
 </div>
+
+<!-- TODO: Update with actual metrics from customer -->
+**Key Metrics:**
+- RFP response time: [X days → Y hours]
+- Data sources integrated: [N systems]
+- Manual hours saved per RFP: [X hours]
+- RFP volume handled: [N per month]
+
+---
+
+## Lessons Learned
+
+**Document structure varies:** RFP documents lack standard formats. Agents need flexible parsing strategies and should flag ambiguous sections for human clarification rather than guessing.
+
+**Memory enables refinement:** Sales teams often need to iterate on generated responses. Storing RFP context in memory allows follow-up prompts like "emphasize streaming audience reach" without re-uploading documents.
+
+**Data freshness matters:** RFP responses include time-sensitive data (current inventory, pricing). Agents should fetch data at response time, not cache stale information.
