@@ -14,33 +14,40 @@ sidebar_position: 6
 
 ## Architecture
 
-<div className="arch-flow">
-  <span className="arch-flow-step">Development Teams</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Bot Factory Templates</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Pre-approved Tools & Guardrails</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Standardized Agent Deployment</span>
-</div>
-
----
+```mermaid
+flowchart LR
+    A[Event Source] --> B[SQS Queue]
+    B --> C[Lambda Trigger]
+    C --> D[AgentCore Runtime]
+    D --> E[Pre-approved Tools]
+    E --> F[Guardrails Check]
+    F --> G[Observability]
+```
 
 ## Customer Story
 
-**Customer:** AutoScout24 - Europe's largest online car marketplace
+**Customer:** AutoScout24, Europe's largest online car marketplace connecting buyers and sellers across multiple markets
 
-**Challenge:** Teams building agents in isolation with inconsistent patterns, no shared guardrails, and duplicated effort
+**Challenge:** Teams building agents in isolation with inconsistent patterns, no shared guardrails, and duplicated effort. Each team reinvented authentication, tool integration, and observability. No org-wide governance meant agents varied wildly in security posture and operational readiness.
 
-**Solution:** Reusable blueprint ("Bot Factory") for standardized agent creation. Teams self-serve agent deployment using pre-approved templates, tools, and guardrails - ensuring consistency and compliance at scale.
+**Solution:** Reusable blueprint called "Bot Factory" for standardized agent creation. Teams self-serve agent deployment using pre-approved templates, tools, and guardrails. The factory ensures consistency and compliance at scale. Event-driven architecture (SQS to Lambda to AgentCore Runtime) standardizes the trigger pattern across all agents.
 
----
+## AgentCore Configuration
 
-## AgentCore Services
+<div className="fancy-table">
 
-<span className="service-tag tag--runtime">Runtime</span> <span className="service-tag tag--gateway">Gateway</span> <span className="service-tag tag--observability">Observability</span>
+| AgentCore Service | Configuration for AutoScout24                             | Why It Matters                                                    |
+|-------------------|-----------------------------------------------------------|-------------------------------------------------------------------|
+| Runtime           | Event-driven, SQS to Lambda to AgentCore                  | Standardized async pattern, scales automatically with event load |
+| Observability     | Mandatory trace capture for every agent                   | Central visibility into all agent executions across teams        |
 
----
+</div>
+
+## Key Technical Decisions
+
+- **Event-driven async pattern** (SQS to Lambda to AgentCore) standardized across all agents rather than letting each team pick their own trigger mechanism. This simplified operations and cost management.
+- **Pre-approved tool catalog** rather than allowing teams to integrate arbitrary APIs. Tools go through a governance review before entering the factory.
+- **Templates encode best practices** for auth, error handling, and observability. New agents start with production-grade patterns rather than learning through failure.
 
 ## Results
 
@@ -50,3 +57,9 @@ sidebar_position: 6
   <span className="result-chip">Pre-approved guardrails</span>
   <span className="result-chip">Reduced time-to-production</span>
 </div>
+
+## Lessons Learned
+
+- **Templates beat documentation** for spreading best practices. Developers used the factory templates without reading governance docs.
+- **Pre-approved tool catalogs reduce risk** without slowing teams down. Tool review happened once, not per-agent.
+- **Standardized architecture simplifies operations.** One SQS-Lambda-Runtime pattern meant one ops runbook for all agents.

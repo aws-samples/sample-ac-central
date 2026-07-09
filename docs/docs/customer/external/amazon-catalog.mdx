@@ -16,35 +16,46 @@ sidebar_position: 4
 
 ![Amazon Catalog Architecture](/img/image72.png)
 
-<div className="arch-flow">
-  <span className="arch-flow-step">Product Submissions (millions/day)</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Generator Workers (Nova Lite × N)</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Consensus Check</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Supervisor (Claude Sonnet)</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Knowledge Base</span>
-</div>
-
----
+```mermaid
+flowchart LR
+    A[Product Submission] --> B[Generator Workers]
+    B --> C[Consensus Check]
+    C --> D{Agreement?}
+    D -->|Yes| E[Accept]
+    D -->|No| F[Supervisor Agent]
+    F --> G[Knowledge Base Update]
+    F --> E
+```
 
 ## Customer Story
 
-**Customer:** Amazon.com Catalog Team - Millions of daily product submissions
+**Customer:** Amazon.com Catalog Team, managing millions of daily product submissions from sellers worldwide
 
-**Challenge:** Scaling product classification and validation to millions of submissions per day while maintaining accuracy and reducing costs
+**Challenge:** Scaling product classification and validation to millions of submissions per day while maintaining accuracy and reducing costs. Manual review was not feasible at this scale, and traditional ML models required constant retraining as product categories evolved.
 
-**Solution:** Generator-evaluator-supervisor architecture. Lightweight workers handle routine cases. Disagreements trigger a supervisor that resolves disputes and extracts reusable learnings.
+**Solution:** Generator-evaluator-supervisor architecture where lightweight workers (Amazon Nova Lite) handle routine cases in parallel. When workers disagree, a supervisor (Claude Sonnet) resolves disputes and extracts reusable learnings that improve future decisions. The system gets smarter over time without retraining, and error rates continuously decline as the knowledge base grows.
 
----
+## AgentCore Configuration
 
-## AgentCore Services
+<div className="fancy-table">
 
-<span className="service-tag tag--runtime">Runtime</span> <span className="service-tag tag--observability">Observability</span>
+| AgentCore Service | Configuration for Amazon Catalog                          | Why It Matters                                                    |
+|-------------------|-----------------------------------------------------------|-------------------------------------------------------------------|
+| Runtime           | Multi-tier: Nova Lite workers + Claude Sonnet supervisor | Cost-optimized: cheap models for routine, expensive for disputes |
+| Gateway           | Unified tool access for product data and validation APIs  | Centralized governance over product classification decisions     |
+| Observability     | Full trace capture of consensus and escalation decisions  | Track where the system struggles and improve the knowledge base  |
 
----
+</div>
+
+<!-- TODO: Validate Gateway usage when public reference is available -->
+
+## Key Technical Decisions
+
+- **Generator-evaluator-supervisor pattern** rather than a single model. Lightweight models handle high-volume routine cases, expensive models only engage on disputes. This optimized cost at scale.
+- **Consensus-based escalation** where disagreement between workers triggers the supervisor. This caught edge cases that a single model would miss.
+- **Self-learning via knowledge base updates.** When the supervisor resolves a dispute, it extracts a reusable rule that improves future decisions without retraining.
+
+<!-- TODO: Update technical decisions when public reference is available -->
 
 ## Results
 
@@ -54,3 +65,11 @@ sidebar_position: 4
   <span className="result-chip">Millions of products/day</span>
   <span className="result-chip">No retraining required</span>
 </div>
+
+## Lessons Learned
+
+- **Multi-tier model strategy beats single-model at scale.** Use cheap models for volume, expensive models only when needed.
+- **Consensus-based escalation catches edge cases** that a single model would handle confidently but incorrectly.
+- **Self-learning without retraining** is possible when you extract and store reusable rules from supervisor decisions.
+
+<!-- TODO: Validate lessons learned when public reference is available -->

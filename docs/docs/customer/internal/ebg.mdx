@@ -12,15 +12,15 @@ sidebar_position: 7
 
 ## Architecture
 
-<div className="arch-flow">
-  <span className="arch-flow-step">Business Triggers</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Campaign Agent</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Content Generation & Optimization</span>
-  <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">Campaign Delivery</span>
-</div>
+```mermaid
+flowchart LR
+    Trigger[Business Events] --> Agent[Campaign Agent]
+    Agent --> Content[Content Generator]
+    Agent --> Customer[Customer Data]
+    Content --> Optimize[A/B Testing]
+    Optimize --> Send[Email Platform]
+    Send --> Track[Performance Metrics]
+```
 
 ---
 
@@ -28,9 +28,22 @@ sidebar_position: 7
 
 **Customer:** EBG - Digital marketing and e-commerce company
 
-**Challenge:** Manual email campaign creation and optimization limiting throughput and personalization at scale
+**Challenge:** Manual email campaign creation and optimization limiting throughput and personalization at scale. Marketing teams could not respond quickly to customer behavior signals or seasonal opportunities.
 
-**Solution:** Event-driven agents automating email campaign creation, optimization, and delivery based on business triggers and customer behavior signals. Agents generate personalized content, optimize send times, and iterate on campaign performance.
+**Solution:** Event-driven agents automating email campaign creation, optimization, and delivery based on business triggers and customer behavior signals. Agents generate personalized content, optimize send times based on customer data, and iterate on campaign performance using A/B testing results.
+
+---
+
+## AgentCore Configuration
+
+<div className="fancy-table">
+
+| Service         | Configuration                                  | Purpose                                      |
+|-----------------|------------------------------------------------|----------------------------------------------|
+| Runtime         | Event-driven, triggered by customer signals    | Real-time response to behavior events        |
+| Observability   | Campaign ID linking across agent invocations   | Track end-to-end campaign performance        |
+
+</div>
 
 ---
 
@@ -48,3 +61,20 @@ sidebar_position: 7
   <span className="result-chip">Increased campaign throughput</span>
   <span className="result-chip">Behavior-based optimization</span>
 </div>
+
+<!-- TODO: Update with actual metrics from customer -->
+**Key Metrics:**
+- Campaign creation time: [X hours → Y minutes]
+- Campaigns per month: [N campaigns]
+- Personalization accuracy: [X%]
+- Open rate improvement: [+Y%]
+
+---
+
+## Lessons Learned
+
+**Start with simple triggers:** Event-driven marketing agents should start with clear, high-signal events (cart abandonment, milestone reached) before tackling nuanced behavioral patterns.
+
+**A/B testing in the loop:** Feeding campaign performance metrics back to the agent creates a continuous optimization cycle. Track which content patterns drive engagement.
+
+**Brand voice guardrails:** Generated marketing content needs clear guidelines and approval workflows. Policy engine rules can enforce tone, terminology, and compliance requirements.
