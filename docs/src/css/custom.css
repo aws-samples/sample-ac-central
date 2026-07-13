@@ -869,6 +869,23 @@ code, kbd, pre, samp,
   color: inherit;
   transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
   position: relative;
+  text-align: left;
+}
+
+.landing-tile .tile-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.landing-tile .tile-heading .tile-icon-svg {
+  flex-shrink: 0;
+}
+
+.landing-tile .tile-heading h3 {
+  margin: 0;
+  font-weight: 600;
 }
 
 .landing-tile:hover {
@@ -880,6 +897,12 @@ code, kbd, pre, samp,
 
 .landing-tile--wide {
   flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.landing-tile--wide .tile-heading {
+  justify-content: center;
 }
 
 .landing-tile--wide .landing-tile__icon {
@@ -897,14 +920,13 @@ code, kbd, pre, samp,
 
 .landing-tile__title {
   font-family: var(--font-family-display);
-  font-size: 1.05rem;
   font-weight: 600;
   margin-bottom: 0.5rem;
   color: var(--ifm-color-primary);
 }
 
 .landing-tile__desc {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   color: var(--ifm-font-color-base);
   line-height: 1.6;
   flex: 1;
@@ -958,6 +980,36 @@ code, kbd, pre, samp,
   .landing-tile--wide {
     flex-direction: column;
   }
+}
+
+/* ==========================================================================
+   Mermaid Diagrams — render at natural size, scroll if wider than viewport
+   ========================================================================== */
+
+.docusaurus-mermaid-container {
+  overflow-x: auto;
+  padding: 1rem 0;
+}
+
+.docusaurus-mermaid-container svg {
+  min-width: 600px;
+  height: auto !important;
+  font-family: 'Amazon Ember', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  /* font-size: 1rem !important; */
+}
+
+.docusaurus-mermaid-container .node rect,
+.docusaurus-mermaid-container .node circle,
+.docusaurus-mermaid-container .node polygon {
+  font-family: 'Amazon Ember', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  /* font-size: 1rem !important; */
+}
+
+.docusaurus-mermaid-container .nodeLabel,
+.docusaurus-mermaid-container .edgeLabel,
+.docusaurus-mermaid-container .label {
+  font-family: 'Amazon Ember', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  /* font-size: 0.75rem !important; */
 }
 
 /* ==========================================================================

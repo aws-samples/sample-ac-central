@@ -17,6 +17,7 @@ const config: Config = {
   onBrokenLinks: 'warn',
 
   markdown: {
+    mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     },
@@ -36,6 +37,7 @@ const config: Config = {
   },
 
   themes: [
+    '@docusaurus/theme-mermaid',
     [
       require.resolve('@easyops-cn/docusaurus-search-local'),
       {
@@ -118,9 +120,9 @@ const config: Config = {
           position: 'left',
         },
         {
-          href: 'https://agentcore-catalog.beta.harmony.a2z.com/',
-          label: 'Resources Catalog',
-          position: 'right',
+          to: '/docs/tutorials/overview',
+          label: 'Tutorials',
+          position: 'left',
         },
         {
           type: 'custom-feedback',
@@ -157,6 +159,16 @@ const config: Config = {
         },
       ],
       copyright: `© 2026, Amazon Web Services, Inc. or its affiliates. All rights reserved.`,
+    },
+    mermaid: {
+      theme: {dark: 'dark', light: 'default'},
+      options: {
+        flowchart: {
+          useMaxWidth: true,
+          htmlLabels: true,
+          curve: 'basis',
+        },
+      },
     },
     prism: {
       theme: prismThemes.github,
