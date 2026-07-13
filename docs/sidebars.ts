@@ -6,23 +6,12 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Get Started',
-      collapsed: false,
+      collapsed: true,
       items: [
         'get-started/overview',
+        'get-started/firstagent',
         'get-started/quickstart',
-        'get-started/managed-harness',
-        'get-started/agentcore-cli',
-        'get-started/pre-built-skills',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Tutorials',
-      collapsed: false,
-      items: [
-        'tutorials/overview',
-        'tutorials/add-memory',
-        'tutorials/connect-gateway-tool',
+
       ],
     },
     {
@@ -45,6 +34,7 @@ const sidebars: SidebarsConfig = {
         {
           type: 'category',
           label: 'Workflow Agents',
+          collapsed: false,
           items: [
             'workloads/workflow/overview',
             'workloads/workflow/quickstart',
@@ -59,6 +49,7 @@ const sidebars: SidebarsConfig = {
         {
           type: 'category',
           label: 'Coding Agents',
+          collapsed: false,
           items: [
             'workloads/coding/overview',
             'workloads/coding/quickstart',
@@ -69,7 +60,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Agent Platform',
-      collapsed: false,
+      collapsed: true,
       items: [
         'agent-platform/overview',
         'agent-platform/platform-stack',
@@ -83,30 +74,10 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: 'Architectural Patterns',
-      collapsed: false,
+      collapsed: true,
       items: [
         'patterns/overview',
         'patterns/selection-guide',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Reference',
-      collapsed: false,
-      items: [
-        'reference/agentcore-json',
-        'reference/troubleshooting',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Field Guide (Internal)',
-      collapsed: true,
-      items: [
-        'field-guide/overview',
-        'field-guide/conversational',
-        'field-guide/workflow',
-        'field-guide/coding',
       ],
     },
     {
@@ -115,37 +86,34 @@ const sidebars: SidebarsConfig = {
       collapsed: true,
       items: [
         'customer/overview',
-        {
-          type: 'category',
-          label: 'Approved for External Use',
-          collapsed: true,
-          items: [
-            'customer/external/rede-mater-dei',
-            'customer/external/iberdrola',
-            'customer/external/bgl',
-            'customer/external/amazon-catalog',
-            'customer/external/thomson-reuters',
-            'customer/external/autoscout24',
-            'customer/external/cox-automotive',
-            'customer/external/blue-origin',
-            'customer/external/kavak',
-          ],
-        },
-        {
-          type: 'category',
-          label: 'Internal Only',
-          collapsed: true,
-          items: [
-            'customer/internal/swisscom',
-            'customer/internal/amazon-compliance',
-            'customer/internal/druva',
-            'customer/internal/parrot-analytics',
-            'customer/internal/lobehub',
-            'customer/internal/marubeni',
-            'customer/internal/ebg',
-            'customer/internal/wbd',
-          ],
-        },
+        'customer/external/rede-mater-dei',
+        'customer/external/iberdrola',
+        'customer/external/bgl',
+        'customer/external/amazon-catalog',
+        'customer/external/thomson-reuters',
+        'customer/external/autoscout24',
+        'customer/external/cox-automotive',
+        'customer/external/blue-origin',
+        'customer/external/kavak'
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Tutorials',
+      collapsed: true,
+      items: [
+        'tutorials/overview',
+        'tutorials/add-memory',
+        'tutorials/connect-gateway-tool',
+      ],
+    },
+    {
+      type: 'category',
+      label: 'Reference',
+      collapsed: true,
+      items: [
+        'reference/agentcore-json',
+        'reference/troubleshooting',
       ],
     },
   ],
