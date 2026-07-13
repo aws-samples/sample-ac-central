@@ -13,64 +13,23 @@ import ThemedImage from '@theme/ThemedImage';
 Get to your first working agent in minutes. Choose the path that fits your workflow.
 
 <div className="tile-grid">
-  <Link to="/docs/get-started/quickstart" className="tile-card">
+  <Link to="/docs/get-started/firstagent" className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--rocket" aria-hidden="true" /><h3>5-Minute Quickstart</h3></div>
     <p>Build, test, and deploy your first agent with a complete working example. Zero to production in 5 minutes.</p>
   </Link>
 
-  <Link to="/docs/get-started/managed-harness" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--gear" aria-hidden="true" /><h3>Managed Harness</h3></div>
-    <p>Fully managed, config-based agent service with no orchestration code needed. Stateful sessions with micro-VM isolation and flexible tooling.</p>
+  <Link to="/docs/workloads/conversational/quickstart" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--chat" aria-hidden="true" /><h3>Conversational Agent</h3></div>
+    <p>Deploy a working chat agent with memory in under 10 minutes.</p>
   </Link>
 
-  <Link to="/docs/get-started/agentcore-cli" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--terminal" aria-hidden="true" /><h3>AgentCore CLI</h3></div>
-    <p>Create, develop locally, and deploy agents to AgentCore with minimal configuration. No context switching required.</p>
+  <Link to="/docs/workloads/workflow/quickstart" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--runtime" aria-hidden="true" /><h3>Workflow Agent</h3></div>
+    <p>Deploy a working event-driven incident response agent in under 10 minutes.</p>
   </Link>
 
-  <Link to="/docs/get-started/pre-built-skills" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--search" aria-hidden="true" /><h3>Pre-built Skills in AgentCore</h3></div>
-    <p>Curated, current knowledge of AgentCore best practices for coding agents. Accurate context available from the very first line of code.</p>
+  <Link to="/docs/workloads/coding/quickstart" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--terminal" aria-hidden="true" /><h3>Coding Agent</h3></div>
+    <p>Deploy a working test-generation agent in under 10 minutes. Analyze, test, execute a Python source file and return validated results.</p>
   </Link>
-</div>
-
----
-
-## The AgentCore Stack at a Glance
-
-<ThemedImage
-  alt="AgentCore Platform"
-  sources={{
-    light: useBaseUrl('/img/agentcore-platform.svg'),
-    dark: useBaseUrl('/img/agentcore-platform-dark.svg'),
-  }}
-/>
-
-AgentCore managed services that together form the agent platform.
-
-<div className="stack-grid">
-  <div className="stack-item">
-    <h4>Runtime</h4>
-    <p>Sandboxed container execution with long-running task support.</p>
-  </div>
-  <div className="stack-item">
-    <h4>Memory</h4>
-    <p>Short-term and long-term memory scoped per session, user, or project.</p>
-  </div>
-  <div className="stack-item">
-    <h4>Gateway</h4>
-    <p>Tool federation via MCP with inbound JWT auth and Lambda targets.</p>
-  </div>
-  <div className="stack-item">
-    <h4>Identity</h4>
-    <p>OAuth/OIDC token brokering - the agent never sees client secrets.</p>
-  </div>
-  <div className="stack-item">
-    <h4>Observability</h4>
-    <p>OTLP traces, metrics, and logs to CloudWatch with online evaluation.</p>
-  </div>
-  <div className="stack-item">
-    <h4>Tools</h4>
-    <p>Code Interpreter and Browser Tool as managed sandboxes.</p>
-  </div>
 </div>

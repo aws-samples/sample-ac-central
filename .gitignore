@@ -10,3 +10,4 @@ node_modules/
 build/
 .docusaurus/
 content/
+.env.omni
