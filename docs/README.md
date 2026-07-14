@@ -148,3 +148,12 @@ Content is ported from the original HTML files in the `content/` directory. To u
 1. Edit the corresponding `.mdx` file in `docs/docs/`
 2. Test locally with `npm start`
 3. Push to trigger deployment
+
+
+## Security
+
+See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+
+## License
+
+This library is licensed under the MIT-0 License. See the [LICENSE](LICENSE.txt) file.
