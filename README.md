@@ -85,4 +85,13 @@ Content conventions:
 
 ## Team
 
-Maintained by the AgentCore GTM team. Repository: `gitlab.aws.dev/ravizraj/agentcore-central`
+Maintained by the AgentCore GTM team.
+
+
+## Security
+
+See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+
+## License
+
+This library is licensed under the MIT-0 License. See the [LICENSE](LICENSE.txt) file.
