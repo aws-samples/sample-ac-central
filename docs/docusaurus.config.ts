@@ -9,9 +9,10 @@ const config: Config = {
 
   // url: 'https://agentcore-gtm.pages.aws.dev',
   // baseUrl: '/agentcore-central',
-  url: 'https://aws-samples.pages.aws.dev',
-  baseUrl: '/sample-ac-central',
-
+  // url: 'https://aws-samples.pages.aws.dev',
+  // baseUrl: '/sample-ac-central',
+  url: 'https://cuddly-spork-r247q4j.pages.github.io/',
+  baseUrl: '/',
 
   organizationName: 'agentcore-gtm',
   projectName: 'agentcore-central',
