@@ -1,6 +1,7 @@
 .DS_Store
 .omni/
 .claude/
+.github/
 .cursor/
 .kiro/
 .agents/
@@ -10,4 +11,5 @@ build/
 .docusaurus/
 content/
 .env.omni
-.github/
+README.md
+analysis/
