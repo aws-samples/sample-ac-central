@@ -10,3 +10,4 @@ build/
 .docusaurus/
 content/
 .env.omni
+.github/
