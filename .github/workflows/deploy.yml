@@ -36,6 +36,9 @@ jobs:
 
       - name: Build site
         working-directory: docs
+        env:
+          SITE_URL: https://cuddly-spork-r247q4j.pages.github.io
+          SITE_BASE_URL: /
         run: npm run build
 
       - name: Upload artifact
