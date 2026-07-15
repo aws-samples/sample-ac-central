@@ -114,6 +114,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'reference/agentcore-json',
         'reference/troubleshooting',
+        'reference/resources',
       ],
     },
   ],
