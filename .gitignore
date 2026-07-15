@@ -11,3 +11,5 @@ build/
 .docusaurus/
 content/
 .env.omni
+README.md
+analysis/
