@@ -5,6 +5,9 @@ stages:
 
 pages:
   stage: deploy
+  variables:
+    SITE_URL: https://${CI_PROJECT_ROOT_NAMESPACE}.pages.aws.dev
+    SITE_BASE_URL: /${CI_PROJECT_NAME}/
   script:
     - cd docs
     - npm ci
