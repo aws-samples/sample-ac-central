@@ -263,6 +263,20 @@ agentcore remove all
 agentcore deploy
 ```
 
+The `remove all` command will prompt you to confirm before resetting:
+
+```
+Reset all AgentCore schemas to empty state?
+This will reset:
+• AgentCore project: WeatherAgent
+• 1 agent definition
+• All schemas will be reset to empty state
+
+Confirm reset (y/n)
+```
+
+Type `y` and press Enter to proceed. Then `agentcore deploy` applies the empty state to tear down the CloudFormation stack.
+
 Verify resources are gone:
 
 ```bash
