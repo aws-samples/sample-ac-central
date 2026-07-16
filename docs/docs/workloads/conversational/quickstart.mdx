@@ -352,20 +352,6 @@ What plan are they on?
 
 With the deployed Memory ID configured, the second prompt should be able to use the account ID from the first prompt and return the Enterprise plan. Keep both prompts in the same interactive session when testing multi-turn memory.
 
-If you want to test the deployed Runtime directly instead, local `.env.local` configuration is not required. Redeploy the project after changing the agent code, then generate one Runtime session ID and reuse it for both calls. AgentCore requires a Runtime session ID with at least 33 characters; a UUID satisfies this requirement:
-
-```bash
-SESSION_ID="$(uuidgen)"
-agentcore invoke --session-id "$SESSION_ID" \
-  -H "X-Amzn-Bedrock-AgentCore-Runtime-Custom-Actor-Id: demo-user" \
-  "Look up account ACC-001"
-agentcore invoke --session-id "$SESSION_ID" \
-  -H "X-Amzn-Bedrock-AgentCore-Runtime-Custom-Actor-Id: demo-user" \
-  "What plan are they on?"
-```
-
-The `-H` option passes the custom actor header to the deployed Runtime; the example code reads it from `context.request_headers` to scope Memory. The header only reaches your code because it is listed in the runtime's `requestHeaderAllowlist`. Do not use `--user-id` for this purpose — it maps to `runtimeUserId`, which AgentCore Identity consumes and never forwards to agent code. Run both invocations consecutively in the same shell: the second command cannot recover the first turn if the first command was not run with this exact `SESSION_ID`. Use a different session ID for a new conversation and a different actor ID for a different user.
-
 ---
 
 ---
@@ -380,8 +366,6 @@ The example code uses these values that you must supply for your own deployment:
 - `AWS_REGION` — set this to the `targetRegion` returned by `agentcore status --type memory --json`; it must match the Memory's deployment region
 - `AGENTCORE_ACTOR_ID` — stable local test-user ID; use verified per-user identity values in production
 - `AGENTCORE_SESSION_ID` — stable local session ID for multi-turn testing; use a new value to start a fresh conversation
-- `X-Amzn-Bedrock-AgentCore-Runtime-Custom-Actor-Id` — allowlisted custom header carrying the deployed Memory actor ID; passed with `-H` on `agentcore invoke` and read from `context.request_headers`
-- `demo-user` — example actor ID for the deployed test; each real user needs a unique, verified value
 
 ---
 
