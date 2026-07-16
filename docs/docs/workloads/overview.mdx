@@ -73,7 +73,7 @@ Use this table to map your requirements to a reference category. Multiple "best 
 | Criterion               | Conversational                          | Workflow                                   | Coding                                  |
 |-------------------------|-----------------------------------------|--------------------------------------------|-----------------------------------------|
 | **Trigger source**      | Human typing a message                  | System event (alert, webhook, schedule, queue) | Ticket, PR, CI event, or schedule    |
-| **Human interaction**   | Continuous, real-time back-and-forth    | Minimal or none during execution           | Review gate at the end (PR/approval)    |
+| **Human interaction**   | Continuous, real-time back-and-forth    | Minimal during execution; human-in-the-loop (HITL) for approvals on high-risk actions | Review gate at the end (PR/approval)    |
 | **Action risk**         | Low-to-medium (user-scoped actions)     | Medium-to-high (autonomous system actions) | Medium (code change, auto-merged PR)    |
 | **Duration**            | Minutes to hours across many turns      | Seconds to minutes per invocation          | Minutes to hours per task               |
 | **Identity model**      | End-user identity (OAuth bearer token)  | Service identity (machine-to-machine)      | Developer identity (repo/CI access)     |
