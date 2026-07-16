@@ -275,7 +275,17 @@ This will reset:
 Confirm reset (y/n)
 ```
 
-Type `y` and press Enter to proceed. Then `agentcore deploy` applies the empty state to tear down the CloudFormation stack.
+Type `y` and press Enter to proceed. Then `agentcore deploy` applies the empty state to tear down the CloudFormation stack. You'll see a second confirmation:
+
+```
+Tear down all deployed resources?
+This will delete all AWS resources and the CloudFormation stack for this target.
+This action cannot be undone.
+
+Enter/Y confirm · Esc/N cancel
+```
+
+Press Enter to confirm.
 
 Verify resources are gone:
 
