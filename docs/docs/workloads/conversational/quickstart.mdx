@@ -2,11 +2,11 @@
 title: "Quick Start: Conversational Agent"
 sidebar_label: Quick Start
 sidebar_position: 2
-last_verified: 2026-07-15
+last_verified: 2026-07-16
 ---
 
 :::info Versions
-Examples built with **AgentCore CLI** `0.23.0`, **Strands Agents SDK** `1.46.0`, and **bedrock-agentcore** `1.17.0`. APIs and command options may differ in other versions.
+Examples built and verified end to end with **AgentCore CLI** `@aws/agentcore@0.24.1`. Commands or APIs may differ in other versions.
 :::
 
 :::caution Prototype, not production
@@ -34,9 +34,9 @@ Deploy a working chat agent with memory in under 10 minutes.
 
 | Step | Action          | Command                                             |
 |------|-----------------|-----------------------------------------------------|
-| 1    | Install CLI     | `npm install -g @aws/agentcore@0.23.0`              |
+| 1    | Install CLI     | `npm install -g @aws/agentcore@0.24.1`              |
 | 2    | Create project  | `agentcore create` with the options below           |
-| 3    | Add SDK         | `uv add strands-agents==1.46.0 bedrock-agentcore==1.17.0` |
+| 3    | Install deps    | `cd app/ChatAgent && uv venv && uv sync && cd ../..` |
 | 4    | Develop Locally | `agentcore dev --no-browser`                        |
 | 5    | Deploy          | `agentcore deploy`                                  |
 
@@ -47,7 +47,7 @@ Deploy a working chat agent with memory in under 10 minutes.
 Run this command from the directory where you want the project folder to be created. The explicit names ensure that the generated paths match the rest of this quickstart: `chatagent/app/ChatAgent/main.py` and `chatagent/app/ChatAgent/pyproject.toml`.
 
 ```bash
-npm install -g @aws/agentcore@0.23.0
+npm install -g @aws/agentcore@0.24.1
 agentcore --version
 agentcore create \
   --name ChatAgent \
@@ -66,14 +66,13 @@ The `--name ChatAgent` value controls the generated agent directory under `app/`
 
 See the [official AgentCore CLI project creation guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-get-started-cli.html) for the interactive wizard and current command options.
 
-### Install the pinned SDK versions
+### Install Python dependencies
 
-Run these commands from the generated project directory:
+The generated project already declares `strands-agents` and `bedrock-agentcore` as dependencies in `app/ChatAgent/pyproject.toml`. Create the environment and install them:
 
 ```bash
 cd app/ChatAgent
-uv add strands-agents==1.46.0 bedrock-agentcore==1.17.0
-uv sync
+uv venv && uv sync
 cd ../..
 ```
 
@@ -279,7 +278,7 @@ The following configuration matches the `agentcore create` output for project `c
 ```
 
 :::warning Runtime version emitted by the CLI
-The tested AgentCore CLI `0.23.0` generated `PYTHON_3_14`. If your deployment target does not support Python 3.14, change `runtimeVersion` to `PYTHON_3_13` before running `agentcore deploy`.
+AgentCore CLI `0.24.1` generates `PYTHON_3_14`. If you need a specific Python version for compatibility, change `runtimeVersion` to `PYTHON_3_13` in `agentcore.json` before deploying.
 :::
 
 The generated names align with the project layout: `name` and `agentcore:project-name` identify the `chatagent` project, `runtimes[0].name` identifies the `ChatAgent` runtime, and `codeLocation` points to `app/ChatAgent/`.
