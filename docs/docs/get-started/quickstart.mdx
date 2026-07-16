@@ -255,27 +255,28 @@ Deploying this quickstart creates the following AWS resources:
 
 ## Cleanup
 
-When you are done with this prototype, destroy the AWS resources it created:
+When you are done with this prototype, remove the AWS resources it created. Reset the project configuration to empty, then deploy that empty state to tear down the CloudFormation stack:
 
 ```bash
 # From the WeatherAgent project directory
-agentcore destroy
+agentcore remove all
+agentcore deploy
 ```
 
 Verify resources are gone:
 
 ```bash
 agentcore status
-# Expected: no runtimes listed
+# Expected: No resources match the given filters.
 ```
 
-Some resources may persist after `agentcore destroy`:
+Some resources may persist after cleanup:
 
 - **ECR repository** — may remain if images are still tagged; delete manually in the ECR console or with `aws ecr delete-repository --repository-name WeatherAgent --force`
 - **CloudWatch log groups** — retained by default; delete manually if you want to stop log storage charges
 - **IAM roles** — review and remove any leftover roles prefixed with `AgentCore` in the IAM console
 
-If `agentcore destroy` reports errors, see [Cleanup Failures](/docs/reference/troubleshooting#cleanup-failures).
+If cleanup reports errors, see [Cleanup Failures](/docs/reference/troubleshooting#cleanup-failures).
 
 ---
 
