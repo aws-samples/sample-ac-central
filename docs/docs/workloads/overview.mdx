@@ -2,7 +2,7 @@
 title: Agent Workloads
 sidebar_label: Overview
 sidebar_position: 1
-last_verified: 2026-07-15
+last_verified: 2026-07-16
 ---
 
 import Link from '@docusaurus/Link';
@@ -133,7 +133,7 @@ Use this table to map your requirements to a reference category. Multiple "best 
 The workload categories on this page are architecture guidance, not `agentcore create` options. The CLI creates a project and, unless `--no-agent` is specified, an agent resource inside it. Choose the framework, model provider, memory, build, protocol, and network settings based on the agent's requirements.
 
 :::info Verified CLI version
-The commands in this section were checked with AgentCore CLI `0.23.0` on July 15, 2026. Check the [AgentCore CLI project creation guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-get-started-cli.html) and run `agentcore create --help` when using a different CLI version.
+The commands in this section were checked with AgentCore CLI `0.24.1` on July 16, 2026. Check the [AgentCore CLI project creation guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-get-started-cli.html) and run `agentcore create --help` when using a different CLI version.
 :::
 
 ### Recommended workflow-agent command
@@ -143,7 +143,7 @@ The commands in this section were checked with AgentCore CLI `0.23.0` on July 15
 Run the command from the directory where you want the project to be created:
 
 ```bash
-npm install -g @aws/agentcore@0.23.0
+npm install -g @aws/agentcore@0.24.1
 agentcore --version
 agentcore create \
   --name WorkflowAgent \
