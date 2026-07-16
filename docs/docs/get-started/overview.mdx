@@ -19,7 +19,7 @@ There are three ways to put an agent on AgentCore. They suit different situation
 
 | Your situation | Recommended path |
 |---|---|
-| You want to explore AgentCore quickly without writing agent code | [Managed Harness](#managed-harness-path) |
+| You want a fully managed, production-ready agent without writing agent code | [Managed Harness](#managed-harness-path) |
 | You are building a new custom agent and want full control from day one | [Code-First Runtime](#code-first-runtime-path) |
 | You already have an agent running and want to adopt AgentCore services incrementally | [Existing Agent Adoption](#existing-agent-adoption-path) |
 
@@ -34,9 +34,9 @@ Before starting any path, complete the [Preflight Checklist](/docs/get-started/p
 The Harness is a fully managed, configuration-driven layer that wires together AgentCore Runtime, Memory, Gateway, Browser Tool, Identity, and Observability for you. You define your agent through the console wizard or the `CreateHarness` API. No orchestration code required.
 
 **Choose this path when:**
-- You want to explore AgentCore's capabilities before committing to a code structure
+- You want a fully managed, production-grade agent loop where AWS operates the orchestration, memory wiring, and scaling for you
 - You prefer a console or API-first workflow over writing Python or TypeScript
-- You want to validate a use case quickly with sample data, then decide whether to export to code
+- You want to go from idea to a working agent quickly, without maintaining orchestration code
 
 **What you can do from Harness:**
 - Pick a model, write a system prompt, and attach tools via AgentCore Gateway (MCP)
@@ -44,7 +44,7 @@ The Harness is a fully managed, configuration-driven layer that wires together A
 - Add identity (OAuth), guardrails, and observability from the same interface
 - Export the agent definition to code when you need custom logic
 
-**Ceiling:** Harness is suited for exploration and prototyping. When your agent needs custom tool logic, complex routing, or integration patterns not expressible in configuration, export to code and move to the Runtime path.
+**When to choose Runtime instead:** Harness runs production workloads. Choose the Runtime path when your agent needs custom tool logic, complex orchestration, or a framework other than Strands — capabilities that require code rather than configuration.
 
 **Next:** [Your First Agent (Managed Harness)](/docs/get-started/firstagent)
 
@@ -83,6 +83,6 @@ If your agent already runs somewhere (Strands, LangGraph, CrewAI, or any other f
 
 ## Not sure? Start here
 
-If you are new to AgentCore and unsure which path fits, start with the [Managed Harness path](/docs/get-started/firstagent). It is the fastest way to see the platform in action. You can always export to code and move to the Runtime path later with no lock-in.
+If you are new to AgentCore and unsure which path fits, start with the [Managed Harness path](/docs/get-started/firstagent). It is the fastest way to see the platform in action, and Harness agents run in production — you're not choosing a throwaway path. You can always export to code and move to the Runtime path later with no lock-in.
 
 Before you start any path, complete the [Preflight Checklist](/docs/get-started/preflight).
