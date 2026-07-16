@@ -2,6 +2,7 @@
 title: Patterns & Architecture
 sidebar_label: Patterns & Architecture
 sidebar_position: 5
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
@@ -16,7 +17,9 @@ Reference architecture and recommended multi-agent patterns for chat workloads o
 
 A production-ready conversational agent architecture on AgentCore.
 
-![Conversational Agent Architecture](/img/conv-agent-ref-arch.png)
+![Conversational agent reference architecture: end users on web, mobile, or Slack authenticate through an OAuth 2.0 identity provider, reach the agent via API Gateway or WebSocket, and the agent exchanges context with AgentCore memory, routes tool calls through an MCP gateway, and emits traces to observability](/img/conv-agent-ref-arch.png)
+
+Requests enter through an identity-verified API Gateway or WebSocket connection and reach the AgentCore runtime. The agent exchanges conversation history with the memory layer, calls external tools through the MCP gateway, and all interactions pass through guardrails and are traced in observability.
 
 <div className="arch-flow">
   <span className="arch-flow-step">End User (Web/Mobile/Slack)</span>

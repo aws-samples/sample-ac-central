@@ -9,11 +9,22 @@ last_verified: 2026-07-08
 Examples built with **Strands Agents SDK** `1.46.0` and **bedrock-agentcore** `1.17.0`. APIs may differ in other versions.
 :::
 
+:::caution Prototype, not production
+This tutorial creates a prototype, not a production-ready system. Before routing real users or data to it, work through the [Production Readiness checklist](/docs/operate/production-readiness).
+:::
+
 import Link from '@docusaurus/Link';
 
 # Quick Start: Workflow Agent
 
 Deploy a working event-driven incident response agent in under 10 minutes.
+
+| | |
+|---|---|
+| **Who this is for** | Developers building event-driven or automation agents |
+| **Time** | ~10 minutes |
+| **What you'll build** | An incident response agent that enriches, reasons, and creates tickets |
+| **Safety level** | Creates real AWS resources; uses simulated service health and ticketing data; no external write actions |
 
 ---
 
@@ -85,28 +96,31 @@ def get_service_health(service_name: str) -> dict:
 
 
 @tool
-def restart_service(service_name: str, reason: str) -> dict:
-    """Restart a service to recover from degraded state.
+def create_incident_ticket(service_name: str, severity: str, summary: str) -> dict:
+    """Open an incident ticket in the ticketing system.
 
     Args:
-        service_name: Name of the service to restart.
-        reason: Explanation for why the restart is needed.
+        service_name: Name of the affected service.
+        severity: Incident severity - 'low', 'medium', or 'high'.
+        summary: Human-readable description of the issue and recommended action.
 
     Returns:
-        Restart result including new instance count and status.
+        Created ticket ID and a link for the on-call engineer to review.
     """
-    log.info("Restarting %s: %s", service_name, reason)
-    # Replace with real orchestration API in production
+    log.info("Creating incident ticket for %s [%s]", service_name, severity)
+    # Replace with real ticketing API (e.g., Jira, PagerDuty) in production
+    ticket_id = f"INC-{abs(hash(service_name + severity)) % 100000:05d}"
     return {
         "status": "success",
         "content": [
             {
                 "text": json.dumps(
                     {
-                        "action": "restart",
+                        "ticket_id": ticket_id,
                         "service": service_name,
-                        "result": "completed",
-                        "new_instance_count": 4,
+                        "severity": severity,
+                        "summary": summary,
+                        "url": f"https://tickets.example.com/{ticket_id}",
                     }
                 )
             }
@@ -138,13 +152,16 @@ SYSTEM_PROMPT = """You are an IT incident response agent. When you receive an
 incident event, follow this protocol:
 
 1. ENRICH: Use get_service_health to understand the current state.
-2. REASON: Analyze the health data and determine the best action.
-3. ACT: If the service is degraded, restart it. If critical, also notify on-call.
-4. EMIT: Summarize what you did and the outcome.
+2. REASON: Analyze the health data and determine the recommended action.
+3. ACT: Open an incident ticket with a clear summary and recommendation.
+   If critical, also notify on-call.
+4. EMIT: Summarize the findings, the ticket created, and any notifications sent.
 
 Rules:
-- Only restart services that are in 'degraded' or 'down' status.
+- Always open a ticket so there is an auditable record of the incident.
 - Always notify on-call for 'high' severity incidents.
+- Include the recommended remediation in the ticket summary so an engineer
+  can review and act on it.
 - Be concise in your summary - operations teams need quick answers."""
 
 
@@ -178,7 +195,7 @@ def invoke(payload, context):
     agent = Agent(
         model="global.anthropic.claude-sonnet-4-5-20250929-v1:0",
         system_prompt=SYSTEM_PROMPT,
-        tools=[get_service_health, restart_service, notify_oncall],
+        tools=[get_service_health, create_incident_ticket, notify_oncall],
     )
 
     result = agent(prompt)
@@ -222,7 +239,8 @@ agentcore dev
 agentcore dev '{"service_name": "checkout-api", "event_type": "high_error_rate", "severity": "high", "description": "Error rate exceeded 10% threshold"}'
 
 # Expected: Agent calls get_service_health, sees degraded status,
-# restarts the service, notifies on-call, and summarizes actions taken.
+# opens an incident ticket with a remediation recommendation,
+# notifies on-call, and summarizes actions taken.
 ```
 
 ---
@@ -232,10 +250,86 @@ agentcore dev '{"service_name": "checkout-api", "event_type": "high_error_rate",
 ```
 ① TRIGGER  → EventBridge delivers "high_error_rate" event
 ② ENRICH   → Agent calls get_service_health("checkout-api")
-③ REASON   → LLM sees degraded + high severity → decides to restart + notify
-④ ACT      → Agent calls restart_service() and notify_oncall()
-⑤ EMIT     → Agent returns structured summary of actions taken
+③ REASON   → LLM sees degraded + high severity → decides to open ticket + notify
+④ ACT      → Agent calls create_incident_ticket() and notify_oncall()
+⑤ EMIT     → Agent returns structured summary of findings and actions taken
 ```
+
+---
+
+## Controlled Remediation
+
+This quickstart uses read-only and notification tools deliberately. Before adding write actions such as restarting services, scaling fleets, or modifying configuration, apply the following safeguards:
+
+:::warning Real write actions require production safeguards
+- **Least-privilege access** — scope IAM permissions to the exact resources and operations the agent needs.
+- **Typed input validation** — validate all tool inputs before calling downstream APIs; reject unexpected values.
+- **Idempotency** — design tools so retrying the same action is safe (e.g., restart-if-not-already-running).
+- **Policy enforcement** — use Cedar policies to restrict which actions fire under which conditions (priority, time window, resource scope).
+- **Explicit approval or escalation** — for high-risk actions, require a human-in-the-loop confirmation step before execution.
+- **Retry and dead-letter behavior** — handle transient failures with bounded retries and route unrecoverable events to a dead-letter queue for manual review.
+- **Audit logging** — record every tool invocation with its inputs, outputs, and the policy decision that allowed it.
+
+See [Bounded Autonomy](/docs/workloads/workflow/bounded-autonomy) for how Cedar policies enforce these boundaries in production.
+:::
+
+---
+
+---
+
+## Placeholders in This File
+
+The example code uses these values you must replace for a real deployment:
+
+- `https://tickets.example.com/{ticket_id}` — a placeholder URL; replace with your real ticketing system URL in `create_incident_ticket`
+- `checkout-api` — a sample service name used in the test invocation; replace with your actual service names
+- The tool implementations (`get_service_health`, `create_incident_ticket`, `notify_oncall`) contain simulated responses; each has a comment marking where to replace with real API calls
+
+---
+
+## What This Creates and What It Costs
+
+Deploying this quickstart creates the following AWS resources:
+
+| Resource | Notes |
+|---|---|
+| AgentCore Runtime | Hosts your agent code in MicroVM isolation |
+| ECR repository | Stores the packaged agent image |
+| IAM execution role | Least-privilege role for the Runtime |
+| CloudWatch log groups | Receives runtime and invocation logs |
+
+**Main cost drivers:**
+- **Model inference tokens** — every invocation calls Claude Sonnet 4.5 on Amazon Bedrock; you pay per input/output token
+- **Runtime execution seconds** — billed per second of agent execution; scale-to-zero means no charges between invocations
+- **Log ingestion** — CloudWatch charges per GB ingested and stored
+
+**Scale-to-zero does not mean zero cost.** The ECR image and CloudWatch log retention continue to accrue charges even with no active traffic. Destroy resources when you're done experimenting.
+
+---
+
+## Cleanup
+
+When you are done with this prototype, destroy the AWS resources it created:
+
+```bash
+# From your agent project directory
+agentcore destroy
+```
+
+Verify resources are gone:
+
+```bash
+agentcore status
+# Expected: no runtimes listed
+```
+
+Some resources may persist after `agentcore destroy`:
+
+- **ECR repository** — may remain if images are still tagged; delete manually in the ECR console or with `aws ecr delete-repository --repository-name IncidentAgent --force`
+- **CloudWatch log groups** — retained by default; delete manually to stop log storage charges
+- **IAM roles** — review and remove any leftover roles prefixed with `AgentCore` in the IAM console
+
+If `agentcore destroy` reports errors, see [Cleanup Failures](/docs/reference/troubleshooting#cleanup-failures).
 
 ---
 
@@ -247,3 +341,4 @@ You have a working agent. Now add production capabilities:
 - <Link to="/docs/workloads/workflow/bounded-autonomy">Add Cedar policies for bounded autonomy →</Link>
 - <Link to="/docs/workloads/workflow/tools-and-gateway">Design tools and connect via Gateway →</Link>
 - <Link to="/docs/workloads/workflow/evaluations">Set up continuous evaluations →</Link>
+- <Link to="/docs/operate/production-readiness">Production Readiness checklist →</Link>

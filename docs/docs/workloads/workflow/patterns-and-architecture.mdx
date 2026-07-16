@@ -2,6 +2,7 @@
 title: Patterns & Architecture
 sidebar_label: Patterns & Architecture
 sidebar_position: 8
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
@@ -16,7 +17,9 @@ Reference architecture and recommended multi-agent patterns for event-driven aut
 
 A production-ready event-driven workflow automation agent on AgentCore.
 
-![Workflow Automation Agent Reference Architecture](/img/workflow-agent-ref-arch.png)
+![Workflow automation agent reference architecture: event sources (EventBridge, SNS, S3) feed a trigger Lambda that normalizes payloads and invokes the AgentCore runtime; the agent uses memory and a policy engine to decide actions, calls enterprise tools via an MCP gateway, and emits completion events and audit records to EventBridge and CloudWatch](/img/workflow-agent-ref-arch.png)
+
+Events arrive from sources such as EventBridge, SNS, SQS, or S3 and are normalized by a trigger Lambda before being sent to the AgentCore runtime. The agent reasons against its memory and a Cedar policy engine, executes actions through the MCP gateway, and publishes a completion event plus an audit record on exit.
 
 <div className="arch-flow">
   <span className="arch-flow-step">Event Sources (EventBridge/SNS/S3)</span>

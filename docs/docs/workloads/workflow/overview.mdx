@@ -2,6 +2,7 @@
 title: Workflow Agents
 sidebar_label: Overview
 sidebar_position: 1
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
@@ -39,6 +40,8 @@ Choose this workload when:
 - The primary output is actions taken and events emitted, not chat messages
 - Each invocation is short-lived (seconds to minutes), not a long conversation
 
+For a side-by-side comparison with Conversational and Coding patterns, see the [Workloads overview comparison table](/docs/workloads/overview#how-they-compare).
+
 ---
 
 ## Strengths and Limitations
@@ -53,23 +56,6 @@ Choose this workload when:
 | LLM reasoning handles edge cases scripts cannot        | Non-deterministic: same event may produce different actions      |
 | Full audit trail for every decision                    | Higher latency than pure rule-based automation                   |
 | Programmatic evaluations at zero token cost            | Evaluation dataset requires curating ground-truth examples       |
-
-</div>
-
----
-
-## How It Compares
-
-<div className="fancy-table fancy-table--auto-first">
-
-| Dimension          | Workflow                                 | Conversational                         | Coding                             |
-|--------------------|------------------------------------------|----------------------------------------|------------------------------------|
-| Trigger            | System event (machine-initiated)         | User message (human-initiated)         | Ticket / PR / schedule             |
-| Session            | Short-lived, single invocation           | Long-lived, multi-turn                 | Long-lived, single task            |
-| Identity           | Service principal (machine-to-machine)   | End-user (OAuth bearer token)          | Developer identity                 |
-| Primary output     | Actions + events emitted                 | Chat response to human                 | Code + PR comments                 |
-| Guardrails         | Cedar policies (tool-level constraints)  | Content filters + PII redaction        | Code quality gates                 |
-| Memory             | Cross-invocation context per entity      | Session + long-term per user           | Project-scoped context             |
 
 </div>
 
@@ -103,13 +89,27 @@ Where scripts need explicit branching for every case, the LLM reasons over the e
 |-------------------|-------------------------------------------------------|--------------------------------------------------------|
 | **Identity**      | Service identity (client credentials, SigV4)          | Agent authenticates as a service, not a user           |
 | **Memory**        | SEMANTIC per entity, or stateless                     | Cross-invocation context about incidents/tickets       |
-| **Runtime**       | Short-lived sessions (up to 15 min), scale-to-zero   | Cost-efficient, no idle compute                        |
+| **Runtime**       | Short-lived sessions (up to 15 min ¹), scale-to-zero   | Cost-efficient, no idle compute                        |
 | **Policy Engine** | Cedar policies for bounded autonomy                   | Constrain which tools the agent can call and when      |
 | **Evaluations**   | GoalSuccessRate, TrajectoryMatch, Correctness         | Continuous quality measurement in production           |
 | **Observability** | Per-invocation tracing with event context             | Full audit trail for every decision                    |
 | **Gateway**       | Service-scoped tool access with credential providers  | Agent calls APIs with managed credentials              |
 
 </div>
+
+> ¹ Session duration is architecture guidance based on typical AgentCore usage patterns. Verify current limits in the [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
+
+---
+
+## When Not to Use This Pattern
+
+**Skip the Workflow pattern when:**
+
+- The automation logic is simple and deterministic (a few if/else conditions, no reasoning needed). A scheduled AWS Lambda function with direct API calls is simpler, cheaper, and easier to debug.
+- A human needs real-time responses during the process. Use the [Conversational pattern](/docs/workloads/conversational/overview) instead.
+- The primary output is code, tests, or PRs. Use the [Coding pattern](/docs/workloads/coding/overview) instead.
+- You cannot define bounded autonomy upfront. If you cannot describe what actions the agent is and is not allowed to take, the policy design will be hard. Start with a deterministic script and graduate to an agent when the edge cases accumulate.
+- Tasks consistently exceed the short-lived session window. For long-running background jobs (hours), consider the Coding pattern or orchestrating multiple short-lived workflow agent invocations.
 
 ---
 

@@ -2,11 +2,16 @@
 title: Agent Workloads
 sidebar_label: Overview
 sidebar_position: 1
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
 
 # Choose the right agent workload
+
+:::note Reference categorization — not AgentCore product types
+The **Conversational**, **Workflow**, and **Coding** categories on this site are reference patterns created to organize architecture guidance. They are not AgentCore product types, named tiers, or mandatory configurations. AgentCore capabilities (Runtime, Memory, Gateway, Identity, Guardrails, Evaluations, Observability) are modular — you combine them based on your use case. These categories help you reason about which combination typically fits a given problem.
+:::
 
 AgentCore supports many agent archetypes including the following three. Each is optimized for a different interaction model, trigger pattern, and operational profile. Pick the one that matches your use case, then follow its Quick Start to deploy in minutes.
 
@@ -59,6 +64,27 @@ AgentCore supports many agent archetypes including the following three. Each is 
 
 ---
 
+## Decision Criteria at a Glance
+
+Use this table to map your requirements to a reference category. Multiple "best fit" matches in a row point to the same workload.
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Criterion               | Conversational                          | Workflow                                   | Coding                                  |
+|-------------------------|-----------------------------------------|--------------------------------------------|-----------------------------------------|
+| **Trigger source**      | Human typing a message                  | System event (alert, webhook, schedule, queue) | Ticket, PR, CI event, or schedule    |
+| **Human interaction**   | Continuous, real-time back-and-forth    | Minimal or none during execution           | Review gate at the end (PR/approval)    |
+| **Action risk**         | Low-to-medium (user-scoped actions)     | Medium-to-high (autonomous system actions) | Medium (code change, auto-merged PR)    |
+| **Duration**            | Minutes to hours across many turns      | Seconds to minutes per invocation          | Minutes to hours per task               |
+| **Identity model**      | End-user identity (OAuth bearer token)  | Service identity (machine-to-machine)      | Developer identity (repo/CI access)     |
+| **State / memory**      | Session + long-term per user            | Per-entity cross-invocation context        | Project-scoped codebase context         |
+| **Latency requirement** | Low (streaming token-by-token to UI)    | Tolerant (results to downstream systems)   | Tolerant (background task)              |
+| **Integration pattern** | Frontend / chat UI, IdP, streaming API  | EventBridge, SNS, SQS, S3, webhooks        | GitHub/GitLab, Jira, CI/CD pipelines    |
+
+</div>
+
+---
+
 ## How They Compare
 
 <div className="fancy-table fancy-table--auto-first">
@@ -74,10 +100,12 @@ AgentCore supports many agent archetypes including the following three. Each is 
 | **Scaling pattern**    | Concurrent sessions (many users)       | Event throughput (many events per second)         | Concurrent tasks (many repos/PRs)        |
 | **Key metrics**        | Helpfulness, Correctness               | GoalSuccessRate, TrajectoryMatch                  | Code quality, test pass rate             |
 | **Idle cost**          | Scale-to-zero between sessions         | Scale-to-zero between events                      | Scale-to-zero between tasks              |
-| **Compute lifecycle**  | Up to 8 hours (session affinity)       | Up to 15 minutes (short-lived)                    | Up to 8 hours (long-running)             |
+| **Compute lifecycle**  | Up to 8 hours (session affinity) ¹    | Up to 15 minutes (short-lived) ¹                  | Up to 8 hours (long-running) ¹          |
 | **Guardrails focus**   | Content filters, PII, prompt injection | Tool-level policies (Cedar), bounded autonomy     | Code quality gates, security scanning    |
 
 </div>
+
+> ¹ Session duration and scaling behaviors are architecture guidance based on typical AgentCore usage patterns. Verify current limits in the [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
 
 ---
 
@@ -97,6 +125,85 @@ AgentCore supports many agent archetypes including the following three. Each is 
 - The output is code, tests, documentation, or PR comments
 - Tasks are long-running and involve file system or repository operations
 - You need sandbox isolation for code execution and validation
+
+---
+
+## Create a project and agent with the AgentCore CLI
+
+The workload categories on this page are architecture guidance, not `agentcore create` options. The CLI creates a project and, unless `--no-agent` is specified, an agent resource inside it. Choose the framework, model provider, memory, build, protocol, and network settings based on the agent's requirements.
+
+:::info Verified CLI version
+The commands in this section were checked with AgentCore CLI `0.23.0` on July 15, 2026. Check the [AgentCore CLI project creation guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-get-started-cli.html) and run `agentcore create --help` when using a different CLI version.
+:::
+
+### Recommended workflow-agent command
+
+> **Guidance:** This is a recommended starting point for an event-driven workflow agent. The workload category does not require these exact values.
+
+Run the command from the directory where you want the project to be created:
+
+```bash
+npm install -g @aws/agentcore@0.23.0
+agentcore --version
+agentcore create \
+  --name WorkflowAgent \
+  --project-name workflowagent \
+  --framework Strands \
+  --model-provider Bedrock \
+  --memory longAndShortTerm \
+  --build CodeZip \
+  --language Python \
+  --protocol HTTP \
+  --network-mode PUBLIC
+```
+
+Replace `WorkflowAgent` and `workflowagent` with your agent and project names. A project name must start with a letter, contain only alphanumeric characters, and be no more than 23 characters long.
+
+The options in this example mean:
+
+| Option | Purpose |
+|--------|---------|
+| `--name` | Names the agent resource. |
+| `--project-name` | Names the generated project. |
+| `--framework Strands` | Uses the Strands Agents framework. |
+| `--model-provider Bedrock` | Uses Amazon Bedrock as the model provider. |
+| `--memory longAndShortTerm` | Provides both short-term and long-term memory for cross-invocation context. |
+| `--build CodeZip` | Uses a CodeZip deployment artifact instead of a container image. |
+| `--language Python` | Generates a Python agent project. |
+| `--protocol HTTP` | Uses HTTP for Runtime invocation. |
+| `--network-mode PUBLIC` | Uses public network access; use VPC mode when private connectivity is required. |
+
+### Adjust the memory and network settings
+
+Use one of these memory options when the workflow does not need both forms of context:
+
+```bash
+# No AgentCore memory
+--memory none
+
+# Short-term memory only
+--memory shortTerm
+```
+
+For a VPC deployment, replace `--network-mode PUBLIC` and provide the required network resources:
+
+```bash
+--network-mode VPC \
+--subnets subnet-12345678,subnet-87654321 \
+--security-groups sg-12345678
+```
+
+VPC mode does not provide outbound internet access by default. For outbound internet access, route private subnets through a NAT gateway; for AWS service access without internet, configure the required VPC endpoints. See the [AgentCore VPC networking guidance](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-vpc.html) for subnet and Availability Zone requirements.
+
+The event source—such as EventBridge, SNS, SQS, S3, a webhook, or a schedule—is not selected by `agentcore create`. Configure that integration separately after scaffolding the Runtime project. If `--skip-install` or `--skip-python-setup` is used, create the environment and install dependencies before local development:
+
+```bash
+cd app/WorkflowAgent
+uv venv
+uv sync
+```
+
+For conversational and coding agents, reuse the same command structure but select memory, build, network, and integration settings appropriate to those workloads.
 
 ---
 

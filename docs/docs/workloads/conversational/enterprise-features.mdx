@@ -2,6 +2,7 @@
 title: Enterprise Features
 sidebar_label: Enterprise Features
 sidebar_position: 3
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
@@ -23,7 +24,7 @@ Your chatbot prototype works. Now you need it to handle real users, real securit
 
   <div className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--memory" aria-hidden="true" /><h3>Persistent Memory</h3></div>
-    <p>Short-term session memory for multi-turn conversations. Long-term memory for user preferences across sessions. Namespace-per-user isolation. No external database plumbing required.</p>
+    <p>Short-term session memory for multi-turn conversations. Long-term memory for user preferences across sessions. Memory events are namespaced by `actor_id` — but cross-user isolation is only as strong as the identity values your application supplies. See <Link to="/docs/workloads/conversational/session-management#memory-namespace-and-isolation-design">Memory Namespace and Isolation Design</Link> for what your application must guarantee. No external database plumbing required.</p>
     <span className="service-tag tag--memory">Memory</span>
   </div>
 
