@@ -205,6 +205,7 @@ The CLI generated this configuration for your agent:
 
 ```json
 {
+  "$schema": "https://schema.agentcore.aws.dev/v1/agentcore.json",
   "name": "WeatherAgent",
   "version": 1,
   "managedBy": "CDK",
@@ -214,20 +215,20 @@ The CLI generated this configuration for your agent:
       "build": "CodeZip",
       "entrypoint": "main.py",
       "codeLocation": "app/WeatherAgent/",
-      "runtimeVersion": "PYTHON_3_13",
+      "runtimeVersion": "PYTHON_3_14",
       "networkMode": "PUBLIC",
       "protocol": "HTTP"
     }
-  ],
-  "memories": [],
-  "credentials": []
+  ]
 }
 ```
+
+The full file also includes empty arrays for `memories`, `credentials`, `harnesses`, `agentCoreGateways`, and other resource types. As you add features via `agentcore add`, they populate here.
 
 This is the declarative source of truth for your AgentCore resources. As you add Memory, Gateway, or credentials via `agentcore add`, they appear as new entries under `runtimes`, `memories`, `agentCoreGateways`, and so on.
 
 :::info Runtime version
-The CLI may scaffold `runtimeVersion: "PYTHON_3_14"` (a pre-release version). Change it to `"PYTHON_3_13"` before deploying.
+The CLI may scaffold `runtimeVersion: "PYTHON_3_14"`. This is a supported version. If you need a specific Python version for compatibility, change it to `"PYTHON_3_13"` in `agentcore.json` before deploying.
 :::
 
 ---
