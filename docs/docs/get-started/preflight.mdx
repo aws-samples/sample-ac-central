@@ -79,7 +79,7 @@ For the [Code-First Runtime path](/docs/get-started/quickstart):
 - **AWS CLI**: for credential configuration and sanity checks. [Install guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
 - **AWS credentials**: configured with `aws configure`, environment variables, or an IAM role. Run `aws sts get-caller-identity` to confirm they are working.
 
-For the [Managed Harness path](/docs/get-started/firstagent), you only need an AWS account and console access. No local tools required.
+The [Managed Harness path](/docs/get-started/firstagent) uses the same Node.js and AgentCore CLI setup, but no Python — the agent is configuration, not code.
 
 ---
 
@@ -122,6 +122,6 @@ Tutorial workloads typically cost a few dollars or less at development volume. T
 
 Once you have verified the items above, return to the path you chose:
 
-- [Managed Harness path](/docs/get-started/firstagent) for console-driven exploration
+- [Managed Harness path](/docs/get-started/firstagent) for a managed, configuration-only agent
 - [Code-First Runtime path](/docs/get-started/quickstart) for a new agent built from the CLI
 - [Existing Agent Adoption path](/docs/get-started/existing-agent) for bringing an existing agent to AgentCore

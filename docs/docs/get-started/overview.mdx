@@ -31,17 +31,17 @@ Before starting any path, complete the [Preflight Checklist](/docs/get-started/p
 
 ## Managed Harness path
 
-The Harness is a fully managed, configuration-driven layer that wires together AgentCore Runtime, Memory, Gateway, Browser Tool, Identity, and Observability for you. You define your agent through the console wizard or the `CreateHarness` API. No orchestration code required.
+The Harness is a fully managed, configuration-driven layer that wires together AgentCore Runtime, Memory, Gateway, Browser Tool, Identity, and Observability for you. You define your agent through the AgentCore CLI, the console, or the `CreateHarness` API. No orchestration code required.
 
 **Choose this path when:**
 - You want a fully managed, production-grade agent loop where AWS operates the orchestration, memory wiring, and scaling for you
-- You prefer a console or API-first workflow over writing Python or TypeScript
+- You prefer a configuration-first workflow over writing Python or TypeScript
 - You want to go from idea to a working agent quickly, without maintaining orchestration code
 
 **What you can do from Harness:**
 - Pick a model, write a system prompt, and attach tools via AgentCore Gateway (MCP)
 - Enable session memory and user memory with a toggle
-- Add identity (OAuth), guardrails, and observability from the same interface
+- Add identity (OAuth) and observability from the same interface; enforce content filters and PII detection on tool traffic with AgentCore Policy on a Gateway
 - Export the agent definition to code when you need custom logic
 
 **When to choose Runtime instead:** Harness runs production workloads. Choose the Runtime path when your agent needs custom tool logic, complex orchestration, or a framework other than Strands — capabilities that require code rather than configuration.
@@ -61,7 +61,7 @@ The Runtime path gives you full control. You write agent code (typically with th
 
 **What you get:**
 - AgentCore CLI (`@aws/agentcore`) scaffolds project structure and a declarative `agentcore.json` config
-- Local dev server (`agentcore dev`) for fast iteration without deploying
+- Local dev loop (`agentcore dev`) with a built-in inspector for fast iteration
 - Deploy to AgentCore Runtime: microVM isolation, scale-to-zero, and OpenTelemetry tracing included
 
 **Next:** [Build from the CLI (Code-First Runtime)](/docs/get-started/quickstart)

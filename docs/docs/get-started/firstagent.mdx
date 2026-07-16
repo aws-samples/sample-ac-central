@@ -6,23 +6,18 @@ last_verified: 2026-07-16
 ---
 
 :::info Versions
-Part 2 commands built and verified end to end with **AgentCore CLI** `0.24.1`. Command options and defaults may differ in other CLI versions.
+Commands built and verified end to end with **AgentCore CLI** `0.24.1`. Command options and defaults may differ in other CLI versions.
 :::
 
 # Your First Agent with Managed Harness
 
-This is the Managed Harness path. You define your agent through the console or the `CreateHarness` API; AgentCore wires together Runtime, Memory, Gateway, Browser Tool, Identity, and Observability for you. No orchestration code required.
+This is the Managed Harness path. You define your agent as declarative configuration and AgentCore wires together Runtime, Memory, Gateway, Browser Tool, Identity, and Observability for you. No orchestration code required.
 
-**Choose this path when:** you want a fully managed, production-grade agent loop, prefer a console or API-first workflow, or want to run agents without maintaining orchestration code.
+**Choose this path when:** you want a fully managed, production-grade agent loop, prefer a configuration-first workflow, or want to run agents without maintaining orchestration code.
 
 **If you are building a new custom agent and want full code control from day one**, use the [Code-First Runtime path](/docs/get-started/quickstart) instead.
 
 Before you start, complete the [Preflight Checklist](/docs/get-started/preflight).
-
-This guide has two parts:
-
-1. **[Part 1: Test in the console](#part-1-test-in-the-console)** — create and test an agent in the AgentCore console playground, no local tools required
-2. **[Part 2: Create the agent with the AgentCore CLI](#part-2-create-the-agent-with-the-agentcore-cli)** — build the same agent as a declarative project you can version, review, and deploy from your terminal
 
 ---
 
@@ -36,45 +31,15 @@ The Harness is a managed abstraction that lets you create a working agent withou
 - **Identity**: OAuth/OIDC integration for user-scoped tool access
 - **Observability**: tracing enabled by default, visible in CloudWatch
 
-You interact with the Harness through the AgentCore console wizard, the AgentCore CLI, or directly through the `CreateHarness` and `InvokeHarness` APIs. The configuration is declarative; changing a model or adding a tool does not require redeploying code.
+You interact with the Harness through the AgentCore CLI, the AgentCore console, or directly through the `CreateHarness` and `InvokeHarness` APIs. The configuration is declarative; changing a model or adding a tool does not require redeploying code. This guide uses the CLI so your agent definition lives in version control from the start.
 
 **Export path:** when your use case grows beyond what Harness configuration supports, you can export the agent definition to code and move to the Runtime path. There is no lock-in.
 
 ---
 
-## Part 1: Test in the console
+## Create the agent with the AgentCore CLI
 
-The console is the fastest way to see a Harness agent working. You only need an AWS account and console access.
-
-<div className="fancy-table fancy-table--auto-first">
-
-| Step | Action | Details |
-|---|---|---|
-| 1 | **Open the AgentCore console** | Navigate to the Amazon Bedrock AgentCore console in your AWS account and choose **Quick create Harness** |
-| 2 | **Create an agent** | Use the guided wizard to define your agent: select a model, write a system prompt, and choose tools to attach |
-| 3 | **Configure tools** | Connect to APIs via AgentCore Gateway (MCP), or add built-in tools such as Code Interpreter or Browser Tool |
-| 4 | **Test in the console playground** | Send test prompts using sample or synthetic data to verify the agent behaves as expected |
-
-</div>
-
-:::note
-Step 4 creates a working prototype. Do not route real user traffic to this prototype without completing the [Production Readiness checklist](/docs/operate/production-readiness) first. The checklist covers IAM scoping, tenant isolation, guardrails, evaluations, and rollback procedures.
-:::
-
-### Key capabilities available from the console
-
-- **Identity integration**: attach an OAuth provider to enable user-scoped tool access
-- **Memory**: enable session memory (short-term) and user memory (long-term) with a toggle
-- **Guardrails**: add content filters, topic boundaries, and PII redaction from the console
-- **Observability**: tracing enabled by default; view in CloudWatch or export via OTLP
-
-When the agent behaves the way you want in the playground, move to Part 2 to recreate it as a project you can put under version control and deploy repeatably.
-
----
-
-## Part 2: Create the agent with the AgentCore CLI
-
-The console is great for interactive testing, but production agents belong in version control. In this part you define the same kind of agent as a declarative project with the AgentCore CLI: `harness.json` describes the agent, and the CLI deploys it through CloudFormation.
+You define the agent as a declarative project: `harness.json` describes the agent, and the CLI deploys it through CloudFormation. The result is an agent definition you can version, review, and deploy repeatably.
 
 **Prerequisites:** Node.js 20+ and AWS credentials configured locally (`aws sts get-caller-identity` should succeed). See the [Preflight Checklist](/docs/get-started/preflight).
 
@@ -129,7 +94,7 @@ The `add harness` command wrote the full agent definition to `app/FirstAgent/har
 }
 ```
 
-This is the whole agent: model, prompt, tools, and memory in one reviewable file. Long-term memory is disabled by default; to add managed per-user memory, follow the [Harness Quick Start](/docs/workloads/conversational/harness-quickstart).
+This is the whole agent: model, prompt, tools, and memory in one reviewable file. In CLI `0.24.1`, `agentcore add harness` writes the memory block as disabled unless you pass memory flags; to add managed per-user memory, follow the [Harness Quick Start](/docs/workloads/conversational/harness-quickstart).
 
 Validate the configuration:
 
@@ -170,6 +135,10 @@ agentcore invoke --harness FirstAgent \
 
 The second response confirms the managed loop maintains conversation history within a session, with no session-handling code on your side.
 
+:::note
+This creates a working agent with default settings. Do not route real user traffic to it without completing the [Production Readiness checklist](/docs/operate/production-readiness) first. The checklist covers IAM scoping, tenant isolation, guardrails, evaluations, and rollback procedures.
+:::
+
 ### Step 5: Clean up
 
 Remove the harness from the project configuration and apply the empty state:
@@ -199,14 +168,14 @@ Harness runs production agents at scale. Move to the Code-First Runtime path whe
 - You want to integrate complex routing or multi-step orchestration
 - You want your agent logic itself under unit test in your language of choice
 
-To move, export your Harness agent definition (`agentcore export` or from the console) and use it as the starting point for a code-first project.
+To move, export your Harness agent definition with `agentcore export harness` and use the generated Strands runtime agent as the starting point for a code-first project.
 
 ---
 
 ## Resources
 
 - [AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/)
-- [Strands SDK - Managed Deployment](https://strandsagents.com/docs/user-guide/deploy/)
+- [Deploying Strands Agents to AgentCore Runtime](https://strandsagents.com/docs/user-guide/deploy/deploy_to_bedrock_agentcore/)
 
 ---
 
