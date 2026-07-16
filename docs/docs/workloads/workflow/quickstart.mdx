@@ -2,11 +2,11 @@
 title: "Quick Start: Workflow Agent"
 sidebar_label: Quick Start
 sidebar_position: 2
-last_verified: 2026-07-08
+last_verified: 2026-07-16
 ---
 
 :::info Versions
-Examples built with **Strands Agents SDK** `1.46.0` and **bedrock-agentcore** `1.17.0`. APIs may differ in other versions.
+Examples built and verified end to end with **AgentCore CLI** `0.24.1`, **Strands Agents SDK** `1.15+`, and **bedrock-agentcore** `1.9+` (the versions the CLI pins in the generated project). APIs and command options may differ in other versions.
 :::
 
 :::caution Prototype, not production
@@ -34,13 +34,34 @@ Deploy a working event-driven incident response agent in under 10 minutes.
 
 | Step | Action          | Command                                   |
 |------|-----------------|-------------------------------------------|
-| 1    | Install CLI     | `npm install -g @aws/agentcore`           |
-| 2    | Create Agent    | `agentcore create`                        |
-| 3    | Add SDK         | `uv add strands-agents bedrock-agentcore` |
-| 4    | Develop Locally | `agentcore dev`                           |
+| 1    | Install CLI     | `npm install -g @aws/agentcore@0.24.1`    |
+| 2    | Create project  | `agentcore create` with the options below |
+| 3    | Add agent code  | Copy the working example into `main.py`   |
+| 4    | Develop Locally | `agentcore dev --logs --no-browser`       |
 | 5    | Deploy          | `agentcore deploy`                        |
 
 </div>
+
+### Create the project and agent
+
+Run this command from the directory where you want the project folder to be created. The explicit names ensure the generated paths match the rest of this quickstart: `incidentagent/app/IncidentAgent/main.py`.
+
+```bash
+npm install -g @aws/agentcore@0.24.1
+agentcore create \
+  --name IncidentAgent \
+  --project-name incidentagent \
+  --framework Strands \
+  --model-provider Bedrock \
+  --memory none \
+  --build CodeZip \
+  --language Python \
+  --protocol HTTP \
+  --network-mode PUBLIC
+cd incidentagent
+```
+
+The generated project already declares `strands-agents` and `bedrock-agentcore` as dependencies in `app/IncidentAgent/pyproject.toml` and installs them into the project's virtual environment — no separate SDK installation step is needed.
 
 ---
 
@@ -168,7 +189,8 @@ Rules:
 @app.entrypoint
 def invoke(payload, context):
     """Agent entrypoint - processes incident events from EventBridge."""
-    # Handle agentcore dev payload wrapping
+    # The AgentCore CLI wraps invoke text as {"prompt": "<text>"}. When the
+    # text is itself a JSON event, unwrap it back into the event payload.
     if "prompt" in payload and "service_name" not in payload:
         prompt_value = payload["prompt"]
         if isinstance(prompt_value, str):
@@ -202,7 +224,8 @@ def invoke(payload, context):
     return {"response": result.message}
 
 
-app.run()
+if __name__ == "__main__":
+    app.run()
 ```
 
 ---
@@ -210,6 +233,8 @@ app.run()
 ## Configuration
 
 ### `agentcore/agentcore.json`
+
+The `agentcore create` command generates this runtime entry (shown with the project-level fields omitted):
 
 ```json
 {
@@ -219,21 +244,29 @@ app.run()
       "build": "CodeZip",
       "entrypoint": "main.py",
       "codeLocation": "app/IncidentAgent/",
-      "runtimeVersion": "PYTHON_3_13",
-      "protocol": "HTTP",
-      "networkMode": "PUBLIC"
+      "runtimeVersion": "PYTHON_3_14",
+      "networkMode": "PUBLIC",
+      "protocol": "HTTP"
     }
   ]
 }
+```
+
+Validate the configuration after editing code or config:
+
+```bash
+agentcore validate
 ```
 
 ---
 
 ## Test It
 
+### Test locally
+
 ```bash
-# Terminal 1: start the dev server
-agentcore dev
+# Terminal 1: start the dev server (non-interactive, logs to stdout)
+agentcore dev --logs --no-browser
 
 # Terminal 2: simulate an incident event
 agentcore dev '{"service_name": "checkout-api", "event_type": "high_error_rate", "severity": "high", "description": "Error rate exceeded 10% threshold"}'
@@ -242,6 +275,27 @@ agentcore dev '{"service_name": "checkout-api", "event_type": "high_error_rate",
 # opens an incident ticket with a remediation recommendation,
 # notifies on-call, and summarizes actions taken.
 ```
+
+:::tip Port mismatches cause confusing errors
+If port `8080` is busy, the dev server automatically shifts to the next free port (watch for `Port 8080 in use, using 8081` in Terminal 1). The Terminal 2 command still targets `8080` by default, so it can silently hit whatever else is listening there. Pass the printed port explicitly: `agentcore dev -p 8081 '<event-json>'`.
+:::
+
+### Test the deployed agent
+
+Deployment creates AWS resources and may incur charges:
+
+```bash
+agentcore deploy
+```
+
+Then invoke the deployed Runtime with the same event. AgentCore requires a session ID of at least 33 characters; a UUID satisfies this:
+
+```bash
+agentcore invoke --session-id "$(uuidgen)" \
+  '{"service_name": "checkout-api", "event_type": "high_error_rate", "severity": "high", "description": "Error rate exceeded 10% threshold"}'
+```
+
+The CLI wraps the argument as `{"prompt": "<text>"}`; the entrypoint's unwrap logic restores the JSON event. Real event sources (EventBridge, SQS) call `InvokeAgentRuntime` with the event as the payload directly — see [Event Processing](/docs/workloads/workflow/event-processing).
 
 ---
 
@@ -284,6 +338,7 @@ The example code uses these values you must replace for a real deployment:
 - `https://tickets.example.com/{ticket_id}` — a placeholder URL; replace with your real ticketing system URL in `create_incident_ticket`
 - `checkout-api` — a sample service name used in the test invocation; replace with your actual service names
 - The tool implementations (`get_service_health`, `create_incident_ticket`, `notify_oncall`) contain simulated responses; each has a comment marking where to replace with real API calls
+- `$(uuidgen)` — generates a valid Runtime session ID (33+ characters required); event-driven invocations typically use a fresh session per event
 
 ---
 
@@ -294,8 +349,8 @@ Deploying this quickstart creates the following AWS resources:
 | Resource | Notes |
 |---|---|
 | AgentCore Runtime | Hosts your agent code in MicroVM isolation |
-| ECR repository | Stores the packaged agent image |
 | IAM execution role | Least-privilege role for the Runtime |
+| S3 deployment assets | The CodeZip package is staged in the CDK assets bucket |
 | CloudWatch log groups | Receives runtime and invocation logs |
 
 **Main cost drivers:**
@@ -303,17 +358,18 @@ Deploying this quickstart creates the following AWS resources:
 - **Runtime execution seconds** — billed per second of agent execution; scale-to-zero means no charges between invocations
 - **Log ingestion** — CloudWatch charges per GB ingested and stored
 
-**Scale-to-zero does not mean zero cost.** The ECR image and CloudWatch log retention continue to accrue charges even with no active traffic. Destroy resources when you're done experimenting.
+**Scale-to-zero does not mean zero cost.** Staged deployment assets and CloudWatch log retention continue to accrue charges even with no active traffic. Remove resources when you're done experimenting.
 
 ---
 
 ## Cleanup
 
-When you are done with this prototype, destroy the AWS resources it created:
+When you are done with this prototype, remove the resources managed by the project configuration. `agentcore remove all` resets the local AgentCore resource configuration, and the following `agentcore deploy` applies the empty state to AWS:
 
 ```bash
-# From your agent project directory
-agentcore destroy
+# From your agent project directory; review the confirmation prompt before continuing
+agentcore remove all
+agentcore deploy
 ```
 
 Verify resources are gone:
@@ -323,13 +379,12 @@ agentcore status
 # Expected: no runtimes listed
 ```
 
-Some resources may persist after `agentcore destroy`:
+Some resources may persist after cleanup:
 
-- **ECR repository** — may remain if images are still tagged; delete manually in the ECR console or with `aws ecr delete-repository --repository-name IncidentAgent --force`
+- **S3 deployment assets** — packaged CodeZip archives remain in the CDK assets bucket; delete old objects manually if needed
 - **CloudWatch log groups** — retained by default; delete manually to stop log storage charges
-- **IAM roles** — review and remove any leftover roles prefixed with `AgentCore` in the IAM console
 
-If `agentcore destroy` reports errors, see [Cleanup Failures](/docs/reference/troubleshooting#cleanup-failures).
+If cleanup reports errors, see [Cleanup Failures](/docs/reference/troubleshooting#cleanup-failures).
 
 ---
 
