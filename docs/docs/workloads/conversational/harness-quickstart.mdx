@@ -1,0 +1,268 @@
+---
+title: "Quick Start: Conversational Agent on Harness"
+sidebar_label: Harness Quick Start
+sidebar_position: 3
+last_verified: 2026-07-16
+---
+
+:::info Versions
+Examples built and verified end to end with **AgentCore CLI** `0.24.1`. Command options and defaults may differ in other CLI versions.
+:::
+
+:::caution Prototype, not production
+This tutorial creates a prototype, not a production-ready system. Before routing real users or data to it, work through the [Production Readiness checklist](/docs/operate/production-readiness).
+:::
+
+import Link from '@docusaurus/Link';
+
+# Quick Start: Conversational Agent on Harness
+
+Deploy a conversational agent with per-user memory using configuration only — no agent code.
+
+| | |
+|---|---|
+| **Who this is for** | Developers who want a managed agent loop instead of writing Runtime code |
+| **Time** | ~10 minutes (plus 3–5 minutes for memory provisioning on first deploy) |
+| **What you'll build** | A chat agent with managed memory and built-in per-user actor isolation |
+| **Safety level** | Creates real AWS resources; no tools configured, so no external actions |
+
+---
+
+## Harness vs. Runtime
+
+The [Runtime quickstart](/docs/workloads/conversational/quickstart) has you write the agent loop yourself in `main.py`: you construct the Strands `Agent`, wire the Memory session manager, and extract the actor ID from an allowlisted request header. An **AgentCore Harness** is the managed version of that same loop, powered by Strands and run inside Runtime. You declare the agent — model, system prompt, tools, memory, limits — as configuration, and AgentCore executes it.
+
+For conversational memory specifically, the harness removes the three pieces of plumbing the Runtime path requires:
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Concern | Runtime (code) | Harness (config) |
+|---|---|---|
+| Memory wiring | `AgentCoreMemorySessionManager` in your entrypoint, reading a generated env var | `"memory": {"mode": "managed"}` in `harness.json` |
+| Actor identity | Allowlisted custom header + header-parsing code | `--actor-id` flag on `agentcore invoke` (API: `actorId`) |
+| Session history | Session manager restores it per request | Loaded automatically before the agent reasons |
+
+</div>
+
+Choose the harness when declarative configuration covers your needs. Choose Runtime when you need custom orchestration logic, local Python tools, or a framework other than Strands. See the [AWS harness vs. Runtime comparison](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-vs-runtime.html) for the full feature grid.
+
+---
+
+## Step 1: Create the Project and Harness
+
+Run this from the directory where you want the project folder created. The first command scaffolds an empty project; the second adds the harness with managed memory enabled from the start via `--memory-mode managed`:
+
+```bash
+npm install -g @aws/agentcore@0.24.1
+agentcore create --project-name chatharness --no-agent
+cd chatharness
+agentcore add harness \
+  --name ChatAssistant \
+  --model-provider bedrock \
+  --memory-mode managed \
+  --memory-strategies SEMANTIC,USER_PREFERENCE,SUMMARIZATION \
+  --memory-event-expiry-days 30 \
+  --system-prompt "You are a helpful customer support assistant. Be concise, friendly, and accurate. If you don't know something, say so."
+```
+
+The CLI confirms that the harness will provision a dedicated AgentCore Memory resource on deploy. The project now contains:
+
+```text
+chatharness/
+├── AGENTS.md                     # Guidance for AI coding assistants
+├── README.md
+├── agentcore/                    # Project config and CDK deployment project
+│   └── agentcore.json
+└── app/ChatAssistant/            # Harness definition (configuration, not code)
+    ├── harness.json
+    └── system-prompt.md
+```
+
+There is no `main.py`. The agent loop is managed by AgentCore.
+
+---
+
+## Step 2: Review the Configuration
+
+The `add harness` command wrote everything to `app/ChatAssistant/harness.json` — no manual editing needed:
+
+```json
+{
+  "name": "ChatAssistant",
+  "model": {
+    "provider": "bedrock",
+    "modelId": "global.anthropic.claude-sonnet-4-6"
+  },
+  "systemPrompt": "You are a helpful customer support assistant. Be concise, friendly, and accurate. If you don't know something, say so.",
+  "tools": [],
+  "skills": [],
+  "memory": {
+    "mode": "managed",
+    "strategies": [
+      "SEMANTIC",
+      "USER_PREFERENCE",
+      "SUMMARIZATION"
+    ],
+    "eventExpiryDuration": 30
+  }
+}
+```
+
+With `"mode": "managed"`, the harness provisions and owns a dedicated AgentCore Memory resource at deploy time. Short-term session history works automatically; the listed strategies control long-term extraction. `eventExpiryDuration` is the event retention period in days.
+
+Validate the configuration:
+
+```bash
+agentcore validate
+```
+
+:::note Why `add harness` instead of one `create` command
+In AgentCore CLI `0.24.1`, the memory flags (`--memory-mode`, `--memory-strategies`, `--memory-event-expiry-days`) live on `agentcore add harness`, and a plain `agentcore create --defaults` generates the harness with memory **disabled**. Creating the project with `--no-agent` and adding the harness explicitly keeps memory enabled from the first deploy. You can change the `memory` block in `harness.json` later; validate and redeploy to apply.
+:::
+
+---
+
+## Step 3: Deploy
+
+Install the CDK project dependencies, then deploy:
+
+```bash
+cd agentcore/cdk && npm install && cd ../..
+agentcore deploy
+```
+
+Deployment creates AWS resources and may incur charges. The first deploy provisions the managed Memory resource, which the CLI warns can take **3–5 minutes**. Check status:
+
+```bash
+agentcore status
+```
+
+---
+
+## Step 4: Test Multi-Turn Memory
+
+Generate one valid session ID and reuse it for both turns. AgentCore requires session IDs with at least 33 characters; a UUID satisfies this:
+
+```bash
+SESSION_ID="$(uuidgen)"
+
+agentcore invoke --harness ChatAssistant \
+  --session-id "$SESSION_ID" --actor-id alice \
+  "My name is Alex and I prefer dark mode."
+
+agentcore invoke --harness ChatAssistant \
+  --session-id "$SESSION_ID" --actor-id alice \
+  "What is my name?"
+# Expected: a response identifying Alex.
+```
+
+No headers, no allowlist, no identity-extraction code: `--actor-id` is a first-class flag that maps to the `actorId` parameter of the `InvokeHarness` API, and the harness loads the session's history from Memory before the agent reasons.
+
+---
+
+## Step 5: Verify Per-User Isolation
+
+Memory is namespaced by actor. A different actor ID in a fresh session sees none of Alex's information:
+
+```bash
+agentcore invoke --harness ChatAssistant \
+  --session-id "$(uuidgen)" --actor-id bob \
+  "What do you know about me?"
+# Expected: the agent knows nothing about this user.
+```
+
+Long-term extraction runs asynchronously after conversations and typically completes within a few minutes. To test cross-session recall for the same user, wait for extraction, then start a new session with the same actor ID:
+
+```bash
+NEW_SESSION_ID="$(uuidgen)"
+agentcore invoke --harness ChatAssistant \
+  --session-id "$NEW_SESSION_ID" --actor-id alice \
+  "Do you remember my preferences?"
+# Expected after extraction: a response mentioning dark mode.
+```
+
+:::warning Actor IDs are caller-supplied
+`--actor-id` is an opaque identifier — AgentCore does not verify it against an authenticated user. In production, derive the actor ID from a verified identity source (for example, validated JWT claims via [AgentCore Identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/)) and restrict who can invoke the harness with IAM. Never share one actor ID across users; Memory is namespaced by actor, so a shared value would let users read each other's context.
+:::
+
+---
+
+## Local Development
+
+```bash
+agentcore dev
+```
+
+For a harness project, `agentcore dev` first deploys the project resources to AWS (IAM role, harness, and configured memory), then starts a local inspector where you can chat with the harness and inspect traces. Add `--no-browser` to use the terminal UI instead.
+
+---
+
+## Adding Tools
+
+This quickstart configures no tools, so the agent can only converse. Harness tools are declared in configuration rather than written as local Python functions:
+
+```bash
+agentcore add tool --harness ChatAssistant --type <type> ...
+```
+
+Supported types include `agentcore_browser`, `agentcore_code_interpreter`, `remote_mcp`, `agentcore_gateway`, and `inline_function`. To expose your own APIs as tools (like the Runtime quickstart's account lookup), front them with a gateway — see [Connect a Tool via Gateway](/docs/tutorials/connect-gateway-tool). If a tool requires custom local logic, that is a signal to use the [Runtime path](/docs/workloads/conversational/quickstart) instead.
+
+---
+
+## Placeholders in This File
+
+- `chatharness`, `ChatAssistant` — example project and harness names; both become part of generated AWS resource names
+- `alice`, `bob` — example actor IDs; each real user needs a unique, verified value
+- `SESSION_ID`, `NEW_SESSION_ID` — valid session IDs generated with `uuidgen`; reuse the same ID for turns in one conversation
+- `global.anthropic.claude-sonnet-4-6` — default model written by `agentcore create` in CLI `0.24.1`; substitute your preferred Bedrock model ID
+
+---
+
+## What This Creates and What It Costs
+
+Deploying this quickstart creates the following AWS resources:
+
+| Resource | Notes |
+|---|---|
+| AgentCore harness | Managed agent-loop configuration; runs inside Runtime microVMs |
+| AgentCore Memory (managed) | Provisioned and owned by the harness; stores events and extracted records |
+| IAM execution role | Role the harness uses to call the model and Memory |
+| CloudWatch log groups | Receives invocation logs and traces |
+
+**Main cost drivers:**
+- **Model inference tokens** — every invocation calls the configured Bedrock model; memory extraction jobs also use model calls
+- **Memory storage and retrieval** — AgentCore Memory charges for stored events and semantic retrievals
+- **Runtime execution seconds** — the harness executes inside Runtime; billed per second of execution
+- **Log ingestion** — CloudWatch charges per GB ingested and stored
+
+**Scale-to-zero does not mean zero cost.** Memory records persist until `eventExpiryDuration` elapses, and CloudWatch log retention accrues charges with no traffic.
+
+---
+
+## Cleanup
+
+Remove the harness from the project configuration and apply the empty state:
+
+```bash
+# From your project directory; review the confirmation prompt before continuing
+agentcore remove all
+agentcore deploy
+```
+
+Verify resources are gone:
+
+```bash
+agentcore status
+# Expected: no harnesses or memory resources listed
+```
+
+Deleting a harness cascade-deletes its managed Memory resource by default. CloudWatch log groups are retained; delete them manually to stop log storage charges. If cleanup reports errors, see [Cleanup Failures](/docs/reference/troubleshooting#cleanup-failures).
+
+---
+
+## What's Next?
+
+- <Link to="/docs/workloads/conversational/quickstart">Runtime Quick Start →</Link> — the code-first path with custom tools
+- <Link to="/docs/workloads/conversational/enterprise-features">Enterprise Features →</Link> — identity, gateway, and guardrails
+- <Link to="/docs/operate/production-readiness">Production Readiness checklist →</Link>
+- [AWS Harness documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness.html) — versioning, endpoints, export to code

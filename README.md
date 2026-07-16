@@ -1,24 +1,23 @@
 # AgentCore Central
 
-Internal documentation site for positioning, designing, and shipping agents on Amazon Bedrock AgentCore. Reference architectures, multi-agent patterns, agent archetype playbooks, and customer stories in one place.
-
-**Live site:** https://agentcore-gtm.pages.aws.dev/agentcore-central
+Learn, build, and operate agents with Amazon Bedrock AgentCore. Reference architectures, multi-agent patterns, workload playbooks, and publicly sourced customer stories in one place.
 
 ## What's Inside
 
-| Section                | Purpose                                                       |
-|------------------------|---------------------------------------------------------------|
-| Get Started            | Quickstart, CLI guide, managed harness, pre-built skills      |
-| Tutorials              | Step-by-step guides (add memory, connect gateway tools)       |
-| Agent Workloads        | Conversational, Workflow, and Coding agent archetypes          |
+| Section                | Purpose                                                        |
+|------------------------|----------------------------------------------------------------|
+| Get Started            | Path chooser, preflight checks, quickstart                     |
+| Tutorials              | Step-by-step guides (add memory, connect gateway tools)        |
+| Agent Workloads        | Conversational, Workflow, and Coding reference patterns        |
 | Agent Platform         | Platform stack, governance, observability, multi-tenancy       |
-| Architectural Patterns | 12 multi-agent patterns with selection guide                  |
-| Customers              | Reference architectures (external-approved and internal-only) |
-| Field Guide            | Internal SA enablement material                               |
+| Operate                | Production readiness, security, evaluations, cost, releases    |
+| Architectural Patterns | 12 multi-agent patterns with selection guide                   |
+| Customers              | Case studies based on publicly available, approved sources     |
+| Reference              | agentcore.json, troubleshooting, glossary, public resources    |
 
 ## Local Development
 
-Prerequisites: Node.js 18+
+Prerequisites: Node.js 20+
 
 ```bash
 cd docs
@@ -55,9 +54,9 @@ agentcore-central/
 │   │   ├── workloads/       # Agent archetypes (conversational, workflow, coding)
 │   │   ├── agent-platform/  # Platform architecture and governance
 │   │   ├── patterns/        # Multi-agent architectural patterns
-│   │   ├── customer/        # Reference architectures and case studies
-│   │   ├── field-guide/     # Internal enablement (SA-facing)
-│   │   ├── reference/       # CLI reference, troubleshooting
+│   │   ├── customer/        # Publicly sourced case studies
+│   │   ├── operate/         # Production readiness and operations
+│   │   ├── reference/       # agentcore.json, troubleshooting, resources
 │   │   └── index.mdx        # Landing page
 │   ├── src/                 # React components, theme overrides, CSS
 │   ├── static/              # Images, fonts, favicon
@@ -70,18 +69,14 @@ agentcore-central/
 
 ## Contributing
 
-1. Create a branch from `main`
-2. Edit or add `.mdx` files under `docs/docs/`
-3. Run locally to verify (`npm start`)
-4. Submit a merge request
+1. Create a branch from `main`.
+2. Edit or add `.mdx` files under `docs/docs/`.
+3. Run `cd docs && npm run build` to confirm no broken links before opening a PR.
+4. Submit a merge request.
 
-Content conventions:
-
-- Use MDX (Markdown + JSX) for all documentation pages
-- Follow the table alignment rules (pipe delimiters must form vertical columns)
-- Avoid LLM writing markers (em dashes as joiners, filler words like "leverage", "comprehensive", hollow superlatives)
-- Customer references: mark clearly as "External" or "Internal Only"
-- Pin SDK/CLI versions in code examples and note them in the frontmatter info admonition
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full public-content process: public-content approval, source and
+citation expectations, version pinning, pattern status labels, the content-review checklist, and customer story
+requirements.
 
 ## Team
 

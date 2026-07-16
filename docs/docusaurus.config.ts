@@ -4,7 +4,7 @@ import type * as Preset from '@docusaurus/preset-classic';
 
 const config: Config = {
   title: 'AgentCore Central',
-  tagline: 'Everything you need to position, design, and ship agents on Amazon Bedrock AgentCore',
+  tagline: 'Learn, build, and operate agents with Amazon Bedrock AgentCore',
   favicon: 'img/favicon.svg',
 
   url: process.env.SITE_URL || 'http://localhost:3000',
@@ -13,12 +13,12 @@ const config: Config = {
   organizationName: 'agentcore-gtm',
   projectName: 'agentcore-central',
 
-  onBrokenLinks: 'warn',
+  onBrokenLinks: 'throw',
 
   markdown: {
     mermaid: true,
     hooks: {
-      onBrokenMarkdownLinks: 'warn',
+      onBrokenMarkdownLinks: 'throw',
     },
   },
 

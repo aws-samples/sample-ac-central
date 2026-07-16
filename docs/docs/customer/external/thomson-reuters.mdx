@@ -2,6 +2,7 @@
 title: Thomson Reuters - Platform Engineering Hub
 sidebar_label: Thomson Reuters
 sidebar_position: 5
+last_verified: 2026-07-15
 ---
 
 # Thomson Reuters - Agentic Platform Engineering Hub
@@ -10,11 +11,58 @@ sidebar_position: 5
 
 <span className="tile-icon tile-icon-svg tile-icon--book" aria-hidden="true" /> [Blog Post →](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/)
 
+**Industry:** Legal / Media | **Workload pattern:** Orchestrator + specialists (HITL) | **Integration type:** Cloud APIs, databases, network systems
+
 ---
 
-## Architecture
+## Source
 
-![Thomson Reuters Architecture](/img/image73.png)
+[AWS Machine Learning Blog - How Thomson Reuters Built an Agentic Platform Engineering Hub with Amazon Bedrock AgentCore](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/)
+
+Publication date: See linked source.
+
+---
+
+## Customer context
+
+Thomson Reuters is a global content and technology company serving legal, tax, accounting, and compliance markets. Its internal platform engineering team handles cloud provisioning, database patching, network configuration, and architecture reviews for teams across the company.
+
+---
+
+## Challenge
+
+Internal teams spent excessive time on routine platform engineering tasks. Each task required navigating multiple systems, understanding tool-specific syntax, and waiting for platform engineering team availability. The bottleneck was consistent regardless of task urgency.
+
+---
+
+## Solution
+
+Thomson Reuters chose to build an internal platform engineering hub called "Aether" where teams request infrastructure changes through natural language. A central orchestrator agent (built with LangGraph) interprets the request and delegates to specialized service agents for cloud provisioning, DB patching, network configuration, and architecture reviews. Human-in-the-loop gates protect sensitive operations before execution.
+
+---
+
+## AgentCore services used
+
+<div className="fancy-table">
+
+| AgentCore Service | How Thomson Reuters configured it                         | Why it mattered                                                   |
+|-------------------|-----------------------------------------------------------|-------------------------------------------------------------------|
+| Runtime           | LangGraph central orchestrator + specialized agents       | Each service domain had its own agent with domain-specific tools  |
+| Memory            | Cross-session context on recurring infrastructure tasks   | Remembered patterns and preferences for repeated requests        |
+| Gateway           | Unified tool access for cloud APIs, DBs, network systems  | Centralized governance and audit over privileged operations      |
+| Identity          | End-user identity propagated through agent calls          | Every action traceable to a human requestor                      |
+
+</div>
+
+---
+
+## Architecture pattern
+
+![Thomson Reuters Architecture - Aether platform engineering hub showing a user request entering a central LangGraph orchestrator that routes to four specialized agents (AWS Provisioning, DB Patching, Network Config, Architecture Review), each feeding into a human-in-the-loop approval gate before execution](/img/image73.png)
+
+*Architecture interpretation by this site based on the public source.*
+
+The diagram above shows a natural language request entering the Aether hub, a LangGraph orchestrator classifying and routing it to the appropriate specialist agent, and a human-in-the-loop gate intercepting sensitive operations before they execute against production infrastructure.
 
 ```mermaid
 flowchart LR
@@ -30,32 +78,11 @@ flowchart LR
     G --> H
 ```
 
-## Customer Story
+**Entry point:** Natural language infrastructure request from an internal team.
+**Main flow:** The central orchestrator classifies the request and delegates to one or more specialist agents, each with domain-scoped tools. Sensitive operations pass through a human-in-the-loop gate before execution.
+**Key boundary:** The Gateway service centralizes all privileged API access; specialist agents do not hold credentials directly.
 
-**Customer:** Thomson Reuters, a global content and technology company serving legal, tax, accounting, and compliance markets
-
-**Challenge:** Internal teams spent excessive time on routine platform engineering tasks including cloud provisioning, database patching, network configuration, and architecture reviews. Each task required navigating multiple systems, understanding tool-specific syntax, and waiting for platform engineering team availability.
-
-**Solution:** Platform engineering hub called "Aether" where internal teams request infrastructure changes through natural language. A central orchestrator agent (built with LangGraph) interprets the request and delegates to specialized service agents for cloud provisioning, DB patching, network config, and architecture reviews. Human-in-the-loop gates protect sensitive operations before execution.
-
-## AgentCore Configuration
-
-<div className="fancy-table">
-
-| AgentCore Service | Configuration for Thomson Reuters                         | Why It Matters                                                    |
-|-------------------|-----------------------------------------------------------|-------------------------------------------------------------------|
-| Runtime           | LangGraph central orchestrator + specialized agents       | Each service domain has its own agent with domain tools          |
-| Memory            | Cross-session context on recurring infrastructure tasks   | Remembers patterns and preferences for repeat requests           |
-| Gateway           | Unified tool access for cloud APIs, DBs, network systems  | Centralized governance and audit over privileged operations      |
-| Identity          | End-user identity propagated through agent calls          | Every action is traceable to a human requestor                   |
-
-</div>
-
-## Key Technical Decisions
-
-- **Central orchestrator delegates to specialized agents** rather than one mega-agent. Each service agent (AWS provisioning, DB patching, etc.) has narrow scope and deep domain knowledge.
-- **Human-in-the-loop gates on sensitive operations** because full automation of privileged actions like network changes was a non-starter for security. Agents prepare the change, humans approve.
-- **Natural language interface** rather than form-based or CLI-based tooling. Internal teams described what they needed in plain English, and the orchestrator routed it.
+---
 
 ## Results
 
@@ -66,8 +93,23 @@ flowchart LR
   <span className="result-chip">Reduced platform engineering toil</span>
 </div>
 
-## Lessons Learned
+---
 
-- **Orchestrator plus specialists beats monolith** when operations span multiple domains (cloud, DB, network). Each agent became an expert in its area.
-- **HITL is a feature, not a compromise.** Requiring human approval on sensitive changes increased organizational trust and adoption.
-- **Natural language interface removed adoption friction.** No CLI syntax to learn, no forms to fill out. Just describe what you need.
+## Transferable lessons
+
+- Thomson Reuters chose a central orchestrator plus specialist agents over a single mega-agent. Each specialist became deep in its domain (cloud, DB, network), which improved accuracy and made it easier to extend individual agents without affecting others.
+- The team treated human-in-the-loop gates as a feature rather than a limitation. Requiring human approval on sensitive operations increased organizational trust and accelerated adoption across teams that had previously been skeptical of automation.
+- Using a natural language interface rather than CLI or form-based tooling removed adoption friction. Teams described what they needed without learning system-specific syntax.
+
+---
+
+## When this is relevant
+
+This pattern fits platform and DevOps teams that manage a large surface area of privileged operations across multiple domains. The orchestrator-plus-specialists approach is most effective when domains (cloud, network, DB) have genuinely different toolsets and expertise requirements. Human-in-the-loop gates are appropriate when the cost of an incorrect automated action (e.g., a misconfigured firewall rule) is high enough to warrant a confirmation step.
+
+---
+
+## Source and verification
+
+- [AWS Machine Learning Blog - How Thomson Reuters Built an Agentic Platform Engineering Hub with Amazon Bedrock AgentCore](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/)
+- Last verified: 2026-07-15

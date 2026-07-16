@@ -9,9 +9,10 @@ const sidebars: SidebarsConfig = {
       collapsed: true,
       items: [
         'get-started/overview',
+        'get-started/preflight',
         'get-started/firstagent',
         'get-started/quickstart',
-
+        'get-started/existing-agent',
       ],
     },
     {
@@ -26,6 +27,7 @@ const sidebars: SidebarsConfig = {
           items: [
             'workloads/conversational/overview',
             'workloads/conversational/quickstart',
+            'workloads/conversational/harness-quickstart',
             'workloads/conversational/enterprise-features',
             'workloads/conversational/session-management',
             'workloads/conversational/patterns-and-architecture',
@@ -38,6 +40,7 @@ const sidebars: SidebarsConfig = {
           items: [
             'workloads/workflow/overview',
             'workloads/workflow/quickstart',
+            'workloads/workflow/harness-quickstart',
             'workloads/workflow/event-processing',
             'workloads/workflow/bounded-autonomy',
             'workloads/workflow/tools-and-gateway',
@@ -73,6 +76,18 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: 'Operate',
+      collapsed: true,
+      items: [
+        'operate/production-readiness',
+        'operate/security-and-identity',
+        'operate/evaluations',
+        'operate/cost-and-reliability',
+        'operate/releases-and-rollback',
+      ],
+    },
+    {
+      type: 'category',
       label: 'Architectural Patterns',
       collapsed: true,
       items: [
@@ -89,12 +104,13 @@ const sidebars: SidebarsConfig = {
         'customer/external/rede-mater-dei',
         'customer/external/iberdrola',
         'customer/external/bgl',
-        'customer/external/amazon-catalog',
         'customer/external/thomson-reuters',
         'customer/external/autoscout24',
         'customer/external/cox-automotive',
         'customer/external/blue-origin',
-        'customer/external/kavak'
+        // Hidden pending claim verification (see analysis backlog Task 3):
+        // 'customer/external/amazon-catalog',
+        // 'customer/external/kavak',
       ],
     },
     {
@@ -114,6 +130,8 @@ const sidebars: SidebarsConfig = {
       items: [
         'reference/agentcore-json',
         'reference/troubleshooting',
+        'reference/resources',
+        'reference/glossary',
       ],
     },
   ],

@@ -2,6 +2,7 @@
 title: Coding Agents
 sidebar_label: Overview
 sidebar_position: 1
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
@@ -39,6 +40,8 @@ Choose this workload when:
 - Results go through a human review gate before merging
 - The agent operates on a codebase with version control
 
+For a side-by-side comparison with Conversational and Workflow patterns, see the [Workloads overview comparison table](/docs/workloads/overview#how-they-compare).
+
 ---
 
 ## Strengths and Limitations
@@ -52,24 +55,6 @@ Choose this workload when:
 | Identity-aware access to repositories and CI systems  | Nascent archetype; patterns are still maturing               |
 | Scale-to-zero between tasks                           | Build/test feedback loops add latency                        |
 | Full traceability from trigger to PR                  | Complex multi-file reasoning still challenging for models    |
-
-</div>
-
----
-
-## How It Compares
-
-<div className="fancy-table fancy-table--auto-first">
-
-| Dimension          | Coding                             | Workflow                             | Conversational                         |
-|--------------------|------------------------------------|--------------------------------------|----------------------------------------|
-| Trigger            | Ticket / PR / schedule             | System event (alert, webhook)        | User message (human-initiated)         |
-| Session            | Long-lived, single task            | Short-lived, single invocation       | Long-lived, multi-turn                 |
-| Identity           | Developer identity                 | Service principal                    | End-user (OAuth bearer token)          |
-| Primary output     | Code + PR comments                 | Actions + events emitted             | Chat response to human                 |
-| Execution model    | Plan → Generate → Build → Test → PR | Trigger → Enrich → Reason → Act → Emit | Message → Reason → Respond           |
-| Sandbox            | Code Interpreter (file I/O, build) | Not typically needed                 | Not typically needed                   |
-| Review gate        | Always (PR or human approval)      | Optional (confidence-gated)          | Rarely (inline during conversation)    |
 
 </div>
 
@@ -91,24 +76,15 @@ Choose this workload when:
 
 ---
 
-## Coming Soon
+## When Not to Use This Pattern
 
-<div className="tile-grid">
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--guardrails" aria-hidden="true" /><h3>Why AgentCore for Coding</h3></div>
-    <p>Secure sandboxed execution, long-running task support, identity-aware access, and Code Interpreter integration.</p>
-  </div>
+**Skip the Coding pattern when:**
 
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--blueprint" aria-hidden="true" /><h3>Reference Architecture</h3></div>
-    <p>Architecture showing IDE/CI trigger → AgentCore → code generation → review gate with full traceability.</p>
-  </div>
-
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--patterns" aria-hidden="true" /><h3>Recommended Patterns</h3></div>
-    <p>Plan-Act-Reflect, Swarm (multi-file refactor), and HITL (code review gate). <Link to="/docs/patterns/overview">View shared patterns page →</Link></p>
-  </div>
-</div>
+- The task is short and deterministic (a script that bumps a version number or runs a formatter). A CI step or a scheduled Lambda is simpler and more reliable.
+- Real-time human interaction is needed during generation. If a developer needs to guide the agent turn-by-turn, the [Conversational pattern](/docs/workloads/conversational/overview) is a better fit.
+- You do not have a human review gate. Coding agents produce non-deterministic output. Merging code directly without a human or automated quality gate (tests, lint, security scan) is high risk.
+- The codebase context far exceeds the model's context window. Very large monorepos with tightly coupled modules may produce poor results until chunking and retrieval strategies are in place.
+- This is a greenfield project with no existing tests or CI. The build-test-validate loop that makes coding agents reliable requires existing scaffolding to run against.
 
 ---
 

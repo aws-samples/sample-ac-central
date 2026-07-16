@@ -2,6 +2,7 @@
 title: Session Management & Streaming
 sidebar_label: Session Management
 sidebar_position: 4
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
@@ -20,11 +21,15 @@ Conversational agents need stateful, long-lived sessions, not the request/respon
 |---------------------|--------------------------------------------------------------------------------------|
 | Session isolation   | Each session runs in a dedicated microVM. No shared state between users.             |
 | Session duration    | Compute lifecycle lasts up to 8 hours. Long enough for complex multi-step workflows. |
-| Session persistence | If a session disconnects, it resumes where it left off. No lost context.             |
+| Session persistence | Durable state stored in AgentCore Memory survives client disconnects. In-flight microVM state does not persist across a cold restart. |
 | Session ID tracking | Pass a `runtimeSessionId` on each invoke. Same ID = same conversation.               |
 | Scale-to-zero       | Idle sessions terminate (default 15 min). You pay only for active time.              |
 
 </div>
+
+:::note Architecture guidance
+Session duration, idle timeout defaults, and reconnect behavior are architectural properties that may vary by configuration and SDK version. Consult the [AgentCore developer guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/) for current limits and configurable values before designing against specific numbers.
+:::
 
 ---
 
@@ -32,19 +37,19 @@ Conversational agents need stateful, long-lived sessions, not the request/respon
 
 AgentCore Memory keeps your agent coherent across turns without manual context plumbing:
 
-- **Short-term memory (session)** — automatic. Every message in the current session is available to the agent. No prompt stuffing required.
-- **Long-term memory (cross-session)** — opt-in. Store user preferences, past decisions, and facts that should persist across sessions. Namespace per user for isolation.
-- **Summarization** — for conversations that exceed context window limits, AgentCore Memory can summarize older turns so the agent retains the gist without exhausting tokens.
+- **Short-term memory (session)** — automatic when memory is configured. Every message in the current session is available to the agent. No prompt stuffing required.
+- **Long-term memory (cross-session)** — opt-in. Store user preferences, past decisions, and facts that should persist across sessions. Namespace per user for isolation (see [isolation design note](#memory-namespace-and-isolation-design) below).
+- **Summarization** — when a SUMMARIZATION strategy is configured, AgentCore Memory can produce summaries of older turns so the agent retains the gist without exhausting the context window. This is a configured strategy, not automatic behavior on every deployment.
 
 ---
 
 ## Handling Interruptions and Resume
 
-Real users close laptops, switch devices, and come back hours later. AgentCore handles this:
+Real users close laptops, switch devices, and come back hours later. AgentCore is designed to support reconnection:
 
-1. **Session persists server-side** — the microVM maintains state even when the client disconnects.
-2. **Resume with the same session ID** — the next invoke picks up where the user left off.
-3. **Timeout behavior** — after the idle timeout (default 15 minutes, configurable up to 8 hours), the session terminates gracefully and durable state is retained in AgentCore Memory.
+1. **Durable state in AgentCore Memory** — facts and summaries stored in memory survive client disconnects and cold restarts because they are persisted in the memory service, not only in the microVM.
+2. **Resume with the same session ID** — passing the same `runtimeSessionId` on a new invoke allows the agent to retrieve prior context from memory and continue the conversation.
+3. **Timeout behavior** — after the idle timeout (configurable, consult the [AgentCore developer guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/) for current defaults and limits), the microVM terminates. State held only in the microVM process is not recoverable; state committed to AgentCore Memory is.
 
 ---
 
@@ -92,7 +97,7 @@ Conversational agents live or die on perceived responsiveness. AgentCore streams
 | Token-by-token streaming | SSE from the `/invocations` endpoint for progressive response delivery.             |
 | Tool-activity feedback   | During tool calls, emit status events so the UI shows "Looking up account…"         |
 | Partial response display | Stream the answer while tools run in parallel behind the scenes.                    |
-| WebSocket support        | Bidirectional streaming via WebSocket (`/ws` endpoint) for real-time UX.            |
+| WebSocket support        | Bidirectional streaming via WebSocket for real-time UX — verify endpoint availability and configuration in the [AgentCore developer guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/). |
 
 </div>
 
@@ -118,4 +123,33 @@ Enterprise deployments serve multiple teams, business units, or customers from s
 
 :::info Why this matters
 Without platform-level isolation, teams build custom tenant partitioning into every layer: DynamoDB partition keys, S3 prefix policies, Lambda authorizers, log filtering. AgentCore does this once, correctly, at the infrastructure level.
+:::
+
+---
+
+## Memory Namespace and Isolation Design
+
+AgentCore Memory uses `actor_id` to namespace memory events per user. The platform enforces that namespace boundary — but it cannot enforce that your application supplies the right `actor_id` value in the first place.
+
+**Isolation only works when identity is correct.** If your code passes a shared constant (e.g., `"default-user"`), all users who share that value read and write into the same memory namespace. The result is cross-user data leakage with no platform-level warning.
+
+Design checklist before enabling long-term memory in a multi-user deployment:
+
+1. `actor_id` is derived from a validated identity claim — not a client-supplied header, not a default fallback, not a constant.
+2. `session_id` is unique per conversation — not reused across users or shared across channels without intent.
+3. If you use [AgentCore Identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/), the validated token claim is the source of truth for both values.
+4. Test isolation explicitly: create two users, store a fact as User A, query as User B, and confirm User B cannot retrieve User A's fact.
+
+---
+
+## Data Governance for Memory
+
+Conversational memory stores information about users across sessions. Before enabling it in production, address these governance considerations:
+
+:::note Data governance checklist
+- **Tenant boundaries** — verify that your `actor_id` and namespace design prevent cross-tenant access (see above).
+- **Retention** — configure `eventExpiryDuration` to the shortest period your product requires. Retaining data longer than necessary increases privacy risk.
+- **Deletion and forgetting** — plan for user deletion requests (e.g., GDPR right to erasure). Confirm your deletion workflow against the [AgentCore Memory documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
+- **Sensitive data minimization** — avoid storing raw PII, credentials, or regulated data (PHI, PCI) as memory events. Extract only the facts the agent needs to function.
+- **User consent** — if your deployment is user-facing, disclose that the agent retains information across sessions and give users a way to clear their memory.
 :::

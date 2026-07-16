@@ -2,13 +2,24 @@
 title: Platform Powered by Bedrock AgentCore
 sidebar_label: Powered by AgentCore
 sidebar_position: 3
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
 
+:::info Architecture Patterns
+These mappings describe target-state architecture patterns for scaling agent platforms on AWS. They are not required prerequisites for a first prototype. Start with the services relevant to your immediate use case and expand incrementally.
+:::
+
 # Platform Powered by Bedrock AgentCore
 
-Every layer of the agent platform stack maps directly to managed services in Amazon Bedrock AgentCore and the broader AWS ecosystem. This eliminates undifferentiated heavy lifting and lets platform teams focus on governance, developer experience, and business value.
+Every layer of the agent platform stack maps to managed services in Amazon Bedrock AgentCore and the broader AWS ecosystem. This eliminates undifferentiated heavy lifting and lets platform teams focus on governance, developer experience, and business value.
+
+Labels used throughout this page:
+- **AgentCore-native** - behavior provided directly by an AgentCore service
+- **Preview** - available in public preview; subject to change ([AgentCore docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/))
+- **Adjacent AWS** - a separate AWS service that integrates with AgentCore
+- **Customer-built** - a pattern you assemble on top of AgentCore primitives
 
 ---
 
@@ -16,14 +27,14 @@ Every layer of the agent platform stack maps directly to managed services in Ama
 
 <div className="fancy-table">
 
-| Platform Layer | AgentCore / AWS Service | What It Provides |
-|---|---|---|
-| **AI Gateway** | AgentCore Gateway | Unified entry point, MCP tool federation, JWT auth, rate limiting, routing |
-| **Registry & Discovery** | AgentCore Registry + Bedrock Model Catalog | Agent catalog, versioning, capability discovery, model selection |
-| **Agent Runtime** | AgentCore Runtime | Sandboxed containers, micro-VM isolation, long-running tasks, auto-scaling |
-| **Memory & Context** | AgentCore Memory + OpenSearch + S3 Vectors + Knowledge Bases | Short/long-term memory, vector search, RAG, session context |
-| **Observability** | AgentCore Observability | OTLP traces, metrics, logs, online evaluation, guardrail events |
-| **AgentOps** | AgentCore Evaluations + CI/CD tools | Offline/online evals, quality gates, drift detection, A/B testing |
+| Platform Layer | AgentCore / AWS Service | What It Provides | Label |
+|---|---|---|---|
+| **AI Gateway** | AgentCore Gateway | Unified entry point, MCP tool federation, JWT auth, per-tenant throttling, routing | AgentCore-native |
+| **Registry & Discovery** | AWS Agent Registry + Bedrock Model Catalog | Agent catalog, versioning, capability discovery, model selection | Preview |
+| **Agent Runtime** | AgentCore Runtime | Sandboxed containers, micro-VM isolation, long-running tasks, auto-scaling | AgentCore-native |
+| **Memory & Context** | AgentCore Memory + OpenSearch + S3 Vectors + Knowledge Bases | Short/long-term memory, vector search, RAG, session context | AgentCore-native + Adjacent AWS |
+| **Observability** | AgentCore Observability | OTLP traces, metrics, logs, online evaluation, guardrail events | AgentCore-native |
+| **AgentOps** | AgentCore Evaluations + CI/CD tools | Offline/online evals, quality gates, drift detection; A/B routing is a customer-built pattern (see [Agent Ops](./agent-ops)) | AgentCore-native + Customer-built |
 
 </div>
 
@@ -33,15 +44,15 @@ Every layer of the agent platform stack maps directly to managed services in Ama
 
 <div className="fancy-table">
 
-| Platform Pillar | AgentCore / AWS Service | What It Provides |
-|---|---|---|
-| **Security - Identity** | AgentCore Identity + IAM | Agent identity, OAuth/OIDC brokering, token management |
-| **Security - Guardrails** | Bedrock Guardrails | Input/output filtering, PII redaction, topic denial, hallucination detection |
-| **Security - Policy** | AgentCore Policy + Cedar | Fine-grained access control, declarative authorization policies |
-| **Security - Access** | IAM + AWS Organizations SCPs | Role-based access, service control policies, permission boundaries |
-| **Governance - Registry** | AgentCore Registry | Lifecycle management, approval workflows, version history |
-| **Governance - Audit** | CloudWatch + CloudTrail | Immutable audit logs, API activity recording, compliance evidence |
-| **Governance - Compliance** | AWS Organizations + SCPs | Organizational guardrails, preventive controls, detective controls |
+| Platform Pillar | AgentCore / AWS Service | What It Provides | Label |
+|---|---|---|---|
+| **Security - Identity** | AgentCore Identity + IAM | Agent identity, OAuth/OIDC brokering, token management | AgentCore-native |
+| **Security - Guardrails** | Bedrock Guardrails | Input/output filtering, PII redaction, topic denial, grounded-response enforcement (probabilistic scoring) | Adjacent AWS |
+| **Security - Policy** | AgentCore Policy + Cedar | Fine-grained access control, declarative authorization policies | Preview |
+| **Security - Access** | IAM + AWS Organizations SCPs | Role-based access, service control policies, permission boundaries | Adjacent AWS |
+| **Governance - Registry** | AWS Agent Registry | Lifecycle management, approval workflows, version history | Preview |
+| **Governance - Audit** | CloudWatch + CloudTrail | Immutable audit logs, API activity recording, compliance evidence | Adjacent AWS |
+| **Governance - Compliance** | AWS Organizations + SCPs | Organizational guardrails, preventive controls, detective controls | Adjacent AWS |
 
 </div>
 
@@ -51,13 +62,13 @@ Every layer of the agent platform stack maps directly to managed services in Ama
 
 <div className="fancy-table">
 
-| Platform Capability | AWS Service | What It Provides |
-|---|---|---|
-| **Infrastructure-as-Code** | AWS CDK / CloudFormation | Reusable constructs for platform deployment |
-| **Cost Tracking** | AWS Cost Explorer + Cost Allocation Tags | Per-agent, per-team cost attribution |
-| **Multi-Account** | AWS Organizations + Control Tower | Account vending, baseline guardrails, centralized governance |
-| **CI/CD** | CodePipeline + CodeBuild + GitHub Actions | Pipeline orchestration for agent deployments |
-| **Monitoring** | CloudWatch Alarms + Dashboards | Operational alerts, SLA tracking, fleet health |
+| Platform Capability | AWS Service | What It Provides | Label |
+|---|---|---|---|
+| **Infrastructure-as-Code** | AWS CDK / CloudFormation | Reusable constructs for platform deployment | Adjacent AWS |
+| **Cost Tracking** | AWS Cost Explorer + Cost Allocation Tags | Per-agent, per-team cost attribution | Adjacent AWS |
+| **Multi-Account** | AWS Organizations + Control Tower | Account vending, baseline guardrails, centralized governance | Adjacent AWS |
+| **CI/CD** | CodePipeline + CodeBuild + GitHub Actions | Pipeline orchestration for agent deployments | Adjacent AWS |
+| **Monitoring** | CloudWatch Alarms + Dashboards | Operational alerts, SLA tracking, fleet health | Adjacent AWS |
 
 </div>
 

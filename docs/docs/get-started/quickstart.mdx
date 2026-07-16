@@ -2,13 +2,16 @@
 title: "Build your agents from terminal"
 sidebar_label: Build from CLI
 sidebar_position: 1
-last_verified: 2026-07-08
+last_verified: 2026-07-16
 ---
 
 :::info Versions
-Examples built with **AgentCore CLI** `@aws/agentcore@0.23.0`, **Strands Agents SDK** `1.46.0`, and **bedrock-agentcore** `1.17.0`. Commands or APIs may differ in other versions.
+Examples built and verified end to end with **AgentCore CLI** `@aws/agentcore@0.24.1`. Commands or APIs may differ in other versions.
 :::
 
+:::caution Prototype, not production
+This tutorial creates a prototype, not a production-ready system. Before routing real users or data to it, work through the [Production Readiness checklist](/docs/operate/production-readiness).
+:::
 
 import Link from '@docusaurus/Link';
 
@@ -16,8 +19,15 @@ import Link from '@docusaurus/Link';
 
 Go from zero to a working agent on AgentCore. This guide creates a simple weather agent with one tool, tests it locally, and deploys it, all from the terminal.
 
+| | |
+|---|---|
+| **Who this is for** | Developers new to AgentCore who want a first working prototype |
+| **Time** | ~15 minutes |
+| **What you'll build** | A weather agent with one tool, local dev server, and a deployed Runtime endpoint |
+| **Safety level** | Creates real AWS resources; uses simulated weather data; no external write actions |
+
 :::info Prerequisites
-- **Node.js 18+**: for the AgentCore CLI
+- **Node.js 20+**: for the AgentCore CLI
 - **Python 3.12+**: for the agent runtime
 - **uv**: Python package manager ([install guide](https://docs.astral.sh/uv/getting-started/installation/))
 - **AWS credentials**: configured with `aws configure` or environment variables
@@ -29,7 +39,7 @@ Go from zero to a working agent on AgentCore. This guide creates a simple weathe
 ## Step 1: Install the CLI
 
 ```bash
-npm install -g @aws/agentcore
+npm install -g @aws/agentcore@0.24.1
 agentcore --version
 ```
 
@@ -135,7 +145,9 @@ cd WeatherAgent
 agentcore dev
 ```
 
-From a **second terminal**, send a prompt as a plain positional argument:
+This opens a local test page in your browser where you can interact with the agent, inspect traces, and iterate on prompts. Try asking "What is the weather in Seattle?" directly in the test page.
+
+Alternatively, you can invoke the agent from a **second terminal**:
 
 ```bash
 agentcore dev "What is the weather in Seattle?"
@@ -156,6 +168,20 @@ of 22°C and humidity at 65%.
 
 ## Step 6: Deploy to AgentCore
 
+Install the CDK project dependencies:
+
+```bash
+cd agentcore/cdk && npm install && cd ../..
+```
+
+Run a dry run first to preview what will be created without deploying:
+
+```bash
+agentcore deploy --dry-run
+```
+
+When you're satisfied with the plan, deploy:
+
 ```bash
 agentcore deploy
 ```
@@ -166,7 +192,7 @@ Once deployed, invoke the live agent:
 agentcore invoke "What is the weather in Tokyo?"
 ```
 
-That's it. Your agent is running on AgentCore Runtime with:
+That's it. Your agent is deployed to a live AgentCore Runtime endpoint with:
 - **MicroVM isolation**: each session in a dedicated sandbox
 - **Scale-to-zero**: no idle cost when there are no requests
 - **OpenTelemetry tracing**: full observability via CloudWatch
@@ -179,6 +205,7 @@ The CLI generated this configuration for your agent:
 
 ```json
 {
+  "$schema": "https://schema.agentcore.aws.dev/v1/agentcore.json",
   "name": "WeatherAgent",
   "version": 1,
   "managedBy": "CDK",
@@ -188,35 +215,112 @@ The CLI generated this configuration for your agent:
       "build": "CodeZip",
       "entrypoint": "main.py",
       "codeLocation": "app/WeatherAgent/",
-      "runtimeVersion": "PYTHON_3_13",
+      "runtimeVersion": "PYTHON_3_14",
       "networkMode": "PUBLIC",
       "protocol": "HTTP"
     }
-  ],
-  "memories": [],
-  "credentials": []
+  ]
 }
 ```
+
+The full file also includes empty arrays for `memories`, `credentials`, `harnesses`, `agentCoreGateways`, and other resource types. As you add features via `agentcore add`, they populate here.
 
 This is the declarative source of truth for your AgentCore resources. As you add Memory, Gateway, or credentials via `agentcore add`, they appear as new entries under `runtimes`, `memories`, `agentCoreGateways`, and so on.
 
 :::info Runtime version
-The CLI may scaffold `runtimeVersion: "PYTHON_3_14"` (a pre-release version). Change it to `"PYTHON_3_13"` before deploying.
+The CLI may scaffold `runtimeVersion: "PYTHON_3_14"`. This is a supported version. If you need a specific Python version for compatibility, change it to `"PYTHON_3_13"` in `agentcore.json` before deploying.
 :::
+
+---
+
+## What This Creates and What It Costs
+
+Deploying this quickstart creates the following AWS resources:
+
+| Resource | Notes |
+|---|---|
+| AgentCore Runtime | Hosts your agent code in MicroVM isolation |
+| ECR repository | Stores the packaged agent image |
+| IAM execution role | Least-privilege role for the Runtime |
+| CloudWatch log group | Receives runtime and invocation logs |
+
+**Main cost drivers:**
+- **Model inference tokens** — every invocation calls Claude Sonnet 4.5 on Amazon Bedrock; you pay per input/output token
+- **Runtime execution seconds** — billed per second of agent execution; scale-to-zero means no charges between invocations
+- **Log ingestion** — CloudWatch charges per GB of logs ingested and stored
+
+**Scale-to-zero does not mean zero cost.** Even with no traffic, the ECR image and CloudWatch log retention continue to accrue charges. Destroy the resources when you're done experimenting (see Cleanup below).
+
+---
+
+## Cleanup
+
+When you are done with this prototype, remove the AWS resources it created. Reset the project configuration to empty, then deploy that empty state to tear down the CloudFormation stack:
+
+```bash
+# From the WeatherAgent project directory
+agentcore remove all
+agentcore deploy
+```
+
+The `remove all` command will prompt you to confirm before resetting:
+
+```
+Reset all AgentCore schemas to empty state?
+This will reset:
+• AgentCore project: WeatherAgent
+• 1 agent definition
+• All schemas will be reset to empty state
+
+Confirm reset (y/n)
+```
+
+Type `y` and press Enter to proceed. Then `agentcore deploy` applies the empty state to tear down the CloudFormation stack. You'll see a second confirmation:
+
+```
+Tear down all deployed resources?
+This will delete all AWS resources and the CloudFormation stack for this target.
+This action cannot be undone.
+
+Enter/Y confirm · Esc/N cancel
+```
+
+Press Enter to confirm.
+
+Verify resources are gone:
+
+```bash
+agentcore status
+```
+
+Expected output:
+
+```
+AgentCore Status (target: )
+No resources match the given filters.
+```
+
+Some resources may persist after cleanup:
+
+- **ECR repository** — may remain if images are still tagged; delete manually in the ECR console or with `aws ecr delete-repository --repository-name WeatherAgent --force`
+- **CloudWatch log groups** — retained by default; delete manually if you want to stop log storage charges
+- **IAM roles** — review and remove any leftover roles prefixed with `AgentCore` in the IAM console
+
+If cleanup reports errors, see [Cleanup Failures](/docs/reference/troubleshooting#cleanup-failures).
 
 ---
 
 ## Next Steps
 
 <div className="tile-grid">
-  <Link to="/docs/get-started/agentcore-cli" className="tile-card">
+  <Link to="/docs/reference/resources" className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--terminal" aria-hidden="true" /><h3>Explore the CLI</h3></div>
-    <p>Learn about <code>agentcore add</code>, <code>agentcore validate</code>, and the full command set.</p>
+    <p>Find the public AgentCore CLI documentation, source code, and release information.</p>
   </Link>
 
   <Link to="/docs/workloads/conversational/quickstart" className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--chat" aria-hidden="true" /><h3>Build a Chat Agent</h3></div>
-    <p>Add memory, identity, and streaming for a production conversational agent.</p>
+    <p>Add memory, identity, and streaming for a conversational agent.</p>
   </Link>
 
   <Link to="/docs/workloads/workflow/quickstart" className="tile-card">
@@ -227,5 +331,10 @@ The CLI may scaffold `runtimeVersion: "PYTHON_3_14"` (a pre-release version). Ch
   <Link to="/docs/patterns/overview" className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--patterns" aria-hidden="true" /><h3>Explore Patterns</h3></div>
     <p>Multi-agent patterns: from single agent to swarm, graph, and A2A.</p>
+  </Link>
+
+  <Link to="/docs/operate/production-readiness" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--operate" aria-hidden="true" /><h3>Production Readiness</h3></div>
+    <p>Work through the checklist before routing real users or data to your agent.</p>
   </Link>
 </div>

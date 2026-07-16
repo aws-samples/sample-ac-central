@@ -11,7 +11,10 @@
     "clear": "docusaurus clear",
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
-    "write-heading-ids": "docusaurus write-heading-ids"
+    "write-heading-ids": "docusaurus write-heading-ids",
+    "validate:content": "node scripts/validate-content.mjs",
+    "validate:frontmatter": "node scripts/check-frontmatter.mjs",
+    "validate": "npm run validate:content && npm run validate:frontmatter"
   },
   "dependencies": {
     "@docusaurus/core": "^3.8.1",

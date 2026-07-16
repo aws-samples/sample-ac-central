@@ -2,6 +2,7 @@
 title: Conversational Agents
 sidebar_label: Overview
 sidebar_position: 1
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
@@ -39,35 +40,21 @@ Choose this workload when:
 - The agent acts on behalf of a specific user with their identity and permissions
 - The primary output is natural language directed at a human
 
+For a side-by-side comparison with Workflow and Coding patterns, see the [Workloads overview comparison table](/docs/workloads/overview#how-they-compare).
+
 ---
 
-## Strengths and Limitations
+## Strengths and Design Considerations
 
 <div className="fancy-table">
 
-| Strengths                                            | Limitations                                                        |
+| Strengths                                            | Design Considerations                                                        |
 |------------------------------------------------------|--------------------------------------------------------------------|
-| Real-time streaming for responsive UX                | Higher per-session cost (long-lived compute)                       |
-| Multi-turn memory with session + long-term recall    | Complex context window management for long conversations           |
-| End-user identity propagation (zero-trust)           | Requires IdP integration (Entra ID, Okta, Cognito)                 |
-| Natural fit for human-facing applications            | Adversarial input surface (prompt injection, social engineering)    |
-| Rich UI feedback (typing indicators, tool activity)  | Session affinity means scale-per-user, not scale-per-event         |
-
-</div>
-
----
-
-## How It Compares
-
-<div className="fancy-table fancy-table--auto-first">
-
-| Dimension          | Conversational                         | Workflow                             | Coding                             |
-|--------------------|----------------------------------------|--------------------------------------|------------------------------------|
-| Trigger            | User message                           | System event                         | Ticket / PR / schedule             |
-| Session            | Long-lived, multi-turn                 | Short-lived, single invocation       | Long-lived, single task            |
-| Identity           | End-user (OAuth bearer token)          | Service principal                    | Developer identity                 |
-| Primary output     | Chat response to human                 | Actions + events emitted             | Code + PR comments                 |
-| Streaming          | Always (token-by-token)                | Rarely needed                        | Optional (progress updates)        |
+| Real-time streaming for responsive UX                | Plan for per-session cost; use scale-to-zero and session timeouts to manage spend |
+| Multi-turn memory with session + long-term recall    | Long conversations need context window strategies (summarization, truncation) |
+| End-user identity propagation (zero-trust)           | Requires IdP integration (Entra ID, Okta, Cognito) — plan this early         |
+| Natural fit for human-facing applications            | Human-facing surface needs input guardrails (content filters, prompt boundaries) |
+| Rich UI feedback (typing indicators, tool activity)  | Session affinity means scaling per user; size infrastructure accordingly      |
 
 </div>
 
@@ -77,17 +64,30 @@ Choose this workload when:
 
 <div className="fancy-table fancy-table--auto-first">
 
-| AgentCore Service | Configuration for Conversational                        | Why It Matters                                    |
-|-------------------|---------------------------------------------------------|---------------------------------------------------|
-| **Identity**      | End-user OAuth bearer tokens (Entra ID, Okta, Cognito)  | Agent acts on behalf of the user                  |
-| **Memory**        | Session + long-term, namespace per user                 | Multi-turn context + cross-session recall          |
-| **Runtime**       | Streaming enabled, session affinity, up to 8h lifecycle | Real-time UX, stateful conversations              |
-| **Guardrails**    | Content filters + topic boundaries + PII redaction      | Protect against adversarial inputs                |
-| **Evaluations**   | GoalSuccessRate, Helpfulness, Correctness               | Catch quality regressions before users feel them  |
-| **Observability** | Per-conversation tracing with user context              | Debug "the agent gave me wrong info"              |
-| **Gateway**       | User-scoped tool access with auth propagation           | Agent calls APIs as the user                      |
+| Purpose | Description | AgentCore capability |
+|---------|-------------|---------------------|
+| **User authentication** | End-user OAuth bearer tokens (Entra ID, Okta, Cognito) so the agent acts on behalf of the user | Identity |
+| **Conversation context** | Session memory + long-term recall, namespaced per user for multi-turn continuity and cross-session personalization | Memory |
+| **Execution environment** | Streaming-enabled runtime with session affinity and up to 8h lifecycle ¹ for real-time, stateful conversations | Runtime |
+| **Input safety** | Content filters, topic boundaries, and PII redaction to protect against adversarial or off-topic inputs | Guardrails (via policy on gateway) |
+| **Quality measurement** | GoalSuccessRate, Helpfulness, and Correctness evaluations to catch regressions before users feel them | Evaluations |
+| **Debugging and tracing** | Per-conversation traces with user context to diagnose "the agent gave me wrong info" | Observability |
+| **Tool access** | User-scoped API access with auth propagation so the agent calls external services as the user | Gateway |
 
 </div>
+
+> ¹ Session duration is architecture guidance based on typical AgentCore usage patterns. Verify current limits in the [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
+
+---
+
+## When Not to Use This Pattern
+
+**Skip the Conversational pattern when:**
+
+- There is no human in the loop. If an event (alert, webhook, file upload) triggers the agent and results go to a downstream system, the [Workflow pattern](/docs/workloads/workflow/overview) is a better fit — it is designed for machine-to-machine automation and costs less at scale.
+- The task produces code or structured file artifacts. Use the [Coding pattern](/docs/workloads/coding/overview) instead.
+- Interaction is single-turn and stateless. A simple API call to an LLM (with no memory or session state) is often enough — an AWS Lambda function calling the Bedrock InvokeModel API may be all you need, without the overhead of a persistent agent runtime.
+- You cannot integrate an identity provider. This pattern depends on user identity propagation (OAuth bearer tokens). If your deployment has no IdP, consider the Workflow pattern with service credentials.
 
 ---
 
@@ -100,7 +100,6 @@ Choose this workload when:
 | **[BGL](../../customer/external/bgl)**                      | Slack-based NL-to-SQL agent for self-serve BI                        | 200+ employees self-serve instantly    |
 | **[Iberdrola](../../customer/external/iberdrola)**          | Multi-agent IT operations with LangGraph + VPC-secured runtime       | Reduced resolution time                |
 | **[Thomson Reuters](../../customer/external/thomson-reuters)** | Central orchestrator routing to specialized service agents with HITL | Enterprise-scale multi-domain support  |
-| **[Kavak](../../customer/external/kavak)**                  | Autonomous concierge agent for automotive marketplace                | End-to-end customer journey automation |
 | **Swisscom**                                                | Enterprise-scale agentic AI platform                                 | Platform-level agent governance        |
 
 </div>
@@ -113,6 +112,11 @@ Choose this workload when:
   <Link to="/docs/workloads/conversational/quickstart" className="tile-card">
     <div className="tile-heading"><h3>Quick Start →</h3></div>
     <p>Deploy a working conversational agent in 5 steps.</p>
+  </Link>
+
+  <Link to="/docs/workloads/conversational/harness-quickstart" className="tile-card">
+    <div className="tile-heading"><h3>Harness Quick Start →</h3></div>
+    <p>The config-only path: managed agent loop with built-in per-user memory.</p>
   </Link>
 
   <Link to="/docs/workloads/conversational/enterprise-features" className="tile-card">
