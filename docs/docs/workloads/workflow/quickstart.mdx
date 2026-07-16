@@ -282,9 +282,10 @@ If port `8080` is busy, the dev server automatically shifts to the next free por
 
 ### Test the deployed agent
 
-Deployment creates AWS resources and may incur charges:
+Install the CDK project dependencies, then deploy. Deployment creates AWS resources and may incur charges:
 
 ```bash
+cd agentcore/cdk && npm install && cd ../..
 agentcore deploy
 ```
 
