@@ -44,17 +44,17 @@ For a side-by-side comparison with Workflow and Coding patterns, see the [Worklo
 
 ---
 
-## Strengths and Limitations
+## Strengths and Design Considerations
 
 <div className="fancy-table">
 
-| Strengths                                            | Limitations                                                        |
+| Strengths                                            | Design Considerations                                                        |
 |------------------------------------------------------|--------------------------------------------------------------------|
-| Real-time streaming for responsive UX                | Higher per-session cost (long-lived compute)                       |
-| Multi-turn memory with session + long-term recall    | Complex context window management for long conversations           |
-| End-user identity propagation (zero-trust)           | Requires IdP integration (Entra ID, Okta, Cognito)                 |
-| Natural fit for human-facing applications            | Adversarial input surface (prompt injection, social engineering)    |
-| Rich UI feedback (typing indicators, tool activity)  | Session affinity means scale-per-user, not scale-per-event         |
+| Real-time streaming for responsive UX                | Plan for per-session cost; use scale-to-zero and session timeouts to manage spend |
+| Multi-turn memory with session + long-term recall    | Long conversations need context window strategies (summarization, truncation) |
+| End-user identity propagation (zero-trust)           | Requires IdP integration (Entra ID, Okta, Cognito) — plan this early         |
+| Natural fit for human-facing applications            | Human-facing surface needs input guardrails (content filters, prompt boundaries) |
+| Rich UI feedback (typing indicators, tool activity)  | Session affinity means scaling per user; size infrastructure accordingly      |
 
 </div>
 
