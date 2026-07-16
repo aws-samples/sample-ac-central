@@ -40,6 +40,7 @@ const sidebars: SidebarsConfig = {
           items: [
             'workloads/workflow/overview',
             'workloads/workflow/quickstart',
+            'workloads/workflow/harness-quickstart',
             'workloads/workflow/event-processing',
             'workloads/workflow/bounded-autonomy',
             'workloads/workflow/tools-and-gateway',
