@@ -2,65 +2,114 @@
 title: Cox Automotive - 17 Solutions in Production
 sidebar_label: Cox Automotive
 sidebar_position: 7
+last_verified: 2026-07-15
 ---
 
 # Cox Automotive - 17 Solutions in Production
 
 <span className="tile-icon tile-icon-svg tile-icon--tag" aria-hidden="true" /> **Workload:** Multi-pattern
 
+<span className="tile-icon tile-icon-svg tile-icon--book" aria-hidden="true" /> [AWS Case Study →](https://aws.amazon.com/solutions/case-studies/cox-auto-case-study/)
+
+**Industry:** Automotive services | **Workload pattern:** Multi-pattern (conversational, event-driven, platform) | **Integration type:** Telematics APIs, retail session memory, identity and access
+
 ---
 
-## Architecture
+## Source
 
-```mermaid
-flowchart LR
-    A[Business Line 1] --> E[AgentCore Runtime]
-    B[Business Line 2] --> E
-    C[Business Line 3] --> E
-    D[Business Line 4] --> E
-    E --> F[Observability]
-    E --> G[Browser Tool]
-    E --> H[Code Interpreter]
-```
+[AWS Case Study - Cox Automotive](https://aws.amazon.com/solutions/case-studies/cox-auto-case-study/)
 
-## Customer Story
+Publication date: See linked source.
 
-**Customer:** Cox Automotive, a leading automotive services company serving dealers, consumers, and manufacturers across the vehicle lifecycle
+---
 
-**Challenge:** Diverse AI needs across multiple business lines including dealer tools, consumer experiences, inventory management, and marketplace operations. Each business line required different agent patterns (conversational, event-driven, platform) but needed consistent governance, observability, and operational patterns.
+## Customer context
 
-**Solution:** Large-scale deployment of AI-powered solutions using Strands Agents framework across the automotive marketplace. Multiple agent patterns deployed for different use cases including conversational customer service, event-driven workflow automation, and platform assistants. All agents run on AgentCore Runtime with unified observability and governance.
+Cox Automotive is a leading automotive services company serving dealers, consumers, and manufacturers across the vehicle lifecycle. Its portfolio spans multiple brands, each with distinct AI needs: fleet management, retail experiences, inventory tools, and marketplace operations.
 
-## AgentCore Configuration
+---
+
+## Challenge
+
+Cox Automotive had diverse AI needs across multiple business lines. Each line required different agent patterns (conversational, event-driven, platform), but the organization needed consistent governance, observability, and operational patterns across all of them. Building each solution from scratch would not scale.
+
+---
+
+## Solution
+
+Cox Automotive chose to build on a common platform using Amazon Bedrock AgentCore and Strands Agents, creating repeatable patterns that scaled across the organization. FleetMate, a fleet services platform, was built on AgentCore Runtime, enabling the team to deploy agentic solutions in days instead of months. AgentCore Memory maintains conversation context across sessions for both fleet operations and retail customer journeys. AgentCore Observability logged all interactions, enabling debugging of multi-step reasoning failures and refinement based on actual usage. AgentCore Identity provided granular permission management and role-based access controls across Cox's brands and customer data.
+
+---
+
+## AgentCore services used
 
 <div className="fancy-table">
 
-| AgentCore Service | Configuration for Cox Automotive                          | Why It Matters                                                    |
+| AgentCore Service | How Cox Automotive configured it                          | Why it mattered                                                   |
 |-------------------|-----------------------------------------------------------|-------------------------------------------------------------------|
-| Runtime           | Multi-pattern support (chat, event, platform)             | Different business lines need different agent patterns           |
-| Observability     | Unified trace capture across all 17 solutions             | Central visibility into agent performance across business lines  |
-| Browser Tool      | Web automation for data extraction tasks                  | Many automotive workflows require web scraping and form filling  |
-| Code Interpreter  | Dynamic data analysis and visualization                   | Dealers need ad-hoc analytics on inventory and pricing data      |
+| Runtime           | Multi-pattern support (chat, event, platform)             | Different business lines needed different agent patterns under one operational model |
+| Memory            | Cross-session context for fleet ops and retail journeys   | FleetMate agents knew truck, route, and maintenance history; retail agents remembered the full buying journey across web, mobile, and in-person |
+| Observability     | Unified trace capture across all 17 solutions             | Enabled debugging of multi-step reasoning failures across business lines |
+| Identity          | Granular permission management and role-based access      | Enforced strict data governance while scaling across brands and customer data |
+| Browser Tool      | Web automation for data extraction tasks                  | Automotive workflows requiring web data retrieval                |
+| Code Interpreter  | Dynamic data analysis and visualization                   | Ad-hoc analytics on inventory and pricing data                   |
 
 </div>
 
-## Key Technical Decisions
+---
 
-- **Multi-pattern deployment** rather than forcing all business lines into one agent archetype. Conversational agents for customer service, event-driven agents for workflows, platform agents for internal tooling.
-- **Strands Agents framework** for multi-agent orchestration and coordination. Some solutions required agent-to-agent communication and handoffs.
-- **5 agentic AI products launched in 5 weeks** by building on a common platform rather than custom-building each one. Shared runtime, observability, and governance accelerated delivery.
+## Architecture pattern
+
+*Architecture interpretation by this site based on the public source.*
+
+Multiple business lines feed requests into AgentCore Runtime. Each business line may use a different pattern (conversational, event-driven, or orchestrated). Memory, Observability, and Identity services are shared across all 17 solutions. The Orchestrator Agent for fleet operations integrates telematics APIs, real-time diagnostics, and external data sources.
+
+```mermaid
+flowchart LR
+    A[Business Line 1 - Fleet] --> E[AgentCore Runtime]
+    B[Business Line 2 - Retail] --> E
+    C[Business Line 3 - Inventory] --> E
+    D[Business Line 4 - Marketplace] --> E
+    E --> F[Observability]
+    E --> G[Memory]
+    E --> H[Identity]
+    E --> I[Browser Tool / Code Interpreter]
+```
+
+**Entry point:** A customer interaction, driver call, or business event from any of Cox's brands.
+**Main flow:** AgentCore Runtime dispatches to the appropriate agent for that business line. The agent uses Memory for context continuity, Identity for permissioned data access, and Observability for trace capture.
+**Key boundary:** Identity service enforces that each agent operates only with precisely defined permissions, critical when handling sensitive data across multiple brands.
+
+---
 
 ## Results
 
 <div className="results-grid">
+  <span className="result-chip">17 major agentic solutions in production</span>
   <span className="result-chip">5 agentic AI products launched in 5 weeks</span>
-  <span className="result-chip">Multiple agent patterns deployed</span>
-  <span className="result-chip">Consistent governance across solutions</span>
-  <span className="result-chip">Scaled AI adoption enterprise-wide</span>
+  <span className="result-chip">Zero to production-ready in one month</span>
+  <span className="result-chip">7 market-transformational solutions in development</span>
+  <span className="result-chip">Consistent governance across all solutions</span>
 </div>
 
-## Lessons Learned
+---
 
-- **Platform approach accelerates delivery** when you have multiple agent use cases. The first agent takes time, the fifth takes days.
-- **Different patterns for different workloads.** Conversational agents for customer service, event-driven agents for backend workflows, platform agents for internal tools. One pattern would not have fit all needs.
-- **Unified observability is critical at scale.** With 17 solutions in production, central visibility into agent performance and errors was non-negotiable.
+## Transferable lessons
+
+- Cox Automotive chose to build on a shared platform rather than custom-build each solution. The first agent required the most investment; subsequent agents reused the established patterns, which drove the five-products-in-five-weeks pace.
+- The team found that different business lines needed genuinely different agent patterns. A single pattern would not have served fleet operations (event-driven, context-rich), retail customer journeys (conversational, cross-session), and internal tooling (platform). Choosing AgentCore's multi-pattern support let each line use the right approach.
+- Observability was essential for debugging at scale. With 17 solutions in production, the Observability service's interaction logs allowed engineers to trace multi-step reasoning failures without instrumenting each agent separately.
+- Context continuity via Memory changed the experience for fleet drivers. Knowing the truck, route, and maintenance history at the start of a call shifted the interaction from transactional to relationship-based, per Cox's own description.
+
+---
+
+## When this is relevant
+
+This pattern fits large organizations with multiple distinct agent use cases that benefit from a shared operational foundation. The platform approach (shared Runtime, Memory, Observability, Identity) pays off most when there are five or more agent workloads to build, since the infrastructure investment amortizes across them. The Memory service's cross-session capability is relevant wherever a customer or user interacts with an agent across multiple touchpoints or over extended time periods.
+
+---
+
+## Source and verification
+
+- [AWS Case Study - Cox Automotive](https://aws.amazon.com/solutions/case-studies/cox-auto-case-study/)
+- Last verified: 2026-07-15

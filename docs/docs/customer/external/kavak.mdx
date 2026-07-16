@@ -2,15 +2,75 @@
 title: Kavak - Autonomous Concierge Agent
 sidebar_label: Kavak
 sidebar_position: 9
+draft: true
+last_verified: 2026-07-15
 ---
+
+{/*
+  HIDDEN PENDING VERIFICATION - do not restore to navigation until resolved.
+  This page's content must be verified or removed. This story has no public
+  source link and seven TODO-marked unverified claims. Do not restore until an
+  externally shareable source exists; then rebuild the page from that source
+  using the customer-story template.
+*/}
 
 # Kavak - Autonomous Concierge Agent
 
 <span className="tile-icon tile-icon-svg tile-icon--tag" aria-hidden="true" /> **Workload:** Conversational agent
 
+**Industry:** Automotive marketplace | **Workload pattern:** Conversational, end-to-end journey | **Integration type:** Inventory, scheduling, transaction systems
+
 ---
 
-## Architecture
+## Source
+
+No public source currently available. Do not restore to navigation until an externally shareable source exists.
+
+---
+
+## Customer context
+
+Kavak is Latin America's largest used car marketplace operating across multiple countries. The company handles high volumes of customer inquiries about vehicle availability, financing options, test drive scheduling, and transaction support.
+
+---
+
+## Challenge
+
+{/* TODO: Update challenge details when public reference is available */}
+
+High volume of customer inquiries overwhelmed human agents. Customers experienced long wait times, and agents spent significant time on repetitive questions rather than complex negotiations.
+
+---
+
+## Solution
+
+{/* TODO: Update solution details when public reference is available */}
+
+Kavak chose to build an autonomous concierge agent for the automotive marketplace, handling customer inquiries, scheduling, and transaction support through natural conversation. The agent manages the full customer journey from initial inquiry to purchase completion, with handoff to human agents when needed.
+
+---
+
+## AgentCore services used
+
+<div className="fancy-table">
+
+| AgentCore Service | How Kavak configured it                                   | Why it mattered                                                   |
+|-------------------|-----------------------------------------------------------|-------------------------------------------------------------------|
+| Runtime           | Conversational agent, chat and voice interfaces           | Handles customer conversations in real time                      |
+| Memory            | Session memory for conversation context                   | Remembered customer preferences and prior questions within the session |
+| Identity          | Customer authentication for personalized experience       | Access to customer-specific inventory, pricing, and history      |
+
+</div>
+
+{/* TODO: Validate configuration details when public reference is available */}
+
+---
+
+## Architecture pattern
+
+{/* TODO: Update when public reference is available */}
+
+*Architecture interpretation by this site. No public source is currently available to verify this diagram.*
 
 ```mermaid
 flowchart LR
@@ -23,43 +83,15 @@ flowchart LR
     E --> F
 ```
 
-<!-- TODO: Update when public reference is available -->
+**Entry point:** Customer contact via chat or voice channel.
+**Main flow:** The concierge agent routes the customer request to the appropriate tool (inventory lookup, scheduling, transaction handling). All tool calls execute on AgentCore Runtime.
+**Key boundary:** Human handoff triggers when the conversation requires negotiation or complex problem-solving; the agent passes full conversation context to the human agent.
 
-## Customer Story
-
-**Customer:** Kavak, Latin America's largest used car marketplace operating across multiple countries
-
-**Challenge:** High volume of customer inquiries about vehicle availability, financing options, scheduling test drives, and transaction support overwhelmed human agents. Customers experienced long wait times, and agents spent significant time on repetitive questions rather than complex negotiations.
-
-<!-- TODO: Update challenge details when public reference is available -->
-
-**Solution:** Autonomous concierge agent for automotive marketplace, handling customer inquiries, scheduling, and transaction support through natural conversation. The agent manages the full customer journey from initial inquiry to purchase completion, with smooth handoff to human agents when needed.
-
-<!-- TODO: Update solution details when public reference is available -->
-
-## AgentCore Configuration
-
-<div className="fancy-table">
-
-| AgentCore Service | Configuration for Kavak                                   | Why It Matters                                                    |
-|-------------------|-----------------------------------------------------------|-------------------------------------------------------------------|
-| Runtime           | Conversational agent, chat and voice interfaces           | Handles customer conversations in real time                      |
-| Memory            | Session memory for conversation context                   | Remembers customer preferences and prior questions in session    |
-| Identity          | Customer authentication for personalized experience       | Access to customer-specific inventory, pricing, and history      |
-
-</div>
-
-<!-- TODO: Validate configuration details when public reference is available -->
-
-## Key Technical Decisions
-
-- **End-to-end journey coverage** from inquiry to purchase rather than limiting the agent to FAQ responses. This reduced handoff friction and improved conversion.
-- **Multi-channel support** (chat and voice) because customers interacted through both web chat and phone calls. One agent served both channels.
-- **Smooth handoff protocol** to human agents when the conversation required negotiation or complex problem-solving. The agent passed full context to avoid customer repetition.
-
-<!-- TODO: Update technical decisions when public reference is available -->
+---
 
 ## Results
+
+{/* TODO: Update with quantitative metrics when available */}
 
 <div className="results-grid">
   <span className="result-chip">Autonomous end-to-end customer journey</span>
@@ -68,12 +100,25 @@ flowchart LR
   <span className="result-chip">Smooth handoff to human agents</span>
 </div>
 
-<!-- TODO: Update with quantitative metrics when available -->
+---
 
-## Lessons Learned
+## Transferable lessons
 
-- **End-to-end journey beats point solutions.** Covering inquiry, scheduling, and transaction in one agent reduced customer frustration from multiple handoffs.
-- **Context handoff quality determines customer satisfaction.** When escalating to humans, passing full conversation context prevented customers from repeating themselves.
-- **Multi-channel consistency matters.** Customers expected the same experience whether chatting on the web or calling on the phone.
+{/* TODO: Validate lessons learned when public reference is available */}
 
-<!-- TODO: Validate lessons learned when public reference is available -->
+- Kavak chose end-to-end journey coverage from inquiry to purchase rather than limiting the agent to FAQ-style responses. This reduced handoff friction and improved the customer experience.
+- The team implemented multi-channel support (chat and voice) through a single agent, serving both web chat and phone interactions consistently.
+- Context handoff quality to human agents was treated as a design requirement, not an afterthought. The agent passed full conversation context on escalation so customers did not need to repeat themselves.
+
+---
+
+## When this is relevant
+
+This pattern fits high-volume customer service in transactional industries (automotive, real estate, insurance) where the customer journey spans multiple steps (inquiry, qualification, scheduling, transaction). The end-to-end coverage model is relevant when handoff friction between separate point-solution agents is a known customer pain point. Multi-channel consistency (chat and voice) applies where customers interact through multiple channels without expecting to restart their context.
+
+---
+
+## Source and verification
+
+- No public source currently available.
+- Last verified: 2026-07-15
