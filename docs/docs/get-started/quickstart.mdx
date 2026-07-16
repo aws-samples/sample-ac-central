@@ -9,12 +9,22 @@ last_verified: 2026-07-08
 Examples built with **AgentCore CLI** `@aws/agentcore@0.23.0`, **Strands Agents SDK** `1.46.0`, and **bedrock-agentcore** `1.17.0`. Commands or APIs may differ in other versions.
 :::
 
+:::caution Prototype, not production
+This tutorial creates a prototype, not a production-ready system. Before routing real users or data to it, work through the [Production Readiness checklist](/docs/operate/production-readiness).
+:::
 
 import Link from '@docusaurus/Link';
 
 # Build your agents from terminal
 
 Go from zero to a working agent on AgentCore. This guide creates a simple weather agent with one tool, tests it locally, and deploys it, all from the terminal.
+
+| | |
+|---|---|
+| **Who this is for** | Developers new to AgentCore who want a first working prototype |
+| **Time** | ~15 minutes |
+| **What you'll build** | A weather agent with one tool, local dev server, and a deployed Runtime endpoint |
+| **Safety level** | Creates real AWS resources; uses simulated weather data; no external write actions |
 
 :::info Prerequisites
 - **Node.js 20+**: for the AgentCore CLI
@@ -166,7 +176,7 @@ Once deployed, invoke the live agent:
 agentcore invoke "What is the weather in Tokyo?"
 ```
 
-That's it. Your agent is running on AgentCore Runtime with:
+That's it. Your agent is deployed to a live AgentCore Runtime endpoint with:
 - **MicroVM isolation**: each session in a dedicated sandbox
 - **Scale-to-zero**: no idle cost when there are no requests
 - **OpenTelemetry tracing**: full observability via CloudWatch
@@ -206,6 +216,52 @@ The CLI may scaffold `runtimeVersion: "PYTHON_3_14"` (a pre-release version). Ch
 
 ---
 
+## What This Creates and What It Costs
+
+Deploying this quickstart creates the following AWS resources:
+
+| Resource | Notes |
+|---|---|
+| AgentCore Runtime | Hosts your agent code in MicroVM isolation |
+| ECR repository | Stores the packaged agent image |
+| IAM execution role | Least-privilege role for the Runtime |
+| CloudWatch log group | Receives runtime and invocation logs |
+
+**Main cost drivers:**
+- **Model inference tokens** — every invocation calls Claude Sonnet 4.5 on Amazon Bedrock; you pay per input/output token
+- **Runtime execution seconds** — billed per second of agent execution; scale-to-zero means no charges between invocations
+- **Log ingestion** — CloudWatch charges per GB of logs ingested and stored
+
+**Scale-to-zero does not mean zero cost.** Even with no traffic, the ECR image and CloudWatch log retention continue to accrue charges. Destroy the resources when you're done experimenting (see Cleanup below).
+
+---
+
+## Cleanup
+
+When you are done with this prototype, destroy the AWS resources it created:
+
+```bash
+# From the WeatherAgent project directory
+agentcore destroy
+```
+
+Verify resources are gone:
+
+```bash
+agentcore status
+# Expected: no runtimes listed
+```
+
+Some resources may persist after `agentcore destroy`:
+
+- **ECR repository** — may remain if images are still tagged; delete manually in the ECR console or with `aws ecr delete-repository --repository-name WeatherAgent --force`
+- **CloudWatch log groups** — retained by default; delete manually if you want to stop log storage charges
+- **IAM roles** — review and remove any leftover roles prefixed with `AgentCore` in the IAM console
+
+If `agentcore destroy` reports errors, see [Cleanup Failures](/docs/reference/troubleshooting#cleanup-failures).
+
+---
+
 ## Next Steps
 
 <div className="tile-grid">
@@ -216,7 +272,7 @@ The CLI may scaffold `runtimeVersion: "PYTHON_3_14"` (a pre-release version). Ch
 
   <Link to="/docs/workloads/conversational/quickstart" className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--chat" aria-hidden="true" /><h3>Build a Chat Agent</h3></div>
-    <p>Add memory, identity, and streaming for a production conversational agent.</p>
+    <p>Add memory, identity, and streaming for a conversational agent.</p>
   </Link>
 
   <Link to="/docs/workloads/workflow/quickstart" className="tile-card">
@@ -227,5 +283,10 @@ The CLI may scaffold `runtimeVersion: "PYTHON_3_14"` (a pre-release version). Ch
   <Link to="/docs/patterns/overview" className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--patterns" aria-hidden="true" /><h3>Explore Patterns</h3></div>
     <p>Multi-agent patterns: from single agent to swarm, graph, and A2A.</p>
+  </Link>
+
+  <Link to="/docs/operate/production-readiness" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--operate" aria-hidden="true" /><h3>Production Readiness</h3></div>
+    <p>Work through the checklist before routing real users or data to your agent.</p>
   </Link>
 </div>

@@ -1,50 +1,86 @@
 ---
-title: Your First Agent in 5 Minutes
+title: Your First Agent (Managed Harness)
 sidebar_label: First Agent
-sidebar_position: 2
+sidebar_position: 3
+last_verified: 2026-07-15
 ---
 
-# Your First Agent in 5 Minutes
+# Your First Agent with Managed Harness
 
-Create your first agent in 5 minutes with managed harness. Fully managed, config-based agent service with no orchestration code needed. Stateful sessions with micro-VM isolation and flexible tooling with an export-to-code option for more control.
+This is the Managed Harness path. You define your agent through the console or the `CreateHarness` API; AgentCore wires together Runtime, Memory, Gateway, Browser Tool, Identity, and Observability for you. No orchestration code required.
 
----
+**Choose this path when:** you want to explore AgentCore's capabilities quickly, prefer a console-first workflow, or want to validate a use case with sample data before committing to a code structure.
 
-## Using Managed Harness
+**If you are building a new custom agent and want full code control from day one**, use the [Code-First Runtime path](/docs/get-started/quickstart) instead.
 
-- **Zero orchestration code**: define your agent declaratively via configuration. AgentCore handles routing, memory, and tool invocation.
-- **Stateful sessions**: micro-VM isolation with sessions persisting up to 8 hours. No infrastructure to manage.
-- **Flexible tooling**: connect tools via AgentCore Gateway (MCP). Add, remove, or swap tools without redeploying.
-- **Export to code**: start managed, graduate to full code control when you need custom logic. No lock-in.
+Before you start, complete the [Preflight Checklist](/docs/get-started/preflight).
 
 ---
 
-## Get Started in 4 Steps
+## What Managed Harness does
+
+The Harness is a managed abstraction that lets you create a working agent without writing Python or TypeScript. Under the hood it provisions and connects:
+
+- **AgentCore Runtime**: microVM-isolated execution with scale-to-zero
+- **Memory**: session and user memory with a toggle; no persistence code to write
+- **Gateway**: tool federation via MCP for attaching external APIs and built-in tools
+- **Identity**: OAuth/OIDC integration for user-scoped tool access
+- **Observability**: tracing enabled by default, visible in CloudWatch
+
+You interact with the Harness through the AgentCore console wizard or directly through the `CreateHarness` and `InvokeHarness` APIs. The configuration is declarative; changing a model or adding a tool does not require redeploying code.
+
+**Export path:** when your use case grows beyond what Harness configuration supports, you can export the agent definition to code and move to the Runtime path. There is no lock-in.
+
+---
+
+## Get started in 4 steps
 
 <div className="fancy-table fancy-table--auto-first">
 
-| Step | Action                         | Details                                                                                            |
-| ---- | ------------------------------ | -------------------------------------------------------------------------------------------------- |
-| 1    | **Open the AgentCore Console** | Navigate to the Amazon Bedrock AgentCore console in your AWS account and choose **Quick create Harness** |
-| 2    | **Create an Agent**            | Use the guided wizard to define your agent - select a model, add a system prompt, and attach tools |
-| 3    | **Configure Tools**            | Connect to APIs via AgentCore Gateway or add built-in tools (Code Interpreter, Browser Tool)       |
-| 4    | **Test & Deploy**              | Test in the console playground, then deploy to a production endpoint                               |
+| Step | Action | Details |
+|---|---|---|
+| 1 | **Open the AgentCore console** | Navigate to the Amazon Bedrock AgentCore console in your AWS account and choose **Quick create Harness** |
+| 2 | **Create an agent** | Use the guided wizard to define your agent: select a model, write a system prompt, and choose tools to attach |
+| 3 | **Configure tools** | Connect to APIs via AgentCore Gateway (MCP), or add built-in tools such as Code Interpreter or Browser Tool |
+| 4 | **Test in the console playground** | Send test prompts using sample or synthetic data to verify the agent behaves as expected |
 
 </div>
 
+:::note
+Step 4 creates a working prototype. Do not route real user traffic to this prototype without completing the [Production Readiness checklist](/docs/operate/production-readiness) first. The checklist covers IAM scoping, tenant isolation, guardrails, evaluations, and rollback procedures.
+:::
+
 ---
 
-## Key Features
+## Key capabilities available from the console
 
 - **Identity integration**: attach an OAuth provider to enable user-scoped tool access
 - **Memory**: enable session memory (short-term) and user memory (long-term) with a toggle
 - **Guardrails**: add content filters, topic boundaries, and PII redaction from the console
-- **Observability**: tracing enabled by default. View in CloudWatch or export via OTLP
+- **Observability**: tracing enabled by default; view in CloudWatch or export via OTLP
+
+---
+
+## When to move to code
+
+Harness is well suited for exploration and prototyping. Consider moving to the Code-First Runtime path when:
+
+- You need custom tool logic that cannot be expressed in Gateway configuration
+- You want to integrate complex routing or multi-step orchestration
+- You need reproducible infrastructure-as-code and a CI/CD deployment pipeline
+- You want to write and run unit tests against your agent logic
+
+To move, export your Harness agent definition from the console and use it as the starting point for a code-first project.
 
 ---
 
 ## Resources
 
-- [AgentCore Developer Guide - Getting Started](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started.html)
-- [AgentCore Console Walkthrough](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/console-walkthrough.html)
+- [AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/)
 - [Strands SDK - Managed Deployment](https://strandsagents.com/docs/user-guide/deploy/)
+
+---
+
+## Next step
+
+Explore what you built: try different prompts, attach a second tool, or enable Memory in the console. When you are ready to take the agent toward production traffic, start with the [Production Readiness checklist](/docs/operate/production-readiness).

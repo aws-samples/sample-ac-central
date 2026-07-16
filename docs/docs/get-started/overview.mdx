@@ -2,34 +2,87 @@
 title: Get Started with AgentCore
 sidebar_label: Overview
 sidebar_position: 1
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
-import useBaseUrl from '@docusaurus/useBaseUrl';
-import ThemedImage from '@theme/ThemedImage';
 
-# Get Started Faster with AgentCore
+# Get Started with AgentCore
 
-Get to your first working agent in minutes. Choose the path that fits your workflow.
+There are three ways to put an agent on AgentCore. They suit different situations, so pick the one that matches where you are today.
 
-<div className="tile-grid">
-  <Link to="/docs/get-started/firstagent" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--rocket" aria-hidden="true" /><h3>5-Minute Quickstart</h3></div>
-    <p>Build, test, and deploy your first agent with a complete working example. Zero to production in 5 minutes.</p>
-  </Link>
+---
 
-  <Link to="/docs/workloads/conversational/quickstart" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--chat" aria-hidden="true" /><h3>Conversational Agent</h3></div>
-    <p>Deploy a working chat agent with memory in under 10 minutes.</p>
-  </Link>
+## Which path is right for you?
 
-  <Link to="/docs/workloads/workflow/quickstart" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--runtime" aria-hidden="true" /><h3>Workflow Agent</h3></div>
-    <p>Deploy a working event-driven incident response agent in under 10 minutes.</p>
-  </Link>
+<div className="fancy-table fancy-table--auto-first">
 
-  <Link to="/docs/workloads/coding/quickstart" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--terminal" aria-hidden="true" /><h3>Coding Agent</h3></div>
-    <p>Deploy a working test-generation agent in under 10 minutes. Analyze, test, execute a Python source file and return validated results.</p>
-  </Link>
+| Your situation | Recommended path |
+|---|---|
+| You want to explore AgentCore quickly without writing agent code | [Managed Harness](#managed-harness-path) |
+| You are building a new custom agent and want full control from day one | [Code-First Runtime](#code-first-runtime-path) |
+| You already have an agent running and want to adopt AgentCore services incrementally | [Existing Agent Adoption](#existing-agent-adoption-path) |
+
 </div>
+
+Before starting any path, complete the [Preflight Checklist](/docs/get-started/preflight) to verify your AWS account, permissions, and local tools are ready.
+
+---
+
+## Managed Harness path
+
+The Harness is a fully managed, configuration-driven layer that wires together AgentCore Runtime, Memory, Gateway, Browser Tool, Identity, and Observability for you. You define your agent through the console wizard or the `CreateHarness` API. No orchestration code required.
+
+**Choose this path when:**
+- You want to explore AgentCore's capabilities before committing to a code structure
+- You prefer a console or API-first workflow over writing Python or TypeScript
+- You want to validate a use case quickly with sample data, then decide whether to export to code
+
+**What you can do from Harness:**
+- Pick a model, write a system prompt, and attach tools via AgentCore Gateway (MCP)
+- Enable session memory and user memory with a toggle
+- Add identity (OAuth), guardrails, and observability from the same interface
+- Export the agent definition to code when you need custom logic
+
+**Ceiling:** Harness is suited for exploration and prototyping. When your agent needs custom tool logic, complex routing, or integration patterns not expressible in configuration, export to code and move to the Runtime path.
+
+**Next:** [Your First Agent (Managed Harness)](/docs/get-started/firstagent)
+
+---
+
+## Code-First Runtime path
+
+The Runtime path gives you full control. You write agent code (typically with the Strands Agents SDK), use the AgentCore CLI to scaffold and deploy, and add Runtime, Memory, Gateway, Identity, and Observability services as your needs grow.
+
+**Choose this path when:**
+- You are starting a new agent project and want a production-capable structure from the start
+- You need custom tool logic, streaming, or integration patterns beyond what Harness configuration supports
+- You want infrastructure as code (CDK) and a reproducible deployment pipeline
+
+**What you get:**
+- AgentCore CLI (`@aws/agentcore`) scaffolds project structure and a declarative `agentcore.json` config
+- Local dev server (`agentcore dev`) for fast iteration without deploying
+- Deploy to AgentCore Runtime: microVM isolation, scale-to-zero, and OpenTelemetry tracing included
+
+**Next:** [Build from the CLI (Code-First Runtime)](/docs/get-started/quickstart)
+
+---
+
+## Existing Agent Adoption path
+
+If your agent already runs somewhere (Strands, LangGraph, CrewAI, or any other framework), you can adopt AgentCore services without rewriting your agent. The adoption is incremental: deploy your existing code to Runtime first, then layer in the services you need.
+
+**Choose this path when:**
+- Your agent code already exists and is working
+- You want AgentCore Runtime's isolation, observability, or memory without a full rebuild
+- You are evaluating AgentCore for a brownfield adoption rather than a greenfield project
+
+**Next:** [Adopt AgentCore with an Existing Agent](/docs/get-started/existing-agent)
+
+---
+
+## Not sure? Start here
+
+If you are new to AgentCore and unsure which path fits, start with the [Managed Harness path](/docs/get-started/firstagent). It is the fastest way to see the platform in action. You can always export to code and move to the Runtime path later with no lock-in.
+
+Before you start any path, complete the [Preflight Checklist](/docs/get-started/preflight).
