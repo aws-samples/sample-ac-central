@@ -203,6 +203,18 @@ uv venv
 uv sync
 ```
 
+Once dependencies are installed, run the agent locally:
+
+```bash
+agentcore dev -l
+```
+
+This starts the local dev server and opens the test page. You can also send a quick test prompt from another terminal:
+
+```bash
+agentcore dev "What can you do?"
+```
+
 For conversational and coding agents, reuse the same command structure but select memory, build, network, and integration settings appropriate to those workloads.
 
 ---
