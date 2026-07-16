@@ -2,6 +2,7 @@
 title: AgentCore Central
 sidebar_label: Home
 sidebar_position: 1
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
@@ -10,7 +11,7 @@ import ThemedImage from '@theme/ThemedImage';
 
 # The AgentCore Central
 
-Everything you need to position, design, and ship agents on Amazon Bedrock AgentCore. Reference architectures, multi-agent patterns, and agent archetype playbooks - in one place.
+Learn, build, and operate agents with Amazon Bedrock AgentCore. Reference architectures, multi-agent patterns, and workload playbooks - in one place.
 
 <div className="tile-grid">
   <Link to="/docs/workloads/conversational/overview" className="tile-card">
@@ -40,7 +41,7 @@ Everything you need to position, design, and ship agents on Amazon Bedrock Agent
 ## The AgentCore stack at a glance
 
 <ThemedImage
-  alt="AgentCore Platform"
+  alt="AgentCore platform stack diagram showing six managed service layers: Runtime (sandboxed execution), Memory (session and long-term storage), Gateway (MCP tool federation), Identity (OAuth/OIDC brokering), Observability (OTLP traces and evaluations), and Tools (Code Interpreter and Browser Tool)"
   sources={{
     light: useBaseUrl('/img/agentcore-platform.svg'),
     dark: useBaseUrl('/img/agentcore-platform-dark.svg'),
@@ -82,9 +83,14 @@ AgentCore managed services that together form the agent platform.
 
 <div className="stack-grid">
 
-  <a href="https://agentcore-catalog.beta.harmony.a2z.com/" className="tile-card" target="_blank" rel="noopener">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--package" aria-hidden="true" /><h3>Resources catalog</h3></div>
-    <p>Curated collection of AgentCore blogs, videos, samples, workshops, and internal references in one place.</p>
+  <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/" className="tile-card" target="_blank" rel="noopener">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--package" aria-hidden="true" /><h3>Developer Guide</h3></div>
+    <p>Official Amazon Bedrock AgentCore documentation covering every service, API, and configuration option.</p>
+  </a>
+
+  <a href="https://github.com/awslabs/agentcore-samples" className="tile-card" target="_blank" rel="noopener">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--cube" aria-hidden="true" /><h3>AgentCore Samples</h3></div>
+    <p>Public end-to-end examples and reference implementations maintained on GitHub.</p>
   </a>
 
   <a href="/docs/customer/overview" className="tile-card" rel="noopener">
