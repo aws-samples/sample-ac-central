@@ -1,0 +1,222 @@
+---
+title: Releases and Rollback
+sidebar_label: Releases and Rollback
+sidebar_position: 5
+last_verified: 2026-07-15
+---
+
+import Link from '@docusaurus/Link';
+
+# Releases and Rollback
+
+Releasing a new agent version and rolling back a bad one are both routine operations. Both become faster and safer when you design for them before they are needed. This page covers how to version agent artifacts, how to roll out changes gradually, when and how to roll back, and how to deprecate and retire agents that are no longer needed.
+
+AgentCore provides the runtime, memory, gateway, and identity services that agents run on. Routing and rollback orchestration (switching traffic between agent versions, managing endpoint aliases, and coordinating staged rollouts) is the responsibility of the customer's deployment and infrastructure layer, not a built-in AgentCore feature. The patterns here describe how to build that layer.
+
+For the official AgentCore documentation, see the [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
+
+---
+
+## Version Lifecycle Diagram
+
+The following diagram shows the lifecycle of an agent version from initial development through retirement. Each state is described in detail in the sections below.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Development : New version created
+
+    Development --> OfflineEval : Commit to CI
+
+    OfflineEval --> Staged : Eval gates pass
+    OfflineEval --> Development : Eval gates fail — fix and retry
+
+    Staged --> Production : Online evals healthy,\nstaged metrics pass
+    Staged --> Rollback : Score drops or\nerror rate spike
+
+    Production --> Monitoring : Continuous online evals
+    Monitoring --> Production : Metrics stable
+    Monitoring --> Rollback : Trigger condition met
+
+    Rollback --> Staged : Reroute to previous version
+    Rollback --> Production : Emergency: reroute directly\n(if previous was stable)
+
+    Production --> Deprecated : New version replaces it
+    Deprecated --> Retired : Migration complete,\nno active traffic
+    Retired --> [*]
+```
+
+The diagram above describes seven states in an agent version's life. Development and OfflineEval happen before any real traffic. Staged is the controlled rollout phase with limited production traffic. Production is full rollout under continuous monitoring. Rollback reroutes traffic to a previous stable version. Deprecated marks a version as superseded. Retired means the version is decommissioned and its resources cleaned up.
+
+---
+
+## What Constitutes a Version
+
+An agent's behavior is determined by a combination of artifacts. A meaningful "version" captures all of them together, not just one:
+
+<div className="fancy-table">
+
+| Artifact | Why it matters for versioning |
+|---|---|
+| System prompt | The primary behavioral specification; small prompt changes can cause large behavioral shifts |
+| Tool definitions | The names, descriptions, and schemas that the model uses to decide when and how to call tools |
+| Model identifier | Bedrock model IDs include the specific model version; switching to a new model snapshot is a version change |
+| AgentCore Runtime config | Session duration, memory configuration, and runtime parameters |
+| Cedar policies | The authorization rules that govern what the agent is allowed to do |
+| Application code | Lambda functions, tool implementations, and any orchestration code |
+| Evaluation thresholds | The pass/fail criteria used to gate this version's release |
+
+</div>
+
+A version is a named, immutable snapshot of all these artifacts together. If any artifact changes, that is a new version.
+
+### Storing Versions
+
+Architecture guidance:
+- Store system prompts and tool definitions in version control (git) alongside application code. Treat prompt changes with the same discipline as code changes: review, test, and release them through the same pipeline.
+- Tag every deployment with a semantic version string (e.g., `v2.3.1`) or a build identifier. Log the version identifier on every agent invocation so that production traces can be correlated to specific versions.
+- Retain at least the previous two released versions in a deployable state. When a rollback is needed, having to reconstruct a previous version from git history under pressure is slower and riskier than deploying a pre-built artifact.
+
+---
+
+## Staged Rollout
+
+A staged rollout introduces a new version to a fraction of production traffic before committing to a full deployment. If the new version behaves badly, only a small fraction of requests are affected, and rollback is fast.
+
+### Routing Architecture
+
+AgentCore does not natively manage weighted traffic routing between agent versions. The customer builds this using one of these approaches:
+
+- **Lambda aliases with weighted routing**: if the agent's entry point is a Lambda function, Lambda's built-in weighted alias feature routes a configurable percentage of traffic to the new version and the remainder to the old version.
+- **Application Load Balancer weighted target groups**: route a percentage of requests to the new version's endpoint and the remainder to the stable version.
+- **Feature flag service**: a centralized feature flag can route specific tenants, users, or a percentage of traffic to the new version before full rollout.
+- **API Gateway canary deployments**: for agents exposed via API Gateway, canary deployments provide built-in percentage-based traffic splitting.
+
+```python
+# Example: Lambda alias with weighted routing (boto3)
+import boto3
+
+lambda_client = boto3.client("lambda")
+
+# Route 10% of traffic to the new version ($LATEST or a specific version ARN),
+# and 90% to the current stable version (already assigned to the alias)
+lambda_client.update_alias(
+    FunctionName="my-agent-handler",
+    Name="production",
+    RoutingConfig={
+        "AdditionalVersionWeights": {
+            "42": 0.10  # version number of the new candidate
+        }
+    }
+)
+```
+
+### Staged Rollout Stages
+
+A typical staged rollout progresses through three stages. The time at each stage depends on traffic volume: enough requests need to flow through the new version to produce statistically meaningful evaluation results before advancing.
+
+<div className="fancy-table">
+
+| Stage | Traffic to new version | Advancement criteria |
+|---|---|---|
+| Canary | 5-10% | Error rate and latency stable; no safety evaluation failures |
+| Limited | 25-50% | Online evaluation scores match or exceed previous version; no cost spikes |
+| Full | 100% | All metrics stable; previous version moved to deprecated |
+
+</div>
+
+Do not advance stages on a fixed time schedule. Advance when the advancement criteria are met. Advance faster if traffic volume is high enough that you have strong statistical confidence quickly; advance more slowly if traffic is low.
+
+---
+
+## Rollback Triggers and Procedure
+
+A rollback is a decision to stop routing traffic to the current version and resume routing to a previous known-good version.
+
+### Trigger Conditions
+
+Define rollback triggers before deploying to production. Triggers fall into three categories:
+
+**Immediate rollback:**
+- Safety evaluation score drops below the minimum acceptable threshold at any time.
+- Harmful or policy-violating output confirmed in production.
+- Error rate exceeds 3x the baseline rate sustained for more than 5 minutes.
+- A Cedar policy bypass or unauthorized tool call confirmed.
+
+**Hold and investigate (consider rollback):**
+- Online evaluation correctness score drops more than 10% from the baseline established at release.
+- Tool-call accuracy drops below the threshold that was required to pass offline evaluation.
+- p99 latency exceeds 2x the SLA.
+- Cost per invocation increases more than 2x over the previous version's baseline.
+
+**Monitor (do not yet roll back):**
+- A single metric dips briefly but recovers within minutes.
+- A new type of user input that was not in the training dataset produces unexpected behavior once.
+
+### Rollback Procedure
+
+1. **Identify the last known-good version.** This should be the version that was deployed before the current one and passed all evaluation gates. It should be in a deployable state.
+2. **Reroute traffic.** Update the routing configuration (Lambda alias, ALB target group, feature flag, or API Gateway canary) to send 100% of traffic to the known-good version. This is the single action that stops new requests from hitting the bad version.
+3. **Verify the reroute.** Confirm that the known-good version is receiving traffic and that error rates and evaluation scores are recovering.
+4. **Drain in-flight sessions.** For conversational agents with long sessions, decide whether to abruptly end active sessions on the bad version or let them complete. Abrupt termination is jarring to users but stops the bad behavior faster; graceful drain is smoother but prolongs exposure.
+5. **Preserve evidence.** Before modifying anything further, preserve logs, traces, and evaluation data from the bad version. This is the evidence base for the post-incident review.
+6. **Disable or quarantine the bad version.** Remove it from the rotation. Do not delete it; it may be needed for investigation.
+7. **Open an incident.** Assign an owner, document the timeline, and begin root cause analysis.
+
+### Post-Rollback
+
+After a rollback, the bad version should not be re-released until:
+- The root cause is identified and documented.
+- A fix is implemented and verified in offline evaluation.
+- The evaluation dataset is extended with a regression case that would have caught this failure.
+- The release pipeline is re-run from the beginning for the fixed version.
+
+---
+
+## Deprecation and Retirement
+
+Deprecating an agent version is the process of making it no longer the active version while keeping it available as a rollback target. Retiring it is the final cleanup step.
+
+### Deprecation
+
+Mark a version as deprecated when a newer version has been promoted to full production:
+
+- Update the version's status in your deployment registry or configuration store.
+- If the deprecated version was exposed via a named endpoint or alias, leave the alias in place but pointing to the new version.
+- Document the deprecation: which version replaced it, when the replacement was fully deployed, and when the deprecated version will be retired.
+- Notify any internal consumers that called the deprecated version directly (not through the canonical alias).
+
+Deprecated versions should be retained in a deployable state for at least 30 days (or longer, depending on your rollback policy). Do not clean up the artifacts until you are confident the replacement version is stable.
+
+### Retirement
+
+Retiring a version means decommissioning its resources:
+
+1. Confirm no traffic has been routed to this version for the retention period.
+2. Archive logs, traces, and evaluation results to long-term storage (S3 Glacier or equivalent) if required for compliance.
+3. Delete the Lambda function version or container image (but retain the artifact in the image registry for audit purposes if required).
+4. Remove the CloudWatch log group or configure it to expire after the compliance retention window.
+5. Check for and decommission any standing resources that were created for this version: DynamoDB tables, S3 buckets, Secrets Manager secrets.
+6. Update the deployment registry to mark the version as retired.
+
+When retiring an entire agent (not just a version), also decommission the AgentCore Runtime endpoint, memory namespaces associated with the agent, and any Gateway tool configurations that existed only for this agent.
+
+---
+
+## Related Pages
+
+<div className="tile-grid">
+  <Link to="/docs/operate/production-readiness" className="tile-card">
+    <div className="tile-heading"><h3>Production Readiness →</h3></div>
+    <p>Rollback and deprecation checklist items and how they fit into the overall production-readiness program.</p>
+  </Link>
+
+  <Link to="/docs/operate/evaluations" className="tile-card">
+    <div className="tile-heading"><h3>Evaluations →</h3></div>
+    <p>How evaluation scores connect to rollback triggers and evaluation-gated releases.</p>
+  </Link>
+
+  <Link to="/docs/operate/cost-and-reliability" className="tile-card">
+    <div className="tile-heading"><h3>Cost and Reliability →</h3></div>
+    <p>Decommissioning resources during retirement to eliminate standing costs.</p>
+  </Link>
+</div>
