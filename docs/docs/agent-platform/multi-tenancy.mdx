@@ -2,9 +2,14 @@
 title: Multi-Tenancy & Reference Architecture
 sidebar_label: Multi-Tenancy
 sidebar_position: 7
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
+
+:::info Architecture Patterns
+These are target-state architecture patterns for multi-tenant agent platforms at enterprise scale, not required prerequisites for a first prototype. Start with a single-account setup and evolve toward multi-account isolation as your platform matures.
+:::
 
 # Multi-Tenancy & Reference Architecture
 
@@ -133,7 +138,7 @@ Organizations evolve through maturity levels. Each level builds on the previous 
 |---|---|---|
 | **L1** | Experimentation | Individual teams building PoCs. No shared infrastructure. Ad-hoc security. |
 | **L2** | Foundation | Shared runtime and gateway deployed. Basic registry. Central observability. |
-| **L3** | Scaling | Self-service onboarding. CI/CD with eval gates. Multi-team adoption. A/B testing. |
+| **L3** | Scaling | Self-service onboarding. CI/CD with eval gates. Multi-team adoption. A/B routing (customer-built pattern). |
 | **L4** | Governed & Optimized | Full governance automation. Cost optimization. Continuous evals. Federated ops. |
 
 </div>
@@ -160,7 +165,7 @@ Organizations evolve through maturity levels. Each level builds on the previous 
     <p>• Build self-service onboarding workflows<br/>
     • Implement CI/CD pipelines with evaluation gates<br/>
     • Add cost attribution and per-team budgets<br/>
-    • Enable A/B testing via Gateway traffic splitting<br/>
+    • Enable A/B routing via a customer-built layer in front of agent endpoints (Gateway does not provide weighted traffic splitting natively; see <a href="./agent-ops">Agent Ops</a>)<br/>
     • Onboard 3+ domain teams to the platform</p>
     <span className="service-tag tag--gateway">Scaling</span>
   </div>

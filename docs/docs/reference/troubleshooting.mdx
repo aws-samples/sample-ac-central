@@ -183,13 +183,110 @@ when {
 | Symptom                       | Root Cause             | Solution                                               |
 | ----------------------------- | ---------------------- | ------------------------------------------------------ |
 | `Unknown service` in boto3    | boto3 too old          | `pip install --upgrade boto3 botocore`                 |
-| CLI command not recognized    | Outdated CLI version   | `npm install -g @aws/agentcore@latest`                 |
+| CLI command not recognized    | Outdated CLI version   | `npm install -g @aws/agentcore@0.23.0` — before upgrading, check the [CLI releases page](https://github.com/aws/agentcore-cli/releases) for compatibility notes |
 | Session terminated early      | Idle timeout too short | Increase via `agentcore.json` or `agentcore add agent` |
 | 504 Gateway Timeout on invoke | Agent took too long    | Check agent logs; optimize tool calls or model         |
 
 </div>
 
 ---
+
+
+---
+
+## Region and Service Availability
+
+<div className="fancy-table">
+
+| Symptom | Root Cause | Solution |
+| ------- | ---------- | -------- |
+| `UnknownServiceException` or `Could not connect to the endpoint URL` | AgentCore not available in the selected region | Check which regions support AgentCore in the [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/). Switch your target region in `agentcore/aws-targets.json`. |
+| Deploy succeeds but runtime endpoint returns 503 | Service capacity or rollout lag in a new region | Wait a few minutes and retry. If the issue persists, open a support case. |
+
+</div>
+
+---
+
+## IAM Access Errors
+
+AgentCore uses two distinct IAM roles. Errors often come from confusing which role is missing a permission.
+
+<div className="fancy-table">
+
+| Role | When it is used | Common missing permissions |
+| ---- | --------------- | -------------------------- |
+| Deployment role (your caller identity) | Running `agentcore deploy`, `agentcore add`, `agentcore destroy` | `bedrock-agentcore:CreateAgentRuntime`, `iam:PassRole`, `ecr:*`, `cloudformation:*` |
+| Execution role (attached to the runtime) | Agent code running inside AgentCore | `bedrock:InvokeModel`, `bedrock-agentcore:GetMemory`, Lambda invoke, secrets access |
+
+</div>
+
+If you see `AccessDeniedException` during deploy, the deployment role is missing permissions. If you see it inside agent code at runtime, the execution role is missing permissions. Check CloudWatch logs to distinguish the two.
+
+---
+
+## Model Access Errors
+
+<div className="fancy-table">
+
+| Symptom | Root Cause | Solution |
+| ------- | ---------- | -------- |
+| `AccessDeniedException: You don't have access to the model` | Bedrock model not enabled in your account | Open the [Bedrock console](https://console.aws.amazon.com/bedrock/) and request access under **Model access** for the specific model and region. |
+| `ValidationException: The provided model identifier is invalid` | Model ID mismatch or model not available in the region | Verify the exact model ID in the Bedrock console for your target region. |
+
+</div>
+
+---
+
+## Deployment Rollback
+
+If a deploy fails partway through or introduces a regression, you can return to the previous working state:
+
+1. Run `agentcore status` to identify which resources are in a failed or updating state.
+2. For CloudFormation-backed resources, open the AWS CloudFormation console and choose **Roll back** on the failed stack, or run `agentcore destroy` to tear down and re-deploy from a known-good `agentcore.json`.
+3. To redeploy the previous configuration, restore `agentcore.json` from version control and run `agentcore deploy` again.
+4. If a runtime is stuck in `UPDATE_FAILED`, delete it manually in the AgentCore console or via CLI, then redeploy.
+
+---
+
+## Cleanup Failures
+
+Running `agentcore destroy` removes the CDK stack, but some resources may persist if deletion fails or if they were created outside the managed stack.
+
+<div className="fancy-table">
+
+| Resource | Why it may persist | How to verify removal |
+| -------- | ------------------ | --------------------- |
+| ECR repositories | Non-empty repositories are not deleted by default | Check the ECR console; delete images then delete the repository manually |
+| Secrets Manager secrets | Secrets have a minimum 7-day recovery window | Look for secrets named after your project in the Secrets Manager console; use **Force delete** if needed |
+| CloudWatch log groups | Log groups are retained by default | Search for `/aws/agentcore/` prefixed groups in the CloudWatch console and delete manually |
+| IAM roles | Roles with attached policies may block deletion | Check IAM for roles prefixed with your project name; detach policies and delete |
+
+</div>
+
+After running `agentcore destroy`, verify cleanup with:
+
+```bash
+agentcore status
+```
+
+A clean teardown shows no resources in the output.
+
+---
+
+## Safe Log Inspection
+
+Before sharing logs or pasting them into support channels:
+
+- Redact AWS account IDs, ARNs, and region identifiers if your account details are sensitive.
+- Remove any bearer tokens, API keys, or client secrets that may appear in request headers logged at `DEBUG` level.
+- Avoid pasting full `agentcore.json` contents if they reference internal endpoint URLs or secret names that reveal infrastructure details.
+
+To inspect logs without exposing sensitive data in your terminal history, pipe output to a file first:
+
+```bash
+agentcore logs --runtime MyAgent > /tmp/agent-logs.txt
+# Then redact before sharing
+```
 
 ## Getting Help
 

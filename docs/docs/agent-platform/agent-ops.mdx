@@ -2,17 +2,18 @@
 title: Agent Ops
 sidebar_label: Agent Ops
 sidebar_position: 6
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
 
-:::info Architectural Guidance
-This page describes the target-state architecture for agent operations at enterprise scale. AWS Agent Registry is a real, public-preview managed service, not a customer-built pattern. See the lifecycle table below for its actual status model. Percentage-based traffic splitting and quality-triggered rollback, by contrast, are platform patterns you build on top of AgentCore Runtime's native endpoint versioning; they are not built-in Gateway features.
+:::info Architecture Patterns
+These are target-state architecture patterns for agent operations at enterprise scale, not required prerequisites for a first prototype. Native AgentCore capabilities are clearly distinguished from customer-built patterns throughout this page.
 :::
 
 # Agent Ops
 
-Agent Ops extends DevOps practices to the unique challenges of AI agents. Because agents are non-deterministic and continuously evolving, they require purpose-built CI/CD pipelines, continuous evaluation, traffic management, and lifecycle governance.
+Agent Ops extends DevOps practices to the unique challenges of AI agents. Because agents are non-deterministic and continuously evolving, they require purpose-built CI/CD pipelines, continuous evaluation, traffic management, and lifecycle governance. This page covers the full deployment pipeline, ongoing operations, and the clear distinction between what AgentCore Runtime provides natively and what you build on top.
 
 ---
 
@@ -147,14 +148,14 @@ Key lifecycle operations:
 
 <div className="fancy-table">
 
-| Capability                 | Primary Service                                        |
-| -------------------------- | ------------------------------------------------------ |
-| CI/CD Pipeline             | CodePipeline + CodeBuild (or GitHub Actions)           |
-| Evaluation Gates           | AgentCore Evaluations                                  |
-| Monitoring & Alerts        | AgentCore Observability + CloudWatch Alarms            |
-| Cost Tracking              | AWS Cost Explorer + Cost Allocation Tags               |
-| Version Management         | AgentCore Runtime endpoint versioning                  |
-| Traffic Splitting / Canary | Customer-built routing layer + AgentCore Observability |
-| Agent Catalog              | AWS Agent Registry                                     |
+| Capability                 | Primary Service                                        | Label |
+| -------------------------- | ------------------------------------------------------ | ----- |
+| CI/CD Pipeline             | CodePipeline + CodeBuild (or GitHub Actions)           | Adjacent AWS |
+| Evaluation Gates           | AgentCore Evaluations                                  | AgentCore-native ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/)) |
+| Monitoring & Alerts        | AgentCore Observability + CloudWatch Alarms            | AgentCore-native + Adjacent AWS |
+| Cost Tracking              | AWS Cost Explorer + Cost Allocation Tags               | Adjacent AWS |
+| Version Management         | AgentCore Runtime endpoint versioning                  | AgentCore-native |
+| Traffic Splitting / Canary | Customer-built routing layer + AgentCore Observability | Customer-built pattern |
+| Agent Catalog              | AWS Agent Registry                                     | Preview ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/)) |
 
 </div>

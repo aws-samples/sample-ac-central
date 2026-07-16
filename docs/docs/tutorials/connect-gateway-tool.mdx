@@ -9,11 +9,20 @@ last_verified: 2026-07-08
 Examples built with **Strands Agents SDK** `1.46.0` and **bedrock-agentcore** `1.17.0`. APIs may differ in other versions.
 :::
 
+:::caution Prototype, not production
+This tutorial creates a prototype, not a production-ready system. Before routing real users or data to it, work through the [Production Readiness checklist](/docs/operate/production-readiness).
+:::
+
 # Tutorial: Connect a Tool via Gateway
 
 Connect your agent to external APIs, databases, and services through AgentCore Gateway. In this tutorial, you'll create a Lambda-backed tool, register it with a Gateway, and call it from your agent.
 
-**Time:** 20 minutes
+| | |
+|---|---|
+| **Who this is for** | Developers wiring external APIs or shared tools to an existing agent |
+| **Time** | ~20 minutes |
+| **What you'll build** | A Lambda tool, an AgentCore Gateway, and an agent that calls the tool via MCP |
+| **Safety level** | Creates real AWS resources and invokes a Lambda function; uses simulated weather data; no external write actions |
 
 ---
 
@@ -224,7 +233,7 @@ Tools exposed through a Gateway are prefixed with the target name: `WeatherServi
 # Validate configuration
 agentcore validate
 
-# Deploy (creates Gateway + Lambda + Runtime)
+# Deploy (creates/updates the Gateway and Runtime; uses the existing Lambda ARN you supplied above)
 agentcore deploy -y
 
 # Check Gateway status
@@ -289,13 +298,24 @@ The Gateway aggregates all targets into one virtual MCP server. With **semantic 
 
 ## Adding Authentication
 
-For production, add outbound authentication so the Gateway can call secured backends:
+For production, add outbound authentication so the Gateway can call secured backends.
+
+:::warning Never put credentials in commands or source files
+API keys and secrets passed directly on the command line end up in shell history, CI logs, and process lists. Store them in AWS Secrets Manager or AWS Systems Manager Parameter Store and reference them by name instead.
+:::
 
 ```bash
-# Store an API key credential
-agentcore add credential --name ExternalAPI --api-key sk-...
+# 1. Store the API key in Secrets Manager (one-time setup)
+aws secretsmanager create-secret \
+  --name /agentcore/credentials/ExternalAPI \
+  --secret-string '{"api_key":"<your-key-here>"}'
 
-# Add a target that uses the credential
+# 2. Register the credential by referencing the secret (key value never touches the CLI)
+agentcore add credential \
+  --name ExternalAPI \
+  --secret-arn arn:aws:secretsmanager:us-east-1:YOUR_ACCOUNT:secret:/agentcore/credentials/ExternalAPI
+
+# 3. Add a target that uses the credential
 agentcore add gateway-target \
   --name SecureAPI \
   --type open-api-schema \
@@ -304,6 +324,13 @@ agentcore add gateway-target \
   --outbound-auth api-key \
   --credential-name ExternalAPI
 ```
+
+Keep credentials safe in production:
+
+- **Storage** — use AWS Secrets Manager or SSM Parameter Store; never environment files committed to version control.
+- **Rotation** — enable automatic rotation in Secrets Manager; update the registered credential ARN after each rotation.
+- **Least privilege** — grant the Gateway's execution role only `secretsmanager:GetSecretValue` on the specific secret ARN, not a wildcard.
+- **Exposure** — avoid logging credential values; ensure CI pipelines mask secrets in output and that secrets do not appear in build artifacts or container images.
 
 For inbound authentication (JWT validation on the Gateway itself):
 
@@ -356,8 +383,71 @@ agentcore add gateway \
 
 ---
 
+---
+
+## Placeholders in This File
+
+The example code uses these values you must replace with real values for your deployment:
+
+- `YOUR_ACCOUNT` in Lambda ARN and Secrets Manager ARN — replace with your 12-digit AWS account ID
+- `us-east-1` — replace with the AWS region where your Lambda function and AgentCore resources reside
+- `weather-tool`, `ticket-tool` — placeholder Lambda function names; replace with your actual function names
+- `AGENTCORE_GATEWAY_URL` — injected automatically by AgentCore at deploy time; no action needed unless testing locally
+- `https://mcp.internal.example.com/mcp` — placeholder MCP server URL; replace with your real endpoint
+
+---
+
+## What This Creates and What It Costs
+
+Deploying this tutorial creates the following AWS resources:
+
+| Resource | Notes |
+|---|---|
+| AgentCore Runtime | Hosts your agent code in MicroVM isolation |
+| AgentCore Gateway | Federates Lambda and MCP tools into a single virtual MCP server |
+| IAM roles | Execution role for the Runtime and Gateway service role |
+| CloudWatch log groups | Receives runtime, invocation, and Gateway traces |
+
+**Main cost drivers:**
+- **Model inference tokens** — every invocation calls Claude Sonnet 4.5; you pay per input/output token
+- **Lambda invocations** — each tool call triggers a Lambda invocation; billed by request count and duration
+- **Runtime execution seconds** — billed per second of agent execution
+- **Log and trace ingestion** — CloudWatch charges per GB ingested and stored; X-Ray trace data has its own pricing
+
+**Scale-to-zero does not mean zero cost.** ECR images and CloudWatch log retention continue to accrue charges even with no active traffic. The Lambda function also incurs a small storage charge even when idle.
+
+---
+
+## Cleanup
+
+When you are done with this tutorial, destroy the AWS resources it created:
+
+```bash
+# From your agent project directory
+agentcore destroy
+```
+
+Verify resources are gone:
+
+```bash
+agentcore status
+# Expected: no runtimes or gateway resources listed
+```
+
+Some resources may persist after `agentcore destroy`:
+
+- **Lambda function** — if you created the Lambda separately, delete it manually: `aws lambda delete-function --function-name weather-tool`
+- **ECR repository** — may remain if images are still tagged; delete manually in the ECR console
+- **CloudWatch log groups** — retained by default; delete manually to stop log storage charges
+- **Secrets Manager secrets** — if you added outbound auth secrets, delete them: `aws secretsmanager delete-secret --secret-id /agentcore/credentials/ExternalAPI`
+
+If `agentcore destroy` reports errors, see [Cleanup Failures](/docs/reference/troubleshooting#cleanup-failures).
+
+---
+
 ## Next Steps
 
 - [Add Memory](/docs/tutorials/add-memory): Give your agent cross-session recall
 - [agentcore.json Reference](/docs/reference/agentcore-json#agentcoregateways): Full gateway configuration
 - [AgentCore Gateway Docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html): Official AWS documentation
+- [Production Readiness checklist](/docs/operate/production-readiness): Before routing real users or production API calls
