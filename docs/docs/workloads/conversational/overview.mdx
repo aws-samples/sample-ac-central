@@ -64,15 +64,15 @@ For a side-by-side comparison with Workflow and Coding patterns, see the [Worklo
 
 <div className="fancy-table fancy-table--auto-first">
 
-| AgentCore Service | Configuration for Conversational                        | Why It Matters                                    |
-|-------------------|---------------------------------------------------------|---------------------------------------------------|
-| **Identity**      | End-user OAuth bearer tokens (Entra ID, Okta, Cognito)  | Agent acts on behalf of the user                  |
-| **Memory**        | Session + long-term, namespace per user                 | Multi-turn context + cross-session recall          |
-| **Runtime**       | Streaming enabled, session affinity, up to 8h lifecycle ¹ | Real-time UX, stateful conversations              |
-| **Guardrails**    | Content filters + topic boundaries + PII redaction      | Protect against adversarial inputs                |
-| **Evaluations**   | GoalSuccessRate, Helpfulness, Correctness               | Catch quality regressions before users feel them  |
-| **Observability** | Per-conversation tracing with user context              | Debug "the agent gave me wrong info"              |
-| **Gateway**       | User-scoped tool access with auth propagation           | Agent calls APIs as the user                      |
+| Purpose | Description | AgentCore capability |
+|---------|-------------|---------------------|
+| **User authentication** | End-user OAuth bearer tokens (Entra ID, Okta, Cognito) so the agent acts on behalf of the user | Identity |
+| **Conversation context** | Session memory + long-term recall, namespaced per user for multi-turn continuity and cross-session personalization | Memory |
+| **Execution environment** | Streaming-enabled runtime with session affinity and up to 8h lifecycle ¹ for real-time, stateful conversations | Runtime |
+| **Input safety** | Content filters, topic boundaries, and PII redaction to protect against adversarial or off-topic inputs | Guardrails (via policy on gateway) |
+| **Quality measurement** | GoalSuccessRate, Helpfulness, and Correctness evaluations to catch regressions before users feel them | Evaluations |
+| **Debugging and tracing** | Per-conversation traces with user context to diagnose "the agent gave me wrong info" | Observability |
+| **Tool access** | User-scoped API access with auth propagation so the agent calls external services as the user | Gateway |
 
 </div>
 
