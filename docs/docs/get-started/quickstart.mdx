@@ -168,10 +168,21 @@ of 22°C and humidity at 65%.
 
 ## Step 6: Deploy to AgentCore
 
-Install the CDK project dependencies, then deploy:
+Install the CDK project dependencies:
 
 ```bash
 cd agentcore/cdk && npm install && cd ../..
+```
+
+Run a dry run first to preview what will be created without deploying:
+
+```bash
+agentcore deploy --dry-run
+```
+
+When you're satisfied with the plan, deploy:
+
+```bash
 agentcore deploy
 ```
 
