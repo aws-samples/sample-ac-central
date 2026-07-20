@@ -1,20 +1,63 @@
 ---
-title: "Public resources"
-sidebar_label: Public resources
+title: "Further Reading"
+sidebar_label: Further Reading
 sidebar_position: 3
-last_verified: 2026-07-15
+last_verified: 2025-07-20
 ---
 
-# Public resources
+# Further Reading
 
-Use these public resources to continue building and operating agents with Amazon Bedrock AgentCore.
+Curated authoritative sources for building and operating agents with Amazon Bedrock AgentCore.
 
-## AgentCore CLI
+## AgentCore Platform
 
-The [AgentCore CLI repository](https://github.com/aws/agentcore-cli) contains the maintained CLI documentation, source code, and release notes. Use it for the latest commands and version-specific behavior. The CLI repository is also the authoritative source for the `agentcore.json` schema across releases — the schema reference in these docs reflects a specific CLI version and may lag behind the current release.
+- [AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/) — Complete reference for Runtime, Memory, Gateway, Identity, Observability, Evaluations, Policy, and Harness
+- [AgentCore CLI](https://github.com/aws/agentcore-cli) — CLI source, release notes, and the authoritative `agentcore.json` schema reference
+- [AgentCore Samples](https://github.com/awslabs/agentcore-samples) — End-to-end reference implementations covering workflow, conversational, and multi-agent patterns
+- [AgentCore CloudFormation Resources](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/AWS_BedrockAgentCore.html) — CloudFormation resource types for provisioning AgentCore infrastructure as code
+- [AgentCore CDK Constructs](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_bedrockagentcore-readme.html) — AWS CDK L2 construct library for AgentCore resources
+- [AgentCore Terraform Provider](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/bedrockagentcore_agent) — Terraform provider resources for AgentCore agent management
 
-For an overview of Amazon Bedrock AgentCore services and capabilities, see the [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
+## Architecture and Best Practices
 
-## Samples
+- [Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) — Security, reliability, and operational best practices for agentic AI workloads
+- [Well-Architected Generative AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/generative-ai-lens.html) — Cost optimization, performance, and governance guidance for generative AI
+- [Agentic AI Security Scoping Matrix](https://aws.amazon.com/ai/security/agentic-ai-scoping-matrix/) — Risk classification framework mapping agent autonomy levels to security controls
+- [Securing Agentic AI (Prescriptive Guidance)](https://docs.aws.amazon.com/prescriptive-guidance/latest/securing-agentic-ai/introduction.html) — Threat modeling and security architecture for autonomous agent systems
+- [Serverless Generative AI (Prescriptive Guidance)](https://docs.aws.amazon.com/prescriptive-guidance/latest/serverless-generative-ai/introduction.html) — Patterns for building generative AI applications on serverless infrastructure
+- [Memory-Augmented Agents (Prescriptive Guidance)](https://docs.aws.amazon.com/prescriptive-guidance/latest/memory-augmented-agents/introduction.html) — Design patterns for agents with persistent and episodic memory
+- [Circuit Breaker for AI Agents (Prescriptive Guidance)](https://docs.aws.amazon.com/prescriptive-guidance/latest/circuit-breaker-ai-agents/introduction.html) — Fault-tolerance patterns preventing cascading failures in agent systems
+- [Cedar Policy Language](https://www.cedarpolicy.com/) — Authorization policy language used by AgentCore for tool and resource access control
 
-Explore the [AgentCore Samples repository](https://github.com/awslabs/agentcore-samples) for public end-to-end examples and reference implementations.
+## Strands Agents SDK
+
+- [Strands Agents Documentation](https://strandsagents.com/latest/documentation/docs/) — Official SDK docs covering agents, tools, models, and orchestration
+- [Operating Agents in Production](https://strandsagents.com/latest/documentation/docs/user-guide/deploy/operating-agents-in-production/) — Monitoring, scaling, and reliability guidance for deployed agents
+- [Deploying Agents](https://strandsagents.com/latest/documentation/docs/user-guide/deploy/deploy-agent/) — Packaging and deployment options for Strands-based agents
+- [Multi-Agent Patterns](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/multi-agent/multi-agent-patterns/) — Coordinator, pipeline, and swarm patterns for multi-agent orchestration
+- [Deep Dive: Building Agents with Strands](https://aws.amazon.com/blogs/machine-learning/build-agentic-ai-applications-with-strands-agents/) — Technical blog on building production agents with the Strands SDK
+
+## Security and Governance
+
+- [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/) — Industry-standard vulnerability taxonomy for LLM-powered systems
+- [NIST AI 600-1: AI Risk Management](https://csrc.nist.gov/pubs/ai/600/1/final) — Federal framework for identifying and mitigating risks in AI systems
+- [Cedar Policy Language Reference](https://docs.cedarpolicy.com/) — Specification and examples for writing Cedar authorization policies
+- [Context Window Overflow in Agents](https://aws.amazon.com/blogs/machine-learning/addressing-context-window-overflow-in-ai-agents/) — Techniques for managing token limits in long-running agent conversations
+- [Prompt Injection Mitigation](https://aws.amazon.com/blogs/machine-learning/protecting-ai-agents-from-prompt-injection/) — Defense patterns for preventing adversarial prompt manipulation
+
+## Reliability Patterns
+
+- [Amazon EventBridge for Event-Driven Agents](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-what-is.html) — Serverless event bus for decoupling agent triggers from processing logic
+- [Amazon SQS Dead-Letter Queues](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html) — Capture and retry failed agent invocations without data loss
+- [Step Functions Error Handling](https://docs.aws.amazon.com/step-functions/latest/dg/concepts-error-handling.html) — Retry, catch, and fallback patterns for multi-step agent workflows
+- [Human Approval with Step Functions](https://docs.aws.amazon.com/step-functions/latest/dg/callback-task-sample-sqs.html) — Callback patterns for pausing workflows pending human review
+- [Tenant Isolation with IAM](https://docs.aws.amazon.com/prescriptive-guidance/latest/saas-multitenant-api-access-authorization/isolation-methods.html) — Resource and policy isolation patterns for multi-tenant agent deployments
+- [Saga Pattern for Distributed Transactions](https://docs.aws.amazon.com/prescriptive-guidance/latest/modernization-data-persistence/saga-pattern.html) — Compensating transactions for reliable multi-service agent operations
+
+## Customer Stories
+
+- [BGL Group: AI-Powered Insurance](https://aws.amazon.com/solutions/case-studies/bgl-group-case-study/) — Automated underwriting agents reducing policy processing time
+- [Thomson Reuters: Legal AI](https://aws.amazon.com/solutions/case-studies/thomson-reuters-case-study/) — Document analysis agents for legal research at enterprise scale
+- [Iberdrola: Energy Operations](https://aws.amazon.com/solutions/case-studies/iberdrola-case-study/) — Predictive maintenance agents managing grid infrastructure
+- [AutoScout24: Automotive Marketplace](https://aws.amazon.com/solutions/case-studies/autoscout24-case-study/) — Conversational agents improving vehicle search experience
+- [Caylent: Cloud Migration](https://aws.amazon.com/solutions/case-studies/caylent-case-study/) — Agent-assisted cloud migration and optimization workflows
