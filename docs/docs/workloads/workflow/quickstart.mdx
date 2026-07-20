@@ -328,6 +328,25 @@ This quickstart uses read-only and notification tools deliberately. Before addin
 See [Bounded Autonomy](/docs/workloads/workflow/bounded-autonomy) for how Cedar policies enforce these boundaries in production.
 :::
 
+:::warning Destructive tools require explicit policy authorization
+The following tool (`restart_service`) mutates service state. It is gated by a Cedar
+policy that restricts invocation to a specific principal during maintenance windows.
+Never add destructive tools without corresponding Cedar policies.
+:::
+
+```cedar
+// Only the ops-automation principal can invoke restart_service
+// and only when the incident severity is HIGH
+permit(
+  principal == AgentCore::Principal::"ops-automation-agent",
+  action == AgentCore::Action::"InvokeTool",
+  resource == AgentCore::Tool::"restart_service"
+) when {
+  context.incident_severity == "HIGH" &&
+  context.maintenance_window == true
+};
+```
+
 ---
 
 ---

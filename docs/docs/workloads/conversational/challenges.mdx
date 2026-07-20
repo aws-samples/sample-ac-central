@@ -1,0 +1,220 @@
+---
+title: Production Challenges
+sidebar_label: Production Challenges
+sidebar_position: 6
+last_verified: 2026-07-20
+---
+
+import Link from '@docusaurus/Link';
+
+# Production Challenges for Conversational Agents
+
+Conversational agents are harder to run in production than they look. The combination of long-lived sessions, real user identity, tool-calling capability, persistent memory, and multi-tenant infrastructure creates a distinct class of failure modes that don't appear in simple LLM API wrappers.
+
+This page covers the eight challenges that most commonly catch teams off guard. For each one: what it is, why it hits conversational agents specifically, what breaks when you get it wrong, and what to do about it.
+
+---
+
+## 1. Context Window Overflow
+
+Multi-turn sessions accumulate history. Each turn appends the user message, the agent's response, tool calls, and injected memory — and naively replaying the full transcript eventually exceeds the model's context window; the [Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) frames this as cognitive pipeline optimization.
+
+**Why it matters here:** Unlike single-turn agents, conversational agents are designed to accumulate context. A support session that lasts an hour can easily hit context limits. The dangerous part is *how* the overflow is handled: most inference stacks silently truncate the oldest tokens first, which means your system prompt and safety instructions disappear before any conversation history does.
+
+**What breaks:**
+- Safety instructions get truncated → agent behaves as if they don't exist
+- Personalization and earlier context fall out → agent asks the user to repeat themselves
+- Response quality degrades without obvious error signals
+- Cost and latency grow linearly with prompt length, then spike when fallback behaviors kick in
+
+**What to do:**
+- Allocate explicit token budgets per component: system prompt, conversation history, RAG injections, memory recall — and enforce them with code, not hope
+- Summarize old turns rather than appending full transcripts; store the summary, discard the raw history
+- Place system and safety prompts at a fixed position that won't be truncated (typically the top of the prompt, excluded from the sliding window)
+- Monitor prompt token counts per session and alert when they approach 70–80% of the window
+- See [AWS Well-Architected Generative AI Lens — Cost Optimization](https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/cost-optimization.html) for token budgeting guidance
+
+---
+
+## 2. PII Leakage in Memory
+
+Conversational agents often need to remember things about users across sessions — their preferences, their role, context from previous conversations. That memory becomes a liability when it's not properly scoped, expired, or protected.
+
+**Why it matters here:** Memory is a first-class feature of conversational agents. It's also a new attack surface. A shared or under-scoped memory store can leak User A's data into User B's session, surface sensitive inputs in unrelated queries, or expose PII through logs and observability traces.
+
+**What breaks:**
+- Memory namespaced only by user ID collides across tenants → cross-tenant data exposure
+- RAG-indexed memory retrieves sensitive data in semantically similar but unrelated sessions
+- PII captured during conversation ends up in logs accessible to operators without need-to-know
+- Credentials or session tokens inadvertently stored in memory become persistent attack targets
+
+**What to do:**
+- Namespace memory by **both** user ID and tenant ID — never use "default-user" or a shared namespace in production
+- Apply PII detection before writing to memory; use [Amazon Bedrock Guardrails](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) or application-level redaction
+- Define retention policies and auto-expire memory that doesn't require indefinite persistence
+- Never store credentials, tokens, or session identifiers in agent memory
+- Classify memory content by sensitivity and apply access controls at the storage layer
+- See [AWS Prescriptive Guidance: Security Considerations for Data in Generative AI](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-data-considerations-gen-ai/security.html)
+
+---
+
+## 3. Prompt Injection on Tool-Calling Agents
+
+Prompt injection is the attempt to override the agent's instructions through crafted inputs. For an agent that only generates text, it's annoying. For an agent that calls tools — reads databases, sends emails, executes code — it's a security incident.
+
+**Why it matters here:** Conversational agents are by design exposed to arbitrary human input, and they often have access to high-value tools. The attack surface is large: direct injection from the user, indirect injection from documents retrieved via RAG, and role-confusion attacks that persuade the agent it has elevated privileges.
+
+**What breaks:**
+- Direct injection: user crafts a message that overrides the system prompt → agent calls a tool it shouldn't
+- Indirect injection: a retrieved document contains embedded instructions → agent follows them as if they came from the system prompt
+- Role confusion: user convinces the agent it's in "developer mode" or "admin mode" → agent attempts out-of-scope actions
+- Compounding: prompt injection + permissive tool policies = data exfiltration or destructive action
+
+**What to do:**
+- Enable prompt attack filters in [Amazon Bedrock Guardrails](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html)
+- Sanitize inputs at the application layer *before* they reach the model — guardrails are defense-in-depth, not the first line of defense
+- Constrain tool access with [Cedar policies](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) — the model's decision to call a tool is not sufficient authorization; Cedar enforces who can call what
+- Route high-risk tool calls through human-in-the-loop approval regardless of model confidence
+- Include adversarial prompt suites in your CI test pipeline (role confusion, context manipulation, instruction injection via retrieved docs), using the [Agentic AI Security Scoping Matrix](https://aws.amazon.com/ai/security/agentic-ai-scoping-matrix/) to classify agent/tool risk
+- Monitor guardrail metrics; a spike in blocked inputs is an attack pattern signal
+- See [AWS Security Blog: Safeguard Your Generative AI Workloads from Prompt Injections](https://aws.amazon.com/blogs/security/safeguard-your-generative-ai-workloads-from-prompt-injections/) and the [OWASP GenAI Security Project](https://genai.owasp.org/)
+
+---
+
+## 4. Identity Misconfiguration
+
+Conversational agents act on behalf of a specific user. If the agent's permissions aren't properly scoped to that user's entitlements, the agent becomes a privilege escalation path — users can do things through the agent that they can't do directly.
+
+**Why it matters here:** The conversational pattern depends on identity propagation: the user authenticates, the agent receives their identity, and every downstream action is scoped to what *that user* is allowed to do. When this chain breaks — at the IAM role, at the tool layer, or in the system prompt — the consequences are access control violations that don't surface in testing because they require production identity context.
+
+**What breaks:**
+- Agent's IAM role has broader access than the user's entitlements → any user can reach any resource the agent can
+- Tools trust the agent's identity without checking the originating user's claims → one agent role bypasses per-user access controls
+- Memory and tool calls fall back to "default-user" → all sessions share one identity context
+- System prompt claims elevated authority ("you are an admin agent") → model behaves accordingly even for low-privilege users
+
+**What to do:**
+- Apply least-privilege to the agent's IAM role — only the permissions the specific agent task requires, not a blanket role shared across agent types; align tool permissions with [Strands: Operating in Production](https://strandsagents.com/docs/user-guide/deploy/operating-agents-in-production/)
+- Tools must enforce authorization at the user level, not just trust that the calling agent is authorized; pass and validate the user's JWT/OAuth claims downstream
+- Use AgentCore's [policy authorization flow](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) — Cedar evaluates the user's `OAuthUser` principal, not the agent's service identity
+- Never use fallback or default identities in production; require verified identity before accessing durable state
+- Audit system prompt claims against actual permissions — if the model is told it has admin authority, ensure the underlying permissions actually restrict it
+- See [IAM Identity-Based Policy Examples for Bedrock Agents](https://docs.aws.amazon.com/bedrock/latest/userguide/security_iam_id-based-policy-examples-agent.html)
+
+---
+
+## 5. Session Hijacking and Cross-Session Contamination
+
+Session state is what makes conversational agents feel intelligent and personal. It's also what makes them worth targeting. Weak session identifiers, shared caches, or memory stores without tenant-aware filtering can let one session bleed into another.
+
+**Why it matters here:** Unlike stateless APIs where each call is independent, a conversational agent session carries accumulated context, user identity, and potentially sensitive data. Compromising or contaminating a session gives an attacker authenticated access to the user's context and tools.
+
+**What breaks:**
+- Predictable or enumerable session IDs → attacker attaches to an existing authenticated session
+- Tokens or credentials embedded in prompts or stored in memory → replay attacks across sessions
+- Memory retrieved without tenant + user filters → one user sees another user's recalled context
+- Shared response caches without per-user cache keys → cached responses from one user served to another
+
+**What to do:**
+- Generate session identifiers using a cryptographically secure random source — treat them like auth tokens, not sequential IDs
+- Never embed tokens, credentials, or sensitive identifiers in prompts or memory
+- Enforce tenant + user filters at **query time** on every memory retrieval, not only at write time
+- Set session lifetime limits appropriate to the use case; the AgentCore Runtime supports long sessions, but shorter limits reduce exposure window
+- Bind sessions to authenticated identity — anonymous sessions should not access tools or persistent memory
+- See [AWS SaaS Tenant Isolation Strategies](https://docs.aws.amazon.com/whitepapers/latest/saas-tenant-isolation-strategies/full-stack-isolation.html)
+
+---
+
+## 6. Cost from Long-Lived Sessions
+
+Per-turn inference costs add up across a session. A conversational agent that runs for an hour, retrieves large documents on every turn, and hits fallback chains can spend far more per conversation than a batch workflow processing the same information.
+
+**Why it matters here:** Conversational agents are the cost-per-user workload. Unlike event-driven agents that run once per trigger, conversational agents accumulate cost with session length, message verbosity, and retrieved context size. The cost is often invisible until it shows up in a billing alarm.
+
+**What drives it:**
+- Token usage scales with (system prompt + history + RAG injections + response length) × number of turns
+- RAG retrieval that injects large documents on every turn compounds cost across the session
+- Retry logic and fallback chains multiply inference calls per user message
+- Memory storage, extraction, and indexing add baseline cost at scale
+- Long sessions that stay active but idle still hold runtime resources
+
+**What to do:**
+- Set explicit session timeout policies — idle timeouts for sessions that haven't received a message, and hard maximums for total session length
+- Summarize and compress conversation history rather than replaying full transcripts
+- Use model tiering: route simple, high-confidence queries to smaller models; escalate to larger models only when needed
+- Cap RAG injection size per turn; retrieve the most relevant chunks, not the full document
+- Tag costs by tenant and application so you can attribute spend and set per-tenant budget alerts
+- Monitor token consumption per session in CloudWatch and alert on abnormal spend patterns
+- See [AWS Prescriptive Guidance: Cost Optimization for Serverless AI](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-serverless/cost-optimization.html)
+
+---
+
+## 7. Multi-Tenant Isolation
+
+Most production conversational agents serve multiple tenants from shared infrastructure. When tenant isolation is implemented only at the application layer, infrastructure-level failures or bugs expose one tenant's data to another.
+
+**Why it matters here:** Conversational agents accumulate rich user data — conversation history, memory, behavioral patterns — that is highly sensitive. Multi-tenant contamination is a silent failure: there's no error, no exception; data just appears where it shouldn't.
+
+**What breaks:**
+- Vector indexes without tenant-aware filters return documents from other tenants in RAG retrieval
+- Memory keyed only by user ID collides across tenants when the same user ID exists in multiple accounts
+- Shared model response caches return content generated in another tenant's context
+- Logs and traces aggregated without tenant partitioning expose conversation content across tenant boundaries
+
+**What to do:**
+- Embed tenant identifiers in every data schema — memory records, RAG index metadata, log attributes, and cost tags
+- Apply tenant filters at query time in every retrieval path, not just at ingestion
+- Use separate indexes per tenant for highly sensitive data; shared infrastructure with row-level filtering is a tradeoff that requires defense-in-depth
+- Enforce isolation at the IAM/resource policy layer as a backstop when application-level filtering fails
+- For highest-sensitivity tenants, consider full-stack isolation (separate AWS accounts)
+- See [AWS SaaS Tenant Isolation Strategies](https://docs.aws.amazon.com/whitepapers/latest/saas-tenant-isolation-strategies/full-stack-isolation.html)
+
+---
+
+## 8. Quality Drift and Evaluation Gaps
+
+Conversational agents that work well at launch can degrade silently. Model updates, knowledge base changes, and shifts in how users phrase requests all introduce drift that automated tests may not catch.
+
+**Why it matters here:** Conversational quality is subjective and multi-dimensional — accuracy, helpfulness, tone, safety, tool-call correctness. Traditional pass/fail unit tests don't cover it. And because the failure mode is often "the agent gave a plausible but wrong answer" rather than an exception, drift can go undetected until users complain.
+
+**What breaks:**
+- Pre-deployment testing on representative scenarios passes, but edge cases surface in production
+- Model updates change response style or safety behavior in ways that aren't caught without re-evaluation
+- Knowledge base updates introduce outdated or conflicting information that the agent confidently cites
+- Guardrail bypass techniques evolve; a prompt attack filter that was effective last month may not be today
+
+**What to do:**
+- **Pre-deployment:** Run adversarial test suites (prompt injection, role confusion, context manipulation) as part of CI. Benchmark on labeled multi-turn scenarios. Use LLM-as-judge evaluation for response quality where ground truth is unavailable.
+- **Post-deployment:** Log all prompts, tool calls, and responses (with PII controls applied); monitor guardrail metrics (blocking and masking rates) for trend changes; track GoalSuccessRate, Helpfulness, and Correctness; collect explicit user feedback
+- Set up alerts on anomalies: unusual tool invocation patterns, spikes in error rates, sudden changes in guardrail blocking rates
+- Schedule periodic red-teaming by humans with domain expertise — automated tests don't find everything
+- See the [Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) for testing frameworks and [AWS Prescriptive Guidance: Input Validation Best Practices for Agentic AI](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/best-practices-input-validation.html) for validation guidance
+
+---
+
+## Putting It Together
+
+These challenges compound. A session with a context window that's 90% full is also harder to protect against prompt injection — the safety instructions are already being truncated. A multi-tenant agent without proper memory namespacing is vulnerable to both cross-tenant contamination and PII leakage. Identity misconfiguration makes prompt injection much more consequential.
+
+The mitigation strategy is layered: enforce at the infrastructure and policy level first (IAM, Cedar), then at the framework level (guardrails, memory namespacing), then verify with testing and monitoring, including [AGENTSEC07-BP05 red teaming](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentsec07-bp05.html). No single layer is sufficient on its own.
+
+---
+
+## Next Steps
+
+<div className="tile-grid">
+  <Link to="/docs/workloads/conversational/enterprise-features" className="tile-card">
+    <div className="tile-heading"><h3>Enterprise Features →</h3></div>
+    <p>Identity, memory, guardrails, and gateway configuration in depth.</p>
+  </Link>
+
+  <Link to="/docs/workloads/conversational/session-management" className="tile-card">
+    <div className="tile-heading"><h3>Session Management →</h3></div>
+    <p>Context windows, session lifecycle, and multi-tenant isolation patterns.</p>
+  </Link>
+
+  <Link to="/docs/workloads/conversational/patterns-and-architecture" className="tile-card">
+    <div className="tile-heading"><h3>Patterns & Architecture →</h3></div>
+    <p>Reference architecture that addresses these challenges by design.</p>
+  </Link>
+</div>

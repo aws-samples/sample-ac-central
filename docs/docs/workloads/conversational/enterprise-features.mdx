@@ -5,75 +5,29 @@ sidebar_position: 3
 last_verified: 2026-07-15
 ---
 
-import Link from '@docusaurus/Link';
-
 # Enterprise Features for Conversational Agents
 
-Your chatbot prototype works. Now you need it to handle real users, real security, and real scale. AgentCore bridges that gap with platform-level services that you configure, not build.
+Use this summary to map AgentCore capabilities to conversational-agent needs. Follow the official links for configuration details.
 
----
+| Capability | Conversational-Specific Purpose | Key Considerations | Official Docs |
+| --- | --- | --- | --- |
+| Identity | Carries verified end-user context to tools. | Use validated claims; no fallback identities. | [Identity documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/) |
+| Memory | Retains context and preferences across sessions. | Namespace by user; set retention and deletion boundaries. | [Memory documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html) |
+| Gateway | Connects conversations to MCP tools and APIs. | Apply least privilege; make retries idempotent. | [Gateway documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) |
+| Guardrails | Filters unsafe content and sensitive data. | Use defense in depth; explain blocked responses. | [AgentCore documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/) |
+| Policy Engine | Authorizes each user's tool access. | Scope user, action, and resource; default to deny. | [Policy authorization documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) |
+| Observability | Correlates traces and latency with sessions. | Protect prompt data; alert on tool failures. | [Observability documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html) |
+| Evaluations | Measures helpfulness and task success over time. | Segment by journey; investigate regressions before rollout. | [AgentCore documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/) |
 
-## Platform Services
+## What makes conversational different
 
-<div className="tile-grid">
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--identity" aria-hidden="true" /><h3>Enterprise Identity & Auth</h3></div>
-    <p>Authenticate end-users via your existing IdP (Entra ID, Okta, Cognito, Auth0) with OAuth 2.0 bearer tokens via the CustomJWT authorizer. The token carries the caller's identity for authorization at every hop through the Gateway. No custom auth middleware, no shared API keys.</p>
-    <span className="service-tag tag--identity">Identity</span>
-  </div>
+Conversational agents must preserve session state across turns. Resume the correct session, namespace memory by verified user, and define retention and deletion boundaries.
 
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--memory" aria-hidden="true" /><h3>Persistent Memory</h3></div>
-    <p>Short-term session memory for multi-turn conversations. Long-term memory for user preferences across sessions. Memory events are namespaced by `actor_id` — but cross-user isolation is only as strong as the identity values your application supplies. See <Link to="/docs/workloads/conversational/session-management#memory-namespace-and-isolation-design">Memory Namespace and Isolation Design</Link> for what your application must guarantee. No external database plumbing required.</p>
-    <span className="service-tag tag--memory">Memory</span>
-  </div>
+They are latency-sensitive: users wait for replies, so stream progress, bound tool timeouts, and make retries idempotent. User-facing error handling should translate timeouts, policy denials, and unavailable tools into clear next steps instead of stack traces or silent failures.
 
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--runtime" aria-hidden="true" /><h3>Serverless Runtime with MicroVM Isolation</h3></div>
-    <p>Deploy agents without managing infrastructure. Automatic scaling from zero to thousands of concurrent sessions. Each session runs in a dedicated microVM with memory sanitized when it ends. Compute lifecycles last up to 8 hours.</p>
-    <span className="service-tag tag--runtime">Runtime</span>
-  </div>
+The identity in a conversation is the end user, not only the agent service principal. Carry verified identity through memory, policy evaluation, and downstream tools so personalization never bypasses access control.
 
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--gateway" aria-hidden="true" /><h3>Secure Tool Access via Gateway</h3></div>
-    <p>Connect agents to internal APIs, databases, and SaaS tools through a managed gateway (MCP server). Auth propagation ensures the agent calls APIs as the user. VPC egress support for private resources.</p>
-    <span className="service-tag tag--gateway">Gateway</span>
-  </div>
+## See also
 
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--observability" aria-hidden="true" /><h3>Observability & Tracing</h3></div>
-    <p>Full trace visibility into every agent turn using OpenTelemetry standards surfaced through Amazon CloudWatch. Per-conversation tracing with user context. Integrate with Langfuse or custom OTLP endpoints.</p>
-    <span className="service-tag tag--observability">Observability</span>
-  </div>
-
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--guardrails" aria-hidden="true" /><h3>Guardrails & Evaluations</h3></div>
-    <p>Content filtering, PII redaction, topic boundaries, and custom guardrails. Online evaluations (GoalSuccessRate, Correctness, Helpfulness, ToolSelectionAccuracy) run continuously in production to catch regressions before users feel them.</p>
-    <span className="service-tag tag--evaluations">Evaluations</span>
-  </div>
-
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--cost" aria-hidden="true" /><h3>Cost Optimization</h3></div>
-    <p>Scale-to-zero means no idle cost. Context-window optimization (summarization + semantic retrieval) reduces the tokens sent to the model each turn. Route simple turns to cheaper models, complex reasoning to premium models.</p>
-    <span className="service-tag tag--runtime">Runtime</span>
-  </div>
-</div>
-
----
-
-## Your Journey to Production
-
-From first API call to enterprise deployment in five stages.
-
-1. **Build Your Agent** — Use any framework (Strands, LangGraph, CrewAI, Claude Agent SDK). Test locally with `agentcore dev`.
-2. **Add Identity & Auth** — Configure the CustomJWT authorizer with your corporate IdP's OAuth 2.0 bearer tokens.
-3. **Connect Tools via Gateway** — Register internal APIs, databases, and SaaS integrations as MCP tools.
-4. **Deploy & Scale** — Push to AgentCore Runtime with `agentcore deploy`. No Kubernetes needed.
-5. **Monitor & Iterate** — Track every conversation with OpenTelemetry-based tracing via CloudWatch. Enable online evaluations for continuous quality measurement.
-
----
-
-## Related Pages
-
-- <Link to="/docs/workloads/conversational/session-management">Session Management & Streaming →</Link>
-- <Link to="/docs/workloads/conversational/patterns-and-architecture">Patterns & Architecture →</Link>
+- [Conversational challenges](/docs/workloads/conversational/challenges)
+- [Production Readiness checklist](/docs/operate/production-readiness)

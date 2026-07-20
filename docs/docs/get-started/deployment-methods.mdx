@@ -1,0 +1,119 @@
+---
+title: Deployment Methods
+sidebar_label: Deployment Methods
+sidebar_position: 5
+last_verified: 2026-07-20
+---
+
+import Link from '@docusaurus/Link';
+
+# Deployment Methods
+
+The AgentCore CLI, AWS CDK, CloudFormation, and Terraform are all officially supported ways to deploy agents. This page helps you choose.
+
+---
+
+:::info The CLI is a CDK convenience layer
+The AgentCore CLI uses AWS CDK under the hood. When you run `agentcore deploy`, it synthesizes CDK constructs into a CloudFormation stack and deploys them. The CLI is not a separate deployment system — it is an opinionated wrapper over CDK with scaffolding, local dev, and a simpler command interface on top.
+:::
+
+---
+
+## Which tool fits your situation?
+
+<div className="fancy-table">
+
+| Your situation | Use | Why |
+|---|---|---|
+| New to AgentCore, want fastest path to a working agent | AgentCore CLI | Scaffolds project structure, opinionated defaults, one command to deploy |
+| Already using CDK for other AWS infrastructure | CDK constructs directly | `aws-cdk-lib/aws-bedrockagentcore` integrates AgentCore into your existing stacks |
+| Already using Terraform | Terraform AWS provider | `aws_bedrockagentcore_*` resources let you manage agents alongside other infrastructure |
+| Enterprise CloudFormation pipeline | CloudFormation templates | `AWS::BedrockAgentCore::*` resource types with full resource coverage |
+| Graduating from CLI prototype to production | Eject to CDK or Terraform | Take the CLI-generated CDK stack, customize it, and integrate into CI/CD |
+
+</div>
+
+---
+
+## AgentCore CLI
+
+The AgentCore CLI (`@aws/agentcore`) is the fastest path from idea to running agent. It scaffolds a project with a declarative `agentcore.json` config, provides a local development loop (`agentcore dev`) with a built-in inspector, and deploys to AgentCore Runtime with a single command.
+
+Under the hood, `agentcore deploy` synthesizes a CDK app from your `agentcore.json` configuration and deploys a CloudFormation stack named `AgentCore-<project>-<environment>`. The generated CDK code lives in `agentcore/cdk/` inside your project directory — it is readable, inspectable, and ejectable.
+
+The CLI suits new projects and individual developers who want AgentCore's opinionated defaults without manually writing CDK constructs. It does not require CDK knowledge to use, but CDK and Node.js must be installed as prerequisites.
+
+**Official docs:** [Get started with the AgentCore CLI (Python)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html) · [TypeScript version](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli-typescript.html)
+
+**Prerequisites:** Node.js 20+, AWS CDK installed globally (`npm install -g aws-cdk`), and AWS credentials configured (`aws sts get-caller-identity` should succeed).
+
+---
+
+## AWS CDK
+
+The stable CDK module for AgentCore is `aws-cdk-lib/aws-bedrockagentcore` (Python: `aws_cdk.aws_bedrock_agentcore`). This is the same module the CLI uses internally. You can import it directly into any CDK app and compose AgentCore resources alongside your existing stacks — S3 buckets, VPCs, Lambda functions, and so on.
+
+The Policy construct ships separately in an alpha module: `aws_cdk.aws_bedrock_agentcore_alpha` (Python) / `aws-cdk-lib/aws-bedrockagentcore-alpha` (TypeScript). Treat alpha modules as subject to breaking changes.
+
+Available constructs include: `Runtime`, `RuntimeEndpoint`, `AgentRuntimeArtifact`, `NetworkConfiguration`, `Observability`, `Gateway`, `GatewayTarget`, `GatewayAuthorizer`, `GatewayCredentialProvider`, `Interceptor`, `BrowserCustom`, `CodeInterpreterCustom`, `Memory`, `MemoryStrategy`, `OnlineEvaluationConfig`, `Evaluator`, `EvaluatorSelector`, `OAuth2CredentialProvider`, `ApiKeyCredentialProvider`, and `WorkloadIdentity`.
+
+**CDK API reference:** [aws-cdk-lib/aws-bedrockagentcore (Python)](https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_bedrock_agentcore_alpha/README.html)
+
+---
+
+## Terraform
+
+The HashiCorp AWS provider (>= 6.28.0) includes native AgentCore resources. This is the right choice if your team already manages AWS infrastructure in Terraform and wants to add AgentCore agents without introducing a second IaC tool.
+
+Key resources:
+
+| Resource | Purpose |
+|---|---|
+| `aws_bedrockagentcore_agent_runtime` | Deploys an agent to AgentCore Runtime |
+| `aws_bedrockagentcore_agent_runtime_endpoint` | Creates an invocation endpoint for a Runtime |
+| `aws_bedrockagentcore_gateway` | Provisions an AgentCore Gateway (MCP tool federation) |
+
+**Terraform Registry:**
+- [`aws_bedrockagentcore_agent_runtime`](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/bedrockagentcore_agent_runtime)
+- [`aws_bedrockagentcore_agent_runtime_endpoint`](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/bedrockagentcore_agent_runtime_endpoint)
+- [`aws_bedrockagentcore_gateway`](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/bedrockagentcore_gateway)
+
+For a worked Terraform example, the [Caylent blog post on building a secure RAG application with AgentCore and Terraform](https://caylent.com/blog/building-a-secure-rag-application-with-amazon-bedrock-agentcore-and-terraform) walks through a real deployment from scratch.
+
+---
+
+## CloudFormation
+
+All AgentCore resources are available as CloudFormation resource types under the `AWS::BedrockAgentCore::*` namespace. Use this when you have an existing CloudFormation pipeline, StackSets deployment model, or organization-wide change management process that requires raw CloudFormation templates.
+
+Available resource types include:
+
+- `AWS::BedrockAgentCore::Runtime`
+- `AWS::BedrockAgentCore::RuntimeEndpoint`
+- `AWS::BedrockAgentCore::Gateway`
+- `AWS::BedrockAgentCore::GatewayTarget`
+- `AWS::BedrockAgentCore::Memory`
+- `AWS::BedrockAgentCore::PolicyEngine`
+- `AWS::BedrockAgentCore::Policy`
+- `AWS::BedrockAgentCore::WorkloadIdentity`
+- `AWS::BedrockAgentCore::Browser`
+- `AWS::BedrockAgentCore::Dataset`
+- `AWS::BedrockAgentCore::Evaluator`
+- `AWS::BedrockAgentCore::OAuth2CredentialProvider`
+- `AWS::BedrockAgentCore::ApiKeyCredentialProvider`
+
+**CloudFormation Template Reference:** [AWS::BedrockAgentCore resource types](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/AWS_BedrockAgentCore.html)
+
+---
+
+## Graduating from CLI to IaC
+
+The CLI is a good starting point, but most teams eventually want tighter control: environment-specific configurations, integration with existing CI/CD pipelines, code review workflows for infrastructure changes, or the ability to manage AgentCore resources alongside the rest of their AWS estate.
+
+When you reach that point, you have two options:
+
+**Take ownership of the generated CDK stack.** The CLI already generates a CDK app at `agentcore/cdk/` in your project. You can inspect it, modify it, and take it out from under CLI management — simply stop running `agentcore deploy` and deploy the CDK app directly (`cdk deploy`). Your CloudFormation stack and all its resources stay in place; you are just changing how you drive deployments.
+
+**Define your own from scratch.** If you prefer Terraform, or want to integrate AgentCore resources into an existing CDK or CloudFormation stack with a different structure than the CLI generates, use the CloudFormation resource types, Terraform resources, or CDK constructs directly. There is no migration step — the AWS resources are the same regardless of which tool creates them.
+
+Either way, the `agentcore.json` config file serves as a useful reference for what resources the CLI would have created and what parameters to supply when writing your own definitions.
