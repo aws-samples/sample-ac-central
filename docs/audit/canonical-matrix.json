@@ -1,0 +1,627 @@
+[
+  {
+    "page": "tutorials/overview.mdx",
+    "disposition": "hybrid-overview",
+    "defaultTarget": {
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/",
+      "expectedDomain": "docs.aws.amazon.com",
+      "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "AgentCore Developer Guide",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+    },
+    "alternatives": [
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "AgentCore Samples 02-use-cases catalog",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader needs an end-to-end workload implementation rather than a single capability tutorial"
+      }
+    ],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "workload fit",
+      "related Central links"
+    ]
+  },
+  {
+    "page": "tutorials/add-memory.mdx",
+    "disposition": "aws-doc-link-out",
+    "defaultTarget": {
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-get-started.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-get-started.html",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Memory getting started",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+    },
+    "alternatives": [],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "workload fit",
+      "safety",
+      "production readiness"
+    ]
+  },
+  {
+    "page": "tutorials/connect-gateway-tool.mdx",
+    "disposition": "aws-doc-link-out",
+    "defaultTarget": {
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-quick-start.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-quick-start.html",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Gateway getting started",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+    },
+    "alternatives": [
+      {
+        "target": {
+          "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-create-cli.html",
+          "expectedDomain": "docs.aws.amazon.com",
+          "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-create-cli.html",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Gateway CLI creation",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader needs the CLI-specific gateway creation flow"
+      }
+    ],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "safety",
+      "architecture/trade-offs",
+      "production readiness"
+    ]
+  },
+  {
+    "page": "get-started/overview.mdx",
+    "disposition": "central-only",
+    "defaultTarget": {
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Harness getting started",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+    },
+    "alternatives": [
+      {
+        "target": {
+          "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html",
+          "expectedDomain": "docs.aws.amazon.com",
+          "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "CLI Python tutorial",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader wants code-first Runtime prototyping via CLI Python tutorial"
+      }
+    ],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "workload fit",
+      "related Central links"
+    ]
+  },
+  {
+    "page": "get-started/preflight.mdx",
+    "disposition": "central-only",
+    "defaultTarget": {
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-getting-started.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-getting-started.html",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Runtime getting started prerequisites",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+    },
+    "alternatives": [],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "safety",
+      "cost/resource awareness",
+      "production readiness"
+    ]
+  },
+  {
+    "page": "get-started/firstagent.mdx",
+    "disposition": "aws-doc-link-out",
+    "defaultTarget": {
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/create-deploy-agent.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/create-deploy-agent.html",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Create and deploy an agent in the console",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+    },
+    "alternatives": [],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "workload fit",
+      "related Central links"
+    ]
+  },
+  {
+    "page": "get-started/quickstart.mdx",
+    "disposition": "cli-link-out",
+    "defaultTarget": {
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "CLI Python tutorial",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+    },
+    "alternatives": [
+      {
+        "target": {
+          "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli-typescript.html",
+          "expectedDomain": "docs.aws.amazon.com",
+          "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli-typescript.html",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "CLI TypeScript tutorial",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader is building a TypeScript agent"
+      }
+    ],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "workload fit",
+      "production readiness"
+    ]
+  },
+  {
+    "page": "get-started/existing-agent.mdx",
+    "disposition": "hybrid-overview",
+    "defaultTarget": {
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-custom.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-custom.html",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Custom agent deployment",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+    },
+    "alternatives": [
+      {
+        "target": {
+          "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html",
+          "expectedDomain": "docs.aws.amazon.com",
+          "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "CLI Python tutorial",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader wants a new CLI-managed implementation rather than migrating an existing custom agent"
+      }
+    ],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "architecture/trade-offs",
+      "workload fit",
+      "production readiness"
+    ]
+  },
+  {
+    "page": "get-started/deployment-methods.mdx",
+    "disposition": "central-only",
+    "defaultTarget": {
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "CLI Python tutorial",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+    },
+    "alternatives": [
+      {
+        "target": {
+          "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli-typescript.html",
+          "expectedDomain": "docs.aws.amazon.com",
+          "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli-typescript.html",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "CLI TypeScript tutorial",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader needs a TypeScript implementation"
+      },
+      {
+        "target": {
+          "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/create-deploy-agent.html",
+          "expectedDomain": "docs.aws.amazon.com",
+          "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/create-deploy-agent.html",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Create and deploy an agent in the console",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader wants a console-first or manual setup approach"
+      },
+      {
+        "target": {
+          "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-code-deploy.html",
+          "expectedDomain": "docs.aws.amazon.com",
+          "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-code-deploy.html",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Direct code deployment",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader needs a custom container with full implementation control"
+      },
+      {
+        "target": {
+          "url": "https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/AWS_BedrockAgentCore.html",
+          "expectedDomain": "docs.aws.amazon.com",
+          "finalUrl": "https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/AWS_BedrockAgentCore.html",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "CloudFormation AgentCore resource types",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader requires declarative, repeatable infrastructure management via CloudFormation"
+      }
+    ],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "architecture/trade-offs",
+      "workload fit",
+      "cost/resource awareness"
+    ]
+  },
+  {
+    "page": "workloads/conversational/overview.mdx",
+    "disposition": "sample-link-out",
+    "defaultTarget": {
+      "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents",
+      "expectedDomain": "github.com",
+      "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Conversational agent samples",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+    },
+    "alternatives": [],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "workload fit",
+      "architecture/trade-offs",
+      "related Central links"
+    ],
+    "samplePath": {
+      "expectedRepoPath": "02-use-cases/01-conversational-agents",
+      "pathExistenceVerified": true
+    }
+  },
+  {
+    "page": "workloads/conversational/quickstart.mdx",
+    "disposition": "sample-link-out",
+    "defaultTarget": {
+      "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents",
+      "expectedDomain": "github.com",
+      "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Conversational agent samples",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+    },
+    "alternatives": [
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/customer-support",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/customer-support",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Customer support conversational sample",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader needs authenticated customer support interaction patterns"
+      },
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/sre-a2a-incident-response",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/sre-a2a-incident-response",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "SRE A2A incident response sample",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader needs operational collaboration via SRE/A2A incident response"
+      },
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/market-trends",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/market-trends",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Market trends conversational sample",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader needs Browser, Evaluations, or Optimization capabilities"
+      }
+    ],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "workload fit",
+      "safety",
+      "related Central links"
+    ],
+    "samplePath": {
+      "expectedRepoPath": "02-use-cases/01-conversational-agents",
+      "pathExistenceVerified": true
+    }
+  },
+  {
+    "page": "workloads/conversational/harness-quickstart.mdx",
+    "disposition": "aws-doc-link-out",
+    "defaultTarget": {
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Harness getting started",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+    },
+    "alternatives": [
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Conversational agent samples",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader needs an application architecture rather than a managed Harness prototype"
+      }
+    ],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "workload fit",
+      "architecture/trade-offs",
+      "production readiness"
+    ]
+  },
+  {
+    "page": "workloads/workflow/quickstart.mdx",
+    "disposition": "sample-link-out",
+    "defaultTarget": {
+      "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents",
+      "expectedDomain": "github.com",
+      "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Workflow automation agent samples",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+    },
+    "alternatives": [
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/event-driven-claims",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/event-driven-claims",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Event-driven claims workflow sample",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader needs asynchronous automation with Policy and Evaluations"
+      },
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/enterprise-web-intelligence",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/enterprise-web-intelligence",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Enterprise web intelligence workflow sample",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader needs Browser-led research workflows"
+      },
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/b2b-accounts-payable",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/b2b-accounts-payable",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "B2B accounts payable workflow sample",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader needs payment workflow automation patterns"
+      }
+    ],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "safety",
+      "architecture/trade-offs",
+      "production readiness"
+    ],
+    "samplePath": {
+      "expectedRepoPath": "02-use-cases/02-workflow-automation-agents",
+      "pathExistenceVerified": true
+    }
+  },
+  {
+    "page": "workloads/workflow/harness-quickstart.mdx",
+    "disposition": "aws-doc-link-out",
+    "defaultTarget": {
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Harness getting started",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+    },
+    "alternatives": [
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Workflow automation agent samples",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader needs event sources, durable state, or action execution beyond Harness capabilities"
+      }
+    ],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "workload fit",
+      "architecture/trade-offs",
+      "production readiness"
+    ]
+  },
+  {
+    "page": "workloads/coding/quickstart.mdx",
+    "disposition": "sample-link-out",
+    "defaultTarget": {
+      "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/03-coding-assistants/text-to-python-ide",
+      "expectedDomain": "github.com",
+      "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/03-coding-assistants/text-to-python-ide",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Text-to-Python IDE coding assistant sample",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+    },
+    "alternatives": [
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/03-coding-assistants",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/03-coding-assistants",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Coding assistants sample catalog",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+        },
+        "condition": "Reader needs another maintained coding pattern that is a better fit than text-to-python-ide"
+      }
+    ],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "safety",
+      "architecture/trade-offs",
+      "production readiness"
+    ],
+    "samplePath": {
+      "expectedRepoPath": "02-use-cases/03-coding-assistants/text-to-python-ide",
+      "pathExistenceVerified": true
+    }
+  },
+  {
+    "page": "workloads/conversational/enterprise-features.mdx",
+    "disposition": "hybrid-overview",
+    "defaultTarget": {
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/",
+      "expectedDomain": "docs.aws.amazon.com",
+      "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "AgentCore Developer Guide",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-21T18:49:50.435Z"
+    },
+    "alternatives": [],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "workload fit",
+      "architecture/trade-offs",
+      "related Central links"
+    ]
+  }
+]

@@ -1157,3 +1157,56 @@ code, kbd, pre, samp,
 .fancy-table--borderless thead th {
   border-bottom: 2px solid var(--ifm-color-primary);
 }
+
+/* ==========================================================================
+   CanonicalLink component — editorial pattern for canonical source guidance
+   ========================================================================== */
+
+.canonical-link-pattern {
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-left: 4px solid var(--ifm-color-primary);
+  border-radius: var(--ifm-global-radius);
+  background: var(--ifm-color-emphasis-100);
+}
+
+[data-theme='dark'] .canonical-link-pattern {
+  background: var(--ifm-color-emphasis-100);
+  border-color: var(--ifm-color-emphasis-400);
+}
+
+.canonical-link-pattern h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  margin-top: 1rem;
+  color: var(--ifm-color-primary-darkest);
+}
+
+.canonical-link-pattern .canonical-link-section:first-child h3 {
+  margin-top: 0;
+}
+
+[data-theme='dark'] .canonical-link-pattern h3 {
+  color: var(--ifm-color-primary-lightest);
+}
+
+.canonical-link-pattern p {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+.canonical-link-pattern ul {
+  margin-bottom: 0.5rem;
+  padding-left: 1.25rem;
+}
+
+.canonical-link-pattern li {
+  margin-bottom: 0.25rem;
+}
+
+.canonical-link-section:last-child p,
+.canonical-link-section:last-child ul {
+  margin-bottom: 0;
+}

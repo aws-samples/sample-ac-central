@@ -15,6 +15,8 @@
     "validate:content": "node scripts/validate-content.mjs",
     "validate:frontmatter": "node scripts/check-frontmatter.mjs",
     "validate:external-links": "node scripts/validate-external-links.mjs",
+    "validate:tutorial-links": "node scripts/validate-tutorial-links.mjs",
+    "test": "node --test scripts/__tests__/validate-tutorial-links.test.mjs",
     "validate": "npm run validate:content && npm run validate:frontmatter && npm run validate:external-links",
     "prebuild": "npm run validate"
   },
