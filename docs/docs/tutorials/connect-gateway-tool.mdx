@@ -25,17 +25,17 @@ This tutorial describes a prototype. Before routing real users or data to it, co
 
 ## Why It Matters
 
-A Gateway separates agent reasoning from service integration. It gives multiple agents a consistent tool boundary while letting tool owners evolve targets independently. That boundary is especially useful when tools call systems with their own identity, audit, and authorization requirements.
+A Gateway gives agents a reusable, controlled boundary for shared services while tool owners evolve integrations independently.
 
 ## Official Tutorial
 
-For Gateway creation, target registration, deployment, and agent connection steps, follow the [official AWS Gateway quick start](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-quick-start.html). It is the source of truth for supported CLI and SDK configuration.
+For setup, target registration, deployment, and agent connection, follow the [official AWS Gateway quick start](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-quick-start.html).
 
 ## What to Watch Out For
 
 ### Workload-Specific Considerations
 
-> **Guidance:** These design recommendations are workload-specific patterns, not statements of AWS product behavior. Use the [AgentCore Gateway documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) to verify platform capabilities.
+> **Guidance:** These are workload patterns, not AWS product behavior. Verify platform capabilities in the [AgentCore Gateway documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html).
 
 #### Design idempotent tools for retries
 

@@ -302,13 +302,11 @@ The CLI wraps the argument as `{"prompt": "<text>"}`; the entrypoint's unwrap lo
 
 ## The 5-Step Pattern in Action
 
-```
-① TRIGGER  → EventBridge delivers "high_error_rate" event
-② ENRICH   → Agent calls get_service_health("checkout-api")
-③ REASON   → LLM sees degraded + high severity → decides to open ticket + notify
-④ ACT      → Agent calls create_incident_ticket() and notify_oncall()
-⑤ EMIT     → Agent returns structured summary of findings and actions taken
-```
+1. **Trigger** — EventBridge delivers a `high_error_rate` event that begins the incident workflow.
+2. **Enrich** — The agent calls `get_service_health("checkout-api")` to add read-only service context to the event.
+3. **Reason** — The model evaluates the enriched event to determine the incident's severity, likely impact, and recommended next steps.
+4. **Create ticket** — The agent calls `create_incident_ticket()` with the diagnosed impact and severity; the default workflow does not mutate service state.
+5. **Emit summary** — The agent returns a structured summary of its findings, the ticket created, and any notifications sent.
 
 ---
 

@@ -2,7 +2,7 @@
 title: "Further Reading"
 sidebar_label: Further Reading
 sidebar_position: 3
-last_verified: 2025-07-20
+last_verified: 2026-07-21
 ---
 
 # Further Reading
@@ -23,27 +23,27 @@ Curated authoritative sources for building and operating agents with Amazon Bedr
 - [Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) — Security, reliability, and operational best practices for agentic AI workloads
 - [Well-Architected Generative AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/generative-ai-lens.html) — Cost optimization, performance, and governance guidance for generative AI
 - [Agentic AI Security Scoping Matrix](https://aws.amazon.com/ai/security/agentic-ai-scoping-matrix/) — Risk classification framework mapping agent autonomy levels to security controls
-- [Securing Agentic AI (Prescriptive Guidance)](https://docs.aws.amazon.com/prescriptive-guidance/latest/securing-agentic-ai/introduction.html) — Threat modeling and security architecture for autonomous agent systems
-- [Serverless Generative AI (Prescriptive Guidance)](https://docs.aws.amazon.com/prescriptive-guidance/latest/serverless-generative-ai/introduction.html) — Patterns for building generative AI applications on serverless infrastructure
-- [Memory-Augmented Agents (Prescriptive Guidance)](https://docs.aws.amazon.com/prescriptive-guidance/latest/memory-augmented-agents/introduction.html) — Design patterns for agents with persistent and episodic memory
-- [Circuit Breaker for AI Agents (Prescriptive Guidance)](https://docs.aws.amazon.com/prescriptive-guidance/latest/circuit-breaker-ai-agents/introduction.html) — Fault-tolerance patterns preventing cascading failures in agent systems
+- [Security Best Practices for Agentic AI](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/best-practices.html) — AWS Prescriptive Guidance for secure agentic AI system design, development, governance, and incident response
+- [Building Serverless Architectures for Agentic AI](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-serverless/designing-serverless-ai-architectures.html) — Prescriptive guidance for modular, event-driven AI architectures using serverless AWS services
+- [Memory-Augmented Agents](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/memory-augmented-agents.html) — Prescriptive guidance for agents that retain and reason over short- and long-term context
+- [Circuit Breaker Pattern](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/circuit-breaker.html) — Fault-tolerance pattern that prevents cascading failures when a downstream service is unhealthy
 - [Cedar Policy Language](https://www.cedarpolicy.com/) — Authorization policy language used by AgentCore for tool and resource access control
 
 ## Strands Agents SDK
 
-- [Strands Agents Documentation](https://strandsagents.com/latest/documentation/docs/) — Official SDK docs covering agents, tools, models, and orchestration
-- [Operating Agents in Production](https://strandsagents.com/latest/documentation/docs/user-guide/deploy/operating-agents-in-production/) — Monitoring, scaling, and reliability guidance for deployed agents
-- [Deploying Agents](https://strandsagents.com/latest/documentation/docs/user-guide/deploy/deploy-agent/) — Packaging and deployment options for Strands-based agents
-- [Multi-Agent Patterns](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/multi-agent/multi-agent-patterns/) — Coordinator, pipeline, and swarm patterns for multi-agent orchestration
-- [Deep Dive: Building Agents with Strands](https://aws.amazon.com/blogs/machine-learning/build-agentic-ai-applications-with-strands-agents/) — Technical blog on building production agents with the Strands SDK
+- [Strands Agents Python Quickstart](https://strandsagents.com/docs/user-guide/quickstart/python/) — Official SDK guide for building a first agent with models and tools
+- [Operating Agents in Production](https://strandsagents.com/docs/user-guide/deploy/operating-agents-in-production/) — Monitoring, scaling, and reliability guidance for deployed agents
+- [Deploying Strands Agents to AgentCore](https://strandsagents.com/docs/user-guide/deploy/deploy_to_bedrock_agentcore/) — Deploy Strands agents on AgentCore Runtime with a managed, serverless runtime
+- [Swarm Multi-Agent Pattern](https://strandsagents.com/docs/user-guide/concepts/multi-agent/swarm/) — Collaborative multi-agent orchestration with autonomous coordination and shared context
+- [Introducing Strands Agents](https://strandsagents.com/blog/introducing-strands-agents/) — Overview of Strands’ model-driven approach to building agents with tools
 
 ## Security and Governance
 
 - [OWASP Top 10 for LLM Applications](https://owasp.org/www-project-top-10-for-large-language-model-applications/) — Industry-standard vulnerability taxonomy for LLM-powered systems
-- [NIST AI 600-1: AI Risk Management](https://csrc.nist.gov/pubs/ai/600/1/final) — Federal framework for identifying and mitigating risks in AI systems
+- [NIST AI 600-1: Generative AI Profile](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf) — NIST guidance for managing generative AI risks alongside the AI Risk Management Framework
 - [Cedar Policy Language Reference](https://docs.cedarpolicy.com/) — Specification and examples for writing Cedar authorization policies
-- [Context Window Overflow in Agents](https://aws.amazon.com/blogs/machine-learning/addressing-context-window-overflow-in-ai-agents/) — Techniques for managing token limits in long-running agent conversations
-- [Prompt Injection Mitigation](https://aws.amazon.com/blogs/machine-learning/protecting-ai-agents-from-prompt-injection/) — Defense patterns for preventing adversarial prompt manipulation
+- [Context Window Overflow in Agents](https://aws.amazon.com/blogs/security/context-window-overflow-breaking-the-barrier/) — Security considerations for mitigating context-window overflow in agentic systems
+- [Prompt Injection Mitigation](https://aws.amazon.com/blogs/machine-learning/securing-amazon-bedrock-agents-a-guide-to-safeguarding-against-indirect-prompt-injections/) — Defense patterns for protecting agents from indirect prompt injection
 
 ## Reliability Patterns
 
@@ -56,8 +56,8 @@ Curated authoritative sources for building and operating agents with Amazon Bedr
 
 ## Customer Stories
 
-- [BGL Group: AI-Powered Insurance](https://aws.amazon.com/solutions/case-studies/bgl-group-case-study/) — Automated underwriting agents reducing policy processing time
+- [BGL: Democratizing Business Intelligence](https://aws.amazon.com/blogs/machine-learning/democratizing-business-intelligence-bgls-journey-with-claude-agent-sdk-and-amazon-bedrock-agentcore/) — How BGL built a Claude Agent SDK and AgentCore solution for self-service analytics
 - [Thomson Reuters: Legal AI](https://aws.amazon.com/solutions/case-studies/thomson-reuters-case-study/) — Document analysis agents for legal research at enterprise scale
 - [Iberdrola: Energy Operations](https://aws.amazon.com/solutions/case-studies/iberdrola-case-study/) — Predictive maintenance agents managing grid infrastructure
-- [AutoScout24: Automotive Marketplace](https://aws.amazon.com/solutions/case-studies/autoscout24-case-study/) — Conversational agents improving vehicle search experience
-- [Caylent: Cloud Migration](https://aws.amazon.com/solutions/case-studies/caylent-case-study/) — Agent-assisted cloud migration and optimization workflows
+- [AutoScout24: Bot Factory](https://aws.amazon.com/blogs/machine-learning/how-autoscout24-built-a-bot-factory-to-standardize-ai-agent-development-with-amazon-bedrock/) — Standardized, secure agent development through reusable templates and event-driven services
+- [Caylent: Cloud Cost Analysis](https://aws.amazon.com/blogs/apn/aws-partners-demonstrate-enterprise-ai-agent-solutions-with-amazon-bedrock-agentcore/) — CloudZero Advisor uses specialized agents to provide cloud cost analysis through natural-language interaction
