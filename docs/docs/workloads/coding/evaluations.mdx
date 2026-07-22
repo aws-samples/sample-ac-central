@@ -1,0 +1,172 @@
+---
+title: Evaluations
+sidebar_label: Evaluations
+sidebar_position: 7
+---
+
+import Link from '@docusaurus/Link';
+
+# Evaluations for Coding Agents
+
+Coding agents operate autonomously and produce code that enters production. Tests passing is necessary but not sufficient: the code might be correct yet poorly structured, insecure, or inconsistent with the codebase. Continuous evaluation catches quality issues that tests alone miss.
+
+---
+
+## The Evaluator Agent Pattern
+
+The most effective quality gate for coding agents: a second, cheaper model reviews the output before delivery.
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Role             | Model                | Access     | Purpose                                        |
+|------------------|----------------------|------------|------------------------------------------------|
+| Coding agent     | Claude Sonnet 4.6    | Read/Write | Generates and modifies code                    |
+| Evaluator agent  | Claude Haiku 4.5     | Read-only  | Reviews output, produces structured verdict    |
+
+</div>
+
+The evaluator has no write access to the workspace. It produces a structured verdict: `approve` or `request_changes` with specific feedback. On `request_changes`, the coding agent iterates with the feedback as context (bounded to a max retry count to prevent infinite loops).
+
+This pattern is cheaper than running the full coding model as a reviewer, and the separation ensures the evaluator cannot be influenced by the generator's reasoning.
+
+:::tip Deterministic floor + LLM ceiling
+The strongest quality gate combines a **deterministic pytest suite** (the sole acceptance authority) with an **LLM judge** (can withhold approval but never fabricate a pass). The pytest gate catches functional regressions; the LLM judge catches style, architecture, and convention violations.
+:::
+
+### Implementing the Pattern
+
+```python
+import json
+from strands import Agent
+
+REVIEWER_PROMPT = """You are a code reviewer. You receive the agent's generated code
+and the original task description. Evaluate whether the code:
+1. Correctly implements the requirements
+2. Follows the repository's conventions
+3. Has no obvious bugs or security issues
+
+Respond with a JSON object:
+{"verdict": "approve"} or {"verdict": "request_changes", "feedback": "..."}"""
+
+reviewer = Agent(
+    model="global.anthropic.claude-haiku-4-5-20251001-v1:0",
+    system_prompt=REVIEWER_PROMPT,
+    tools=[],
+)
+
+MAX_ATTEMPTS = 3
+
+def generate_with_review(coding_agent, task: str) -> str:
+    """Generate code with bounded review loop."""
+    result = coding_agent(task)
+
+    for attempt in range(MAX_ATTEMPTS):
+        review = reviewer(f"Task: {task}\n\nGenerated code:\n{result.message}")
+        verdict = json.loads(review.message)
+
+        if verdict["verdict"] == "approve":
+            return result.message
+
+        feedback = verdict.get("feedback", "No specific feedback")
+        result = coding_agent(f"Revise based on review feedback: {feedback}")
+
+    return result.message
+```
+
+---
+
+## Builtin Evaluators
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Evaluator                 | Type          | What It Measures (Coding Example)                                        |
+|---------------------------|---------------|--------------------------------------------------------------------------|
+| GoalSuccessRate           | LLM-as-Judge  | "Agent successfully implemented the feature described in the ticket"      |
+| Correctness               | LLM-as-Judge  | "Generated code matches the expected implementation approach"             |
+| TrajectoryExactOrderMatch | Programmatic  | Agent followed: analyze → generate → test → fix → deliver                |
+| TrajectoryAnyOrderMatch   | Programmatic  | Agent used all required tools (file_read, shell, file_write)             |
+| Custom                    | LLM-as-Judge  | "Code follows the repository's naming conventions and patterns"           |
+
+</div>
+
+---
+
+## Coding Specific Metrics
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Metric                | What It Measures                                    | How to Collect                        |
+|-----------------------|-----------------------------------------------------|---------------------------------------|
+| Test pass rate        | Do generated tests pass on first run?               | `run_tests` tool return value         |
+| Coverage delta        | Did the agent improve test coverage?                | Coverage tool before/after comparison  |
+| Lint/type-check pass  | Does the code pass static analysis?                 | `eslint`/`mypy` exit code             |
+| First-try pass rate   | How often does the agent succeed without retries?   | Trajectory analysis (no fix loop)     |
+| PR approval rate      | How often do reviewers approve without changes?     | GitHub API / manual tracking          |
+
+</div>
+
+---
+
+## Example: Running an Evaluation
+
+```python
+from bedrock_agentcore.evaluation import EvaluationClient, ReferenceInputs
+
+client = EvaluationClient(region_name="us-east-1")
+
+# AGENT_ID: your runtime name (from agentcore.json)
+# SESSION_ID: the runtimeSessionId from the invocation you want to evaluate
+AGENT_ID = "CodingAgent"
+SESSION_ID = "session-coding-task-abc123-def456"
+
+results = client.run(
+    evaluator_ids=[
+        "Builtin.GoalSuccessRate",
+        "Builtin.TrajectoryAnyOrderMatch",
+    ],
+    agent_id=AGENT_ID,
+    session_id=SESSION_ID,
+    reference_inputs=ReferenceInputs(
+        assertions=[
+            "Agent ran tests before delivering the final code",
+            "Agent did not modify files outside the project directory",
+            "Agent generated at least one test per public function",
+        ],
+        expected_trajectory=[
+            "file_read",
+            "file_write",
+            "shell",
+        ],
+    ),
+)
+
+for r in results:
+    print(f"{r['evaluatorId']}: {r['value']} ({r['label']})")
+```
+
+:::info Prerequisites
+Evaluations require observability enabled on the runtime (default when using Strands SDK) and **Transaction Search enabled in CloudWatch**. The session must have completed before you evaluate it.
+:::
+
+---
+
+## Evaluation Modes
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Mode       | When It Runs                         | Use For                                                |
+|------------|--------------------------------------|--------------------------------------------------------|
+| Offline    | CI gate before merge/deploy          | Catch regressions against a benchmark dataset          |
+| On demand  | After a failed task or incident      | Deep dive into what went wrong                         |
+| Online     | Continuous, sampling production runs | Detect quality drift early (e.g., 10% sample rate)    |
+
+</div>
+
+Trajectory evaluators are programmatic (zero token cost). Reserve LLM judged evaluators for sampled traffic or high-value tasks.
+
+---
+
+## Related Pages
+
+- <Link to="/docs/workloads/coding/patterns-and-architecture">Patterns & Architecture — production patterns →</Link>
+- <Link to="/docs/workloads/coding/memory-and-context">Memory & Context — learning across tasks →</Link>

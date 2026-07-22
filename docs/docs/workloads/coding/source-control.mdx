@@ -1,0 +1,163 @@
+---
+title: Source Control
+sidebar_label: Source Control
+sidebar_position: 5
+---
+
+import Link from '@docusaurus/Link';
+
+# Source Control Integration
+
+Coding agents need to read repositories, create branches, and open pull requests. AgentCore provides two mechanisms: direct Git commands in the sandbox, and GitHub/GitLab API access via MCP Gateway.
+
+---
+
+## Integration Patterns
+
+<div className="tile-grid">
+  <div className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--terminal" aria-hidden="true" /><h3>Git in the Sandbox</h3></div>
+    <p>Clone, branch, commit, and push directly from session storage. The <code>.git</code> directory persists across invocations so you clone once and pull thereafter.</p>
+  </div>
+
+  <div className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--gateway" aria-hidden="true" /><h3>GitHub via MCP Gateway</h3></div>
+    <p>Read issues, create PRs, post review comments, and manage labels through a managed MCP endpoint. No raw tokens in the agent.</p>
+  </div>
+
+  <div className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--runtime" aria-hidden="true" /><h3>CI/CD Triggers</h3></div>
+    <p>Webhooks from GitHub Actions, GitLab CI, or Jira fire events that invoke the coding agent via EventBridge or API Gateway.</p>
+  </div>
+</div>
+
+---
+
+## Git in the Sandbox
+
+Session storage preserves `/mnt/workspace` across invocations. Clone a repo on the first invocation; subsequent sessions find it already there:
+
+- First run: `git clone https://github.com/org/repo.git /mnt/workspace/repo`
+- Next runs: `cd /mnt/workspace/repo && git pull origin main`
+
+Installed packages, build caches, and `.git` history all persist — the agent avoids repeated cold starts.
+
+---
+
+## GitHub MCP Gateway
+
+Connect your agent to GitHub APIs through a managed Gateway endpoint:
+
+```python
+import os
+
+from mcp.client.streamable_http import streamablehttp_client
+from strands import Agent
+from strands.tools.mcp.mcp_client import MCPClient
+
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
+
+app = BedrockAgentCoreApp()
+
+GATEWAY_URL = os.environ["AGENTCORE_GATEWAY_URL"]
+
+SYSTEM_PROMPT = """You are a coding agent with access to GitHub.
+Use the GitHub tools to read issues, create branches, and open pull requests.
+Always work in /mnt/workspace."""
+
+github_tools = MCPClient(lambda: streamablehttp_client(GATEWAY_URL))
+agent = Agent(
+    model="global.anthropic.claude-sonnet-4-6",
+    system_prompt=SYSTEM_PROMPT,
+    tools=[github_tools],
+)
+
+
+@app.entrypoint
+async def invoke(payload, context):
+    async for event in agent.stream_async(payload.get("prompt", "")):
+        if "data" in event:
+            yield event["data"]
+
+
+if __name__ == "__main__":
+    app.run()
+```
+
+:::info Dependencies and setup
+This sample requires the `mcp` package: add `mcp>=1.9.0` to your `pyproject.toml`. The `AGENTCORE_GATEWAY_URL` environment variable is injected automatically when your runtime has a Gateway configured. To add a Gateway: `agentcore add gateway --name GitHubGateway`, then add targets with `agentcore add gateway-target`. See the <Link to="/docs/tutorials/connect-gateway-tool">Connect Gateway Tool tutorial</Link> for the full setup.
+:::
+
+The Gateway aggregates GitHub tools into a single MCP endpoint with semantic search. Tools are prefixed by target name (e.g., `GitHubMCP___create_pull_request`). Typical tools exposed: `get_issue`, `list_issue_comments`, `comment_on_issue`, `get_file`, `list_files`, `create_branch`, `put_file`, `create_pull_request`, and `merge_pull_request`.
+
+---
+
+## Cloning Repositories
+
+The GitHub MCP Gateway exposes API operations (read issues, create PRs, post comments) but does **not** provide a `git clone` verb. For cloning, use a credential from AgentCore Identity:
+
+```python
+import os
+import subprocess
+
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
+
+app = BedrockAgentCoreApp()
+
+
+def clone_repo(repo_url: str, workspace: str = "/mnt/workspace"):
+    """Clone a private repository using a credential from Token Vault."""
+    token = os.environ["GITHUB_TOKEN"]
+
+    auth_url = repo_url.replace(
+        "https://github.com/",
+        f"https://x-access-token:{token}@github.com/",
+    )
+    result = subprocess.run(
+        ["git", "clone", auth_url, f"{workspace}/repo"],
+        capture_output=True, text=True, timeout=120,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(f"Clone failed: {result.stderr}")
+    return f"{workspace}/repo"
+```
+
+:::info Credential setup
+Store a fine-grained PAT or deploy key in Token Vault with `agentcore add credential --name github-token --api-key <token>`. The `GITHUB_TOKEN` environment variable is injected at runtime. The credential never appears in agent code or container images. See the <Link to="/docs/tutorials/connect-gateway-tool">Connect Gateway Tool tutorial</Link> for the full credential setup walkthrough.
+:::
+
+---
+
+## CI/CD Trigger Sources
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Source               | Event                              | Integration Path                         |
+|----------------------|------------------------------------|------------------------------------------|
+| GitHub Actions       | PR opened, issue labeled           | Webhook → API Gateway → Lambda → Runtime |
+| GitLab CI            | Pipeline event, MR created         | Webhook → EventBridge → Lambda → Runtime |
+| Jira / Linear        | Ticket moves to "Ready for Dev"    | Webhook → EventBridge → Lambda → Runtime |
+| CloudWatch Events    | Scheduled (nightly, weekly)        | Schedule rule → Lambda → Runtime         |
+
+</div>
+
+---
+
+## Authentication Patterns
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Pattern              | How It Works                                                  | Best For                                       |
+|----------------------|---------------------------------------------------------------|------------------------------------------------|
+| GitHub App           | Org-installed app with scoped permissions (Contents, PRs, Issues). Gateway uses installation tokens. | Production: auditable, rotatable, org-scoped  |
+| Bot PAT              | Fine-grained personal access token stored in Token Vault.     | Simple setups, single-repo agents              |
+| On-behalf-of         | OAuth token exchange attributes actions to the developer.     | Agents acting as a specific developer          |
+
+</div>
+
+---
+
+## Related Pages
+
+- <Link to="/docs/workloads/coding/sandbox-and-tools">Sandbox & Tools — session storage and shell access →</Link>
+- <Link to="/docs/workloads/coding/memory-and-context">Memory & Context — remembering across tasks →</Link>

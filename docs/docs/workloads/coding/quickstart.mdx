@@ -6,7 +6,7 @@ last_verified: 2026-07-08
 ---
 
 :::info Versions
-Examples built with **Strands Agents SDK** `1.46.0` and **bedrock-agentcore** `1.17.0`. APIs may differ in other versions.
+Examples built with **Strands Agents SDK** `1.46.0`, **bedrock-agentcore** `1.17.0`, and **Claude Sonnet 4.6** (`global.anthropic.claude-sonnet-4-6`). APIs may differ in other versions.
 :::
 
 import Link from '@docusaurus/Link';
@@ -118,13 +118,15 @@ def run_tests(source_code: str, test_code: str) -> dict:
         test_path.write_text(test_code)
 
         try:
+            import os as _os
+            env = {**_os.environ, "HOME": tmpdir}
             result = subprocess.run(
                 ["python", "-m", "pytest", str(test_path), "-v", "--tb=short"],
                 capture_output=True,
                 text=True,
                 timeout=30,
                 cwd=tmpdir,
-                env={"PATH": "/usr/bin:/usr/local/bin", "HOME": tmpdir},
+                env=env,
             )
 
             passed = result.returncode == 0
@@ -187,7 +189,7 @@ def invoke(payload, context):
         return {"error": "Provide 'source_code' or 'prompt' in the payload."}
 
     agent = Agent(
-        model="global.anthropic.claude-sonnet-4-5-20250929-v1:0",
+        model="global.anthropic.claude-sonnet-4-6",
         system_prompt=SYSTEM_PROMPT,
         tools=[read_source_file, run_tests],
     )
@@ -196,7 +198,8 @@ def invoke(payload, context):
     return {"response": result.message}
 
 
-app.run()
+if __name__ == "__main__":
+    app.run()
 ```
 
 ---
@@ -215,11 +218,18 @@ app.run()
       "codeLocation": "app/TestGenAgent/",
       "runtimeVersion": "PYTHON_3_13",
       "protocol": "HTTP",
-      "networkMode": "PUBLIC"
+      "networkMode": "PUBLIC",
+      "filesystemConfigurations": [
+        {"sessionStorage": {"mountPath": "/mnt/workspace"}}
+      ]
     }
   ]
 }
 ```
+
+:::tip Session storage
+The `filesystemConfigurations` block gives your agent a persistent workspace at `/mnt/workspace`. Files survive session stop/resume, so your agent can clone repos, install packages, and cache build artifacts across invocations. See <Link to="/docs/workloads/coding/sandbox-and-tools">Sandbox & Tools</Link> for details.
+:::
 
 ### `app/TestGenAgent/pyproject.toml` (additional dependency)
 
@@ -239,10 +249,10 @@ dependencies = [
 ## Test It
 
 ```bash
-# Terminal 1: start the dev server
+# Terminal 1: start the local dev server (runs until you stop it)
 agentcore dev
 
-# Terminal 2: send source code for test generation
+# Terminal 2: invoke the running dev server with a JSON payload
 agentcore dev '{
   "source_code": "def add(a: int, b: int) -> int:\n    \"\"\"Add two numbers.\"\"\"\n    return a + b\n\ndef divide(a: float, b: float) -> float:\n    \"\"\"Divide a by b. Raises ZeroDivisionError if b is zero.\"\"\"\n    if b == 0:\n        raise ZeroDivisionError(\"Cannot divide by zero\")\n    return a / b\n\ndef fizzbuzz(n: int) -> str:\n    \"\"\"Return fizz, buzz, fizzbuzz, or the number as string.\"\"\"\n    if n % 15 == 0:\n        return \"fizzbuzz\"\n    if n % 3 == 0:\n        return \"fizz\"\n    if n % 5 == 0:\n        return \"buzz\"\n    return str(n)"
 }'
@@ -275,21 +285,21 @@ This iterative loop is the key differentiator of coding agents: they validate th
 
 ## What's Next?
 
-You have a working test generation agent. Extend it for production use:
+You have a working test generation agent. Now add production capabilities:
 
-- **Add repository access** — Use Gateway tools to read files from GitHub/GitLab instead of inline payloads
-- **Add PR creation** — Wire a tool that commits tests and opens a pull request
-- **Add trigger automation** — Fire the agent from CI (on PR open) or a schedule (nightly coverage check)
-- **Add evaluation** — Measure test quality with online evaluations (mutation testing pass rate, coverage delta)
+- <Link to="/docs/workloads/coding/source-control">Add repository access — GitHub/GitLab via MCP Gateway →</Link>
+- <Link to="/docs/workloads/coding/source-control">Add PR creation — commit and open pull requests →</Link>
+- <Link to="/docs/workloads/coding/execution-model">Add trigger automation — fire from CI, webhooks, or schedules →</Link>
+- <Link to="/docs/workloads/coding/evaluations">Add evaluation — trajectory checks and quality metrics →</Link>
 
 <div className="tile-grid">
-  <Link to="/docs/workloads/coding/overview" className="tile-card">
-    <div className="tile-heading"><h3>Coding Overview →</h3></div>
-    <p>Full positioning, use cases, and comparison with other workloads.</p>
+  <Link to="/docs/workloads/coding/hosted-agents" className="tile-card">
+    <div className="tile-heading"><h3>Hosted IDE Agents →</h3></div>
+    <p>Already use Claude Code or Kiro? Run them on AgentCore instead of your laptop.</p>
   </Link>
 
-  <Link to="/docs/patterns/overview" className="tile-card">
-    <div className="tile-heading"><h3>Patterns →</h3></div>
-    <p>Multi-agent patterns for complex coding tasks (swarm for multi-file refactors, HITL for review gates).</p>
+  <Link to="/docs/workloads/coding/patterns-and-architecture" className="tile-card">
+    <div className="tile-heading"><h3>Patterns & Architecture →</h3></div>
+    <p>Multi-agent patterns: Swarm for multi-file refactors, Coder + Reviewer, HITL review gates.</p>
   </Link>
 </div>

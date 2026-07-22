@@ -49,7 +49,7 @@ Choose this workload when:
 |-------------------------------------------------------|--------------------------------------------------------------|
 | Long-running execution (hours) for complex tasks      | Non-deterministic output requires human review gates         |
 | Sandboxed Code Interpreter for safe execution         | Context window limits constrain codebase understanding       |
-| Identity-aware access to repositories and CI systems  | Nascent archetype; patterns are still maturing               |
+| Identity-aware access to repositories and CI systems  | Evolving best practices; start with reference patterns       |
 | Scale-to-zero between tasks                           | Build/test feedback loops add latency                        |
 | Full traceability from trigger to PR                  | Complex multi-file reasoning still challenging for models    |
 
@@ -79,35 +79,42 @@ Choose this workload when:
 
 <div className="fancy-table fancy-table--auto-first">
 
-| AgentCore Service | Configuration for Coding                      | Why It Matters                            |
-|-------------------|-----------------------------------------------|-------------------------------------------|
-| **Identity**      | Developer identity                            | Agent accesses repos as the developer     |
-| **Memory**        | Project-scoped context                        | Codebase understanding across invocations |
-| **Runtime**       | Long-running (hours), Code Interpreter        | Complex tasks need sustained compute      |
-| **Guardrails**    | Code quality + security scanning gates        | Catch vulnerabilities before merge        |
-| **Observability** | Per-task tracing                              | Understand what the agent changed and why |
+| AgentCore Service  | Configuration for Coding                              | Why It Matters                                         |
+|--------------------|-------------------------------------------------------|--------------------------------------------------------|
+| **Identity**       | Developer identity or service account                 | Agent accesses repos as the developer                  |
+| **Memory**         | Project-scoped context (SEMANTIC per repo)            | Codebase understanding across invocations              |
+| **Runtime**        | Long-running (hours), Code Interpreter, session storage | Complex tasks need sustained compute and workspace    |
+| **Guardrails**     | Evaluator agent + code quality gates                  | Catch issues before merge                              |
+| **Evaluations**    | GoalSuccessRate, Trajectory, coding metrics           | Continuous quality measurement                         |
+| **Observability**  | Per-task tracing                                      | Understand what the agent changed and why              |
+| **Gateway**        | GitHub/GitLab MCP access with managed credentials     | Repo access without embedded secrets                   |
 
 </div>
 
 ---
 
-## Coming Soon
+## Why AgentCore for Coding
 
 <div className="tile-grid">
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--guardrails" aria-hidden="true" /><h3>Why AgentCore for Coding</h3></div>
-    <p>Secure sandboxed execution, long-running task support, identity-aware access, and Code Interpreter integration.</p>
-  </div>
+  <Link to="/docs/workloads/coding/sandbox-and-tools" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--guardrails" aria-hidden="true" /><h3>Sandboxed Execution</h3></div>
+    <p>Isolated microVM per session with Code Interpreter, shell access, and persistent filesystem. No shared state, no credential leaks.</p>
+  </Link>
 
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--blueprint" aria-hidden="true" /><h3>Reference Architecture</h3></div>
-    <p>Architecture showing IDE/CI trigger → AgentCore → code generation → review gate with full traceability.</p>
-  </div>
+  <Link to="/docs/workloads/coding/execution-model" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--runtime" aria-hidden="true" /><h3>Long-Running Tasks</h3></div>
+    <p>Up to 8 hours of continuous execution with async task tracking. Session storage persists across stop/resume cycles.</p>
+  </Link>
 
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--patterns" aria-hidden="true" /><h3>Recommended Patterns</h3></div>
-    <p>Plan-Act-Reflect, Swarm (multi-file refactor), and HITL (code review gate). <Link to="/docs/patterns/overview">View shared patterns page →</Link></p>
-  </div>
+  <Link to="/docs/workloads/coding/source-control" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--identity" aria-hidden="true" /><h3>Identity-Aware Access</h3></div>
+    <p>GitHub Apps, Token Vault credentials, and on-behalf-of token exchange. The agent accesses repos without embedded secrets.</p>
+  </Link>
+
+  <Link to="/docs/workloads/coding/patterns-and-architecture" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--patterns" aria-hidden="true" /><h3>Patterns & Architecture</h3></div>
+    <p>Plan-Act-Reflect, Swarm (multi-file refactor), HITL (code review gate), and durable orchestration for production pipelines.</p>
+  </Link>
 </div>
 
 ---
@@ -118,5 +125,20 @@ Choose this workload when:
   <Link to="/docs/workloads/coding/quickstart" className="tile-card">
     <div className="tile-heading"><h3>Quick Start →</h3></div>
     <p>Build a test generation agent with sandboxed validation in under 10 minutes.</p>
+  </Link>
+
+  <Link to="/docs/workloads/coding/hosted-agents" className="tile-card">
+    <div className="tile-heading"><h3>Hosted IDE Agents →</h3></div>
+    <p>Run Claude Code, Kiro, or Codex on AgentCore with persistent workspaces and managed credentials.</p>
+  </Link>
+
+  <Link to="/docs/workloads/coding/memory-and-context" className="tile-card">
+    <div className="tile-heading"><h3>Memory & Context →</h3></div>
+    <p>Build repository-scoped memory so your agent learns across tasks.</p>
+  </Link>
+
+  <Link to="/docs/workloads/coding/evaluations" className="tile-card">
+    <div className="tile-heading"><h3>Evaluations →</h3></div>
+    <p>Measure quality continuously with trajectory checks and LLM-as-judge evaluators.</p>
   </Link>
 </div>
