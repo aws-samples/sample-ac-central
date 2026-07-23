@@ -9,12 +9,16 @@ last_verified: 2026-07-08
 Examples built with **AgentCore CLI** `@aws/agentcore@0.23.0`. Commands or flags may differ in other versions. Run `agentcore --version` to check yours.
 :::
 
+:::warning Snapshot documentation
+This page is a **manually maintained snapshot** written against `@aws/agentcore@0.23.0`. The `agentcore.json` schema evolves between CLI releases: fields may be added, renamed, or removed in later versions. For the authoritative, up-to-date schema, see the [AgentCore CLI repository](https://github.com/aws/agentcore-cli) and its schema documentation. For official service documentation, see the [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
+:::
+
 # agentcore.json Schema Reference
 
 `agentcore/agentcore.json` is the declarative source of truth for all AgentCore resources in your project. When you run `agentcore add`, `agentcore remove`, or `agentcore deploy`, this file determines what to create, update, or remove.
 
-:::info Authoritative source
-This page is generated from the actual schema shipped with the CLI. After running `agentcore create`, your project has its own copy at `agentcore/.llm-context/agentcore.ts` with the exact types and validation rules for your installed CLI version. When in doubt, that file (and `agentcore validate`) is the ground truth.
+:::info Authoritative source for your installed version
+After running `agentcore create`, your project has its own copy at `agentcore/.llm-context/agentcore.ts` with the exact types and validation rules for your installed CLI version. When in doubt, that file (and `agentcore validate`) is the ground truth for your current CLI.
 :::
 
 ---
@@ -63,7 +67,7 @@ The array of agent runtimes is called **`runtimes`**, not `agents`. This is the 
 
 ## runtimes
 
-Defines the agent runtimes to deploy. Each entry corresponds to one AgentCore Runtime.
+Defines the agent runtimes to deploy. Each entry corresponds to one AgentCore Runtime. See the [AgentCore Runtime documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html) for supported configurations.
 
 ```json
 {
@@ -129,19 +133,21 @@ Defines the agent runtimes to deploy. Each entry corresponds to one AgentCore Ru
 
 ### Runtime Version
 
-The CLI may scaffold `runtimeVersion: "PYTHON_3_14"` (a pre-release version). Change it to a stable version before deploying:
+The CLI may scaffold `runtimeVersion: "PYTHON_3_14"` as the default. **`PYTHON_3_14` is a pre-release runtime.** Use a stable version for production deployments:
 
 ```json
 "runtimeVersion": "PYTHON_3_13"
 ```
 
-Valid values: `PYTHON_3_10`, `PYTHON_3_11`, `PYTHON_3_12`, `PYTHON_3_13`, `PYTHON_3_14`, `NODE_18`, `NODE_20`, `NODE_22`.
+Valid values: `PYTHON_3_10`, `PYTHON_3_11`, `PYTHON_3_12`, `PYTHON_3_13` (stable), `PYTHON_3_14` (**pre-release**), `NODE_18`, `NODE_20`, `NODE_22`.
+
+Always verify which runtimes are currently supported before deploying by checking the [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
 
 ---
 
 ## memories
 
-Defines persistent memory resources for cross-session context.
+Defines persistent memory resources for cross-session context. See the [AgentCore Memory documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html) for full details.
 
 ```json
 {
@@ -213,7 +219,7 @@ Defines persistent memory resources for cross-session context.
 
 ## credentials
 
-Defines API key or OAuth credential providers stored in the AgentCore token vault.
+Defines API key or OAuth credential providers stored in the AgentCore token vault. See the [AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/) for credential management details.
 
 ```json
 {
@@ -254,7 +260,7 @@ The actual secret value (API key or client secret) is never stored in `agentcore
 
 ## agentCoreGateways
 
-Defines MCP gateways that federate tools for your agents.
+Defines MCP gateways that federate tools for your agents. See the [AgentCore Gateway documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) for full details.
 
 ```json
 {
@@ -329,7 +335,7 @@ For example, a target named `WeatherTools` with a tool `get_forecast` becomes `W
 
 ## policyEngines
 
-Defines Cedar-based authorization for tool invocations.
+Defines Cedar-based authorization for tool invocations. See the [AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/) for policy engine configuration details.
 
 ```json
 {

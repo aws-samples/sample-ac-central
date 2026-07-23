@@ -2,248 +2,165 @@
 title: "Quick Start: Workflow Agent"
 sidebar_label: Quick Start
 sidebar_position: 2
-last_verified: 2026-07-08
+last_verified: 2026-07-22
 ---
 
-:::info Versions
-Examples built with **Strands Agents SDK** `1.46.0` and **bedrock-agentcore** `1.17.0`. APIs may differ in other versions.
-:::
-
 import Link from '@docusaurus/Link';
+import CanonicalRecommendation from '@site/src/components/CanonicalRecommendation';
 
 # Quick Start: Workflow Agent
 
-Deploy a working event-driven incident response agent in under 10 minutes.
+:::tip Who this is for
+Developers ready to build an event-driven workflow agent from a sample. If you're still deciding whether this pattern is the right fit, see the [workflow overview](/docs/workloads/workflow/overview) first.
+:::
+
+Select the right workflow automation sample for your trigger and action model, understand the safety boundaries, and start building.
+
+<CanonicalRecommendation
+  defaultSource={{
+    url: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents",
+    title: "Workflow Automation Agent Catalog",
+    description: "Browse maintained workflow automation agent samples covering event-driven triage, document processing, and multi-step approval pipelines."
+  }}
+  selectionCriteria={[
+    "Your agent is triggered by events (EventBridge, SQS, SNS) rather than human chat",
+    "The workflow involves enriching data, reasoning over it, and taking a discrete action",
+    "You need idempotent event handling with at-least-once delivery guarantees",
+    "Actions must be gated by Cedar policies with human-approval checkpoints for high-risk operations"
+  ]}
+  fitRationale="Workflow agents follow a Trigger → Enrich → Reason → Act → Emit pattern. The canonical catalog provides maintained samples for incident triage, claims processing, document ingestion, and payment workflows — all with built-in policy gates and non-destructive defaults."
+  alternatives={[
+    {
+      condition: "You need insurance or financial event-driven claims processing",
+      destination: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/event-driven-claims-agent",
+      label: "Event-Driven Claims Agent"
+    },
+    {
+      condition: "You need document or web data ingestion and intelligence extraction",
+      destination: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/enterprise-web-intelligence-agent",
+      label: "Enterprise Web Intelligence Agent"
+    },
+    {
+      condition: "You need invoice or payment workflow automation",
+      destination: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/visa-b2b-account-payable-agent",
+      label: "B2B Accounts Payable Agent"
+    }
+  ]}
+  actionRisk={{
+    summary: "Non-destructive triage and ticket creation by default",
+    details: "The default workflow narrative creates tickets and sends notifications — it does not restart services, scale infrastructure, or mutate external state. Alternatives that perform write actions disclose their individual risk profiles and require Cedar policy authorization before execution."
+  }}
+  productionReadinessLink="/docs/operate/production-readiness"
+  nextSteps={[
+    { label: "Wire up event sources (EventBridge, SNS, SQS)", url: "/docs/workloads/workflow/event-processing" },
+    { label: "Add Cedar policies for bounded autonomy", url: "/docs/workloads/workflow/bounded-autonomy" },
+    { label: "Design tools and connect via Gateway", url: "/docs/workloads/workflow/tools-and-gateway" },
+    { label: "Set up continuous evaluations", url: "/docs/workloads/workflow/evaluations" },
+    { label: "Prefer config over code? Try the Harness Quick Start", url: "/docs/workloads/workflow/harness-quickstart" },
+    { label: "Production Readiness checklist", url: "/docs/operate/production-readiness" }
+  ]}
+/>
 
 ---
 
-## 5 Steps to Deploy
+### Event Handling Patterns
 
-<div className="fancy-table fancy-table--auto-first">
+Workflow agents process events from multiple sources. Design your event handler to:
 
-| Step | Action          | Command                                   |
-|------|-----------------|-------------------------------------------|
-| 1    | Install CLI     | `npm install -g @aws/agentcore`           |
-| 2    | Create Agent    | `agentcore create`                        |
-| 3    | Add SDK         | `uv add strands-agents bedrock-agentcore` |
-| 4    | Develop Locally | `agentcore dev`                           |
-| 5    | Deploy          | `agentcore deploy`                        |
+- **Normalize the event envelope** — Extract the business payload regardless of whether it arrives via EventBridge, SQS, or direct HTTP invocation. The canonical samples demonstrate payload unwrapping for each source type.
+- **Classify before acting** — Use the enrichment phase to determine severity, category, and required action before the agent reasons over next steps.
+- **Emit structured results** — Return machine-readable summaries (ticket IDs, notification confirmations, classification labels) so downstream systems can consume them programmatically.
+
+### Idempotency
+
+Events may be delivered more than once. Protect your workflow with:
+
+- **Deduplication keys** — Use a combination of event source, event ID, and timestamp to detect redelivered events. Skip processing if the event was already handled.
+- **Idempotent tool design** — Tools should produce the same outcome when called multiple times with identical inputs (e.g., "create ticket if not exists" rather than "create ticket").
+- **Dead-letter handling** — Route events that fail after bounded retries to a dead-letter queue for manual review rather than retrying indefinitely.
+
+### Policy Gates and Cedar Authorization
+
+Cedar policies control which actions an agent can execute and under what conditions. The example below uses the documented Cedar entity types — `AgentCore::OAuthUser` or IAM principal as the principal, `AgentCore::Action::"Gateway___tool_name"` for actions, and `AgentCore::Gateway::"arn:..."` for the resource. This is illustrative; adapt entity types and ARNs to your deployment.
+
+```cedar
+// Allow the triage agent to create escalation tickets
+// only when the incident severity warrants escalation
+permit(
+  principal is AgentCore::OAuthUser,
+  action == AgentCore::Action::"Gateway___create_escalation_ticket",
+  resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-east-1:123456789012:gateway/incident-gateway"
+) when {
+  context.input.incident_severity == "HIGH" &&
+  context.input.has_enrichment_data == true
+};
+```
+
+```cedar
+// Allow notification delivery for MEDIUM or HIGH severity
+permit(
+  principal is AgentCore::OAuthUser,
+  action == AgentCore::Action::"Gateway___notify_oncall",
+  resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-east-1:123456789012:gateway/incident-gateway"
+) when {
+  context.input.incident_severity in ["MEDIUM", "HIGH"]
+};
+```
+
+Key policy design principles:
+
+- **Least privilege** — Grant only the specific tool actions the agent needs for its workflow stage.
+- **Condition-based gating** — Use context attributes (severity, time window, enrichment completeness) to restrict when actions fire.
+- **Deny by default** — If no `permit` policy matches, the action is denied. Explicitly authorize each tool invocation.
+- **Audit trail** — Every policy evaluation is logged, providing a complete record of what was allowed and denied.
+
+See [Bounded Autonomy](/docs/workloads/workflow/bounded-autonomy) for complete Cedar policy patterns.
+
+### Human-Approval Patterns
+
+For actions that cross a risk threshold, require explicit human confirmation before execution:
+
+- **Asynchronous approval** — The agent creates an approval request (ticket, Slack message, email) and pauses. A separate event resumes the workflow when approval is granted.
+- **Time-bounded approval** — Approval requests expire after a configured window. Expired requests route to a fallback path (escalation or cancellation).
+- **Approval context** — Include the agent's reasoning, enrichment data, and proposed action in the approval request so reviewers have full context.
+- **Rejection handling** — When approval is denied, the agent records the denial reason and routes to an alternative non-destructive path.
+
+### Action Risk Awareness
+
+Every tool in a workflow agent has a risk profile. Classify tools into tiers:
+
+<div className="fancy-table">
+
+| Tier | Examples | Policy Requirement |
+|------|----------|-------------------|
+| **Read-only** | `get_service_health`, `lookup_account`, `fetch_document` | Minimal — log access for audit |
+| **Non-destructive write** | `create_ticket`, `send_notification`, `add_comment` | Standard Cedar policy gate |
+| **State-mutating** | `scale_fleet`, `update_config`, `modify_permissions` | Cedar policy + human approval + maintenance window |
 
 </div>
 
----
+Default workflows should operate at the **non-destructive write** tier. Escalate to state-mutating actions only with explicit policy authorization and human-in-the-loop confirmation.
 
-## Complete Working Example
+### Resource and Cost Awareness
 
-An event-driven incident response agent that follows the 5-step pattern: Trigger → Enrich → Reason → Act → Emit. Copy this into `app/IncidentAgent/main.py`:
+Workflow agents consume resources proportional to event volume and reasoning complexity:
 
-```python
-"""Event-driven incident response agent - Trigger → Enrich → Reason → Act → Emit."""
-
-import json
-import logging
-
-from strands import Agent, tool
-
-from bedrock_agentcore.runtime import BedrockAgentCoreApp
-
-log = logging.getLogger(__name__)
-app = BedrockAgentCoreApp()
-
-
-# --- Tools (Enrich + Act phases) ---
-
-
-@tool
-def get_service_health(service_name: str) -> dict:
-    """Check the health status of a service.
-
-    Args:
-        service_name: Name of the service to check (e.g., 'checkout-api').
-
-    Returns:
-        Service health information including status, error rate, and latency.
-    """
-    # Replace with real monitoring API in production
-    return {
-        "status": "success",
-        "content": [
-            {
-                "text": json.dumps(
-                    {
-                        "service": service_name,
-                        "status": "degraded",
-                        "error_rate_percent": 12.5,
-                        "p99_latency_ms": 2400,
-                        "healthy_instances": 2,
-                        "total_instances": 4,
-                    }
-                )
-            }
-        ],
-    }
-
-
-@tool
-def restart_service(service_name: str, reason: str) -> dict:
-    """Restart a service to recover from degraded state.
-
-    Args:
-        service_name: Name of the service to restart.
-        reason: Explanation for why the restart is needed.
-
-    Returns:
-        Restart result including new instance count and status.
-    """
-    log.info("Restarting %s: %s", service_name, reason)
-    # Replace with real orchestration API in production
-    return {
-        "status": "success",
-        "content": [
-            {
-                "text": json.dumps(
-                    {
-                        "action": "restart",
-                        "service": service_name,
-                        "result": "completed",
-                        "new_instance_count": 4,
-                    }
-                )
-            }
-        ],
-    }
-
-
-@tool
-def notify_oncall(message: str, severity: str) -> dict:
-    """Send a notification to the on-call engineer.
-
-    Args:
-        message: Notification message content.
-        severity: Alert severity - 'low', 'medium', or 'high'.
-
-    Returns:
-        Notification delivery confirmation.
-    """
-    log.info("Notifying on-call [%s]: %s", severity, message)
-    return {
-        "status": "success",
-        "content": [{"text": f"Notification sent (severity={severity})"}],
-    }
-
-
-# --- System prompt (Reason phase) ---
-
-SYSTEM_PROMPT = """You are an IT incident response agent. When you receive an
-incident event, follow this protocol:
-
-1. ENRICH: Use get_service_health to understand the current state.
-2. REASON: Analyze the health data and determine the best action.
-3. ACT: If the service is degraded, restart it. If critical, also notify on-call.
-4. EMIT: Summarize what you did and the outcome.
-
-Rules:
-- Only restart services that are in 'degraded' or 'down' status.
-- Always notify on-call for 'high' severity incidents.
-- Be concise in your summary - operations teams need quick answers."""
-
-
-@app.entrypoint
-def invoke(payload, context):
-    """Agent entrypoint - processes incident events from EventBridge."""
-    # Handle agentcore dev payload wrapping
-    if "prompt" in payload and "service_name" not in payload:
-        prompt_value = payload["prompt"]
-        if isinstance(prompt_value, str):
-            try:
-                parsed = json.loads(prompt_value)
-                if isinstance(parsed, dict) and "service_name" in parsed:
-                    payload = parsed
-            except (json.JSONDecodeError, TypeError):
-                pass
-
-    # Build the prompt from the event payload
-    if "service_name" in payload:
-        prompt = (
-            f"Incident received:\n"
-            f"- Service: {payload['service_name']}\n"
-            f"- Event: {payload.get('event_type', 'unknown')}\n"
-            f"- Severity: {payload.get('severity', 'medium')}\n"
-            f"- Description: {payload.get('description', 'No description')}\n\n"
-            f"Follow the incident response protocol."
-        )
-    else:
-        prompt = payload.get("prompt", "No event received.")
-
-    agent = Agent(
-        model="global.anthropic.claude-sonnet-4-5-20250929-v1:0",
-        system_prompt=SYSTEM_PROMPT,
-        tools=[get_service_health, restart_service, notify_oncall],
-    )
-
-    result = agent(prompt)
-    return {"response": result.message}
-
-
-app.run()
-```
-
----
-
-## Configuration
-
-### `agentcore/agentcore.json`
-
-```json
-{
-  "runtimes": [
-    {
-      "name": "IncidentAgent",
-      "build": "CodeZip",
-      "entrypoint": "main.py",
-      "codeLocation": "app/IncidentAgent/",
-      "runtimeVersion": "PYTHON_3_13",
-      "protocol": "HTTP",
-      "networkMode": "PUBLIC"
-    }
-  ]
-}
-```
-
----
-
-## Test It
-
-```bash
-# Terminal 1: start the dev server
-agentcore dev
-
-# Terminal 2: simulate an incident event
-agentcore dev '{"service_name": "checkout-api", "event_type": "high_error_rate", "severity": "high", "description": "Error rate exceeded 10% threshold"}'
-
-# Expected: Agent calls get_service_health, sees degraded status,
-# restarts the service, notifies on-call, and summarizes actions taken.
-```
-
----
-
-## The 5-Step Pattern in Action
-
-```
-① TRIGGER  → EventBridge delivers "high_error_rate" event
-② ENRICH   → Agent calls get_service_health("checkout-api")
-③ REASON   → LLM sees degraded + high severity → decides to restart + notify
-④ ACT      → Agent calls restart_service() and notify_oncall()
-⑤ EMIT     → Agent returns structured summary of actions taken
-```
+- **Token consumption** — Each event triggers an LLM invocation. Batch low-priority events or implement severity-based routing to control costs.
+- **Tool call chains** — Complex reasoning may chain multiple tool calls per event. Set `maxIterations` to bound reasoning depth.
+- **Concurrent execution** — High event volumes trigger parallel agent executions. Monitor concurrent invocation counts and set concurrency limits appropriate to your downstream tool APIs.
+- **Scale-to-zero billing** — AgentCore Runtimes [scale to zero](https://aws.amazon.com/bedrock/agentcore/pricing/) between events, but log retention and staged assets continue to accrue charges.
 
 ---
 
 ## What's Next?
 
-You have a working agent. Now add production capabilities:
-
+- <Link to="/docs/workloads/workflow/harness-quickstart">Prefer config over code? Try the Harness Quick Start →</Link>
 - <Link to="/docs/workloads/workflow/event-processing">Wire up event sources (EventBridge, SNS, SQS) →</Link>
 - <Link to="/docs/workloads/workflow/bounded-autonomy">Add Cedar policies for bounded autonomy →</Link>
 - <Link to="/docs/workloads/workflow/tools-and-gateway">Design tools and connect via Gateway →</Link>
 - <Link to="/docs/workloads/workflow/evaluations">Set up continuous evaluations →</Link>
+- <Link to="/docs/operate/production-readiness">Production Readiness checklist →</Link>
+
+:::warning
+Everything produced by the samples on this page is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

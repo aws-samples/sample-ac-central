@@ -4,6 +4,7 @@
 .github/
 .cursor/
 .kiro/
+.kiro/specs/
 .agents/
 .venv/
 node_modules/
@@ -13,3 +14,6 @@ content/
 .env.omni
 README.md
 analysis/
+aidlc/
+research/
+.standards/

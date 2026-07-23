@@ -1,0 +1,137 @@
+---
+title: "Quick Start: Conversational Agent on Harness"
+sidebar_label: Harness Quick Start
+sidebar_position: 3
+last_verified: 2026-07-22
+---
+
+import Link from '@docusaurus/Link';
+import CanonicalRecommendation from '@site/src/components/CanonicalRecommendation';
+
+# Quick Start: Conversational Agent on Harness
+
+:::tip Who this is for
+Developers who want a managed conversational agent driven by configuration, not code. If you need custom orchestration logic, local Python tools, or a specific framework, use the code-first [Quick Start](/docs/workloads/conversational/quickstart) instead.
+:::
+
+Use AgentCore Harness when you want a managed conversational agent loop driven by configuration, not code.
+
+---
+
+## Create, deploy, and invoke in three commands
+
+:::info Verified CLI version
+The commands on this page were checked with AgentCore CLI `0.24.1` on July 22, 2026. The harness-specific `agentcore invoke` flags (`--harness`, `--actor-id`) appear in `agentcore invoke --help` when run inside a harness project. Re-verify with `--help` when using a different CLI version.
+:::
+
+```bash
+# Create a harness project
+agentcore create --name mychatagent --model-provider bedrock
+
+# Add memory for multi-turn conversation continuity
+agentcore add memory --name chatmemory --strategies SEMANTIC,SUMMARIZATION
+```
+
+After scaffolding, edit `app/mychatagent/system-prompt.md` with a conversational system prompt:
+
+```markdown
+You are a helpful assistant that answers questions clearly and concisely.
+
+## Guidelines
+- Ask clarifying questions when a request is ambiguous.
+- When you don't know something, say so — don't guess.
+- Keep responses focused on the user's question.
+- If a task requires multiple steps, walk the user through them one at a time.
+- Never share information about other users or internal systems.
+```
+
+Then run the dev server to test:
+
+```bash
+# Deploys the harness and opens a browser test page for interactive chat
+agentcore dev
+```
+
+`agentcore dev` synthesizes and deploys the harness automatically, then opens a test page where you can chat with the agent, inspect traces, and adjust settings. Use `--no-browser` for a terminal-based TUI instead.
+
+Alternatively, invoke directly from the CLI:
+
+```bash
+agentcore invoke --harness mychatagent \
+  --session-id "$(uuidgen)" \
+  --actor-id alice \
+  "What can you help me with?"
+```
+
+`--actor-id` scopes memory per user — each actor gets isolated short-term and long-term recall. The name must be alphanumeric only (no hyphens or special characters). The `--session-id` must be at least 33 characters, which is why the example uses `$(uuidgen)` (36 characters); reuse the same session ID to continue a conversation. For the full interactive wizard and configuration options, see the [Harness Getting Started tutorial](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html).
+
+---
+
+<CanonicalRecommendation
+  defaultSource={{
+    url: "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html",
+    title: "Harness Getting Started",
+    description: "Deploy a managed conversational agent with per-user memory using configuration only — no agent code required. Covers project creation, harness configuration, deployment, and multi-turn memory testing."
+  }}
+  selectionCriteria={[
+    "You want a managed agent loop instead of writing Runtime code",
+    "Declarative configuration (model, system prompt, tools, memory) covers your needs",
+    "You need per-user memory and actor isolation without identity-extraction plumbing",
+    "You do not require custom orchestration logic, local Python tools, or a non-Strands framework"
+  ]}
+  fitRationale="Harness removes the three pieces of plumbing the Runtime path requires: memory wiring, actor identity extraction, and session history loading. You declare the agent as configuration and AgentCore executes it. This is the fastest path to a working conversational agent when your requirements fit the declarative model."
+  alternatives={[
+    {
+      condition: "You need a full application architecture with memory, identity, and streaming",
+      destination: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents",
+      label: "Conversational Agent sample"
+    }
+  ]}
+  actionRisk={{
+    summary: "Harness is sandbox-scoped",
+    details: "The harness runs in a sandboxed microVM with `shell` and `file_operations` tools enabled by default. These tools operate within the isolated session — they cannot reach external systems unless you add Gateway targets or MCP servers. See Sandbox scoping and production boundaries below for what this means and how to move beyond it."
+  }}
+  productionReadinessLink="/docs/operate/production-readiness"
+  nextSteps={[
+    { label: "Runtime Quick Start — the code-first path with custom tools", url: "/docs/workloads/conversational/quickstart" },
+    { label: "Architecture Guidance — identity, gateway, and guardrails", url: "/docs/workloads/conversational/enterprise-features" },
+    { label: "Production Readiness checklist", url: "/docs/operate/production-readiness" },
+    { label: "AWS Harness documentation — versioning, endpoints, export to code", url: "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness.html" }
+  ]}
+/>
+
+---
+
+## When Harness suffices vs. when you need a full-stack sample
+
+<div className="fancy-table">
+
+| Choose Harness when | Choose the conversational sample when |
+|---|---|
+| Declarative config (model, prompt, tools, memory) covers your requirements | You need custom orchestration logic or a framework other than Strands |
+| You want per-user memory without writing session-manager code | You need streaming responses with custom middleware or client integration |
+| Your tools are available as remote MCP servers, gateways, or inline functions | Your tools require local Python functions or complex dependency graphs |
+| You want the fastest path from idea to working prototype | You need full control over identity extraction, session lifecycle, or error handling |
+
+</div>
+
+Harness is a [managed agent loop](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-vs-runtime.html) — AgentCore handles orchestration, tool execution, and memory management, running inside the same isolated microVMs as Runtime. If your requirements outgrow declarative configuration, the [Runtime path](/docs/workloads/conversational/quickstart) gives you full code-level control.
+
+---
+
+## Sandbox scoping and production boundaries
+
+Harness tutorials create resources in a **sandbox scope** — meaning the agent can converse but has no access to external systems or verified user identities by default:
+
+- **Default tools included** — the harness is created with `shell` and `file_operations` tools available. The agent can execute commands and interact with the filesystem within its sandboxed microVM. Additional tools (MCP servers, Gateway targets, browser, code interpreter) are added via `agentcore add tool` and require corresponding permissions on the [execution role](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-security.html#harness-execution-role-policy).
+- **Actor IDs are caller-supplied** — `--actor-id` is an opaque identifier that AgentCore does not verify against an authenticated user. In production, derive actor IDs from verified JWT claims via [AgentCore Identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html).
+- **Memory is namespaced by actor** — sharing one actor ID across users would let them read each other's context. See [Per-user memory scoping with actor ID](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-memory.html).
+- **No inbound authorization** — by default, anyone with IAM `InvokeHarness` permission can invoke. Production harnesses should add [inbound OAuth](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-security.html) or scope IAM policies to specific principals.
+
+For the full security model — trust boundaries, execution role policies, tool permissions, network configuration, and gateway policy integration — see [Harness security and access controls](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-security.html). The [Runtime security best practices](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-security-best-practices.html) apply equally since harness runs inside Runtime.
+
+When moving toward production, complete the <Link to="/docs/operate/production-readiness">Production Readiness checklist</Link>.
+
+:::warning
+Everything produced by this tutorial is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

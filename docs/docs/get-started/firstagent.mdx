@@ -1,50 +1,53 @@
 ---
-title: Your First Agent in 5 Minutes
+title: Your First Agent (Managed Harness)
 sidebar_label: First Agent
-sidebar_position: 2
+sidebar_position: 3
+last_verified: 2026-07-16
 ---
 
-# Your First Agent in 5 Minutes
+# Your First Agent (Console)
 
-Create your first agent in 5 minutes with managed harness. Fully managed, config-based agent service with no orchestration code needed. Stateful sessions with micro-VM isolation and flexible tooling with an export-to-code option for more control.
+:::tip Who this is for
+First-time builders who prefer a UI-led experience without local tooling. If you want a code-first dev loop with version control and hot-reload, see [Build from CLI](/docs/get-started/quickstart).
+:::
 
----
-
-## Using Managed Harness
-
-- **Zero orchestration code**: define your agent declaratively via configuration. AgentCore handles routing, memory, and tool invocation.
-- **Stateful sessions**: micro-VM isolation with sessions persisting up to 8 hours. No infrastructure to manage.
-- **Flexible tooling**: connect tools via AgentCore Gateway (MCP). Add, remove, or swap tools without redeploying.
-- **Export to code**: start managed, graduate to full code control when you need custom logic. No lock-in.
+Deploy an agent through the AWS console without installing local tooling or writing orchestration code — the console handles resource creation, IAM role setup, and initial configuration on your behalf.
 
 ---
 
-## Get Started in 4 Steps
+## Canonical tutorial
 
-<div className="fancy-table fancy-table--auto-first">
+AWS does not yet publish a dedicated console walkthrough. The console UI is self-guided — start here:
 
-| Step | Action                         | Details                                                                                            |
-| ---- | ------------------------------ | -------------------------------------------------------------------------------------------------- |
-| 1    | **Open the AgentCore Console** | Navigate to the Amazon Bedrock AgentCore console in your AWS account and choose **Quick create Harness** |
-| 2    | **Create an Agent**            | Use the guided wizard to define your agent - select a model, add a system prompt, and attach tools |
-| 3    | **Configure Tools**            | Connect to APIs via AgentCore Gateway or add built-in tools (Code Interpreter, Browser Tool)       |
-| 4    | **Test & Deploy**              | Test in the console playground, then deploy to a production endpoint                               |
+- [Amazon Bedrock AgentCore console](https://console.aws.amazon.com/bedrock-agentcore/home#) — the UI walks you through creating a harness with a model, system prompt, and tools
 
-</div>
+For the documented procedural path (CLI and boto3):
 
----
+- [Get started with the harness (CLI / boto3)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html)
 
-## Key Features
+Prefer the terminal? Create the same agent in three commands:
 
-- **Identity integration**: attach an OAuth provider to enable user-scoped tool access
-- **Memory**: enable session memory (short-term) and user memory (long-term) with a toggle
-- **Guardrails**: add content filters, topic boundaries, and PII redaction from the console
-- **Observability**: tracing enabled by default. View in CloudWatch or export via OTLP
+```bash
+agentcore create --name myfirstagent --model-provider bedrock
+agentcore dev
+```
+
+This scaffolds a harness project and opens the browser test page where you can chat with your agent immediately.
 
 ---
 
-## Resources
+## What you'll have at the end
 
-- [AgentCore Developer Guide - Getting Started](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started.html)
-- [AgentCore Console Walkthrough](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/console-walkthrough.html)
-- [Strands SDK - Managed Deployment](https://strandsagents.com/docs/user-guide/deploy/)
+A deployed agent with a reachable endpoint you can invoke and test interactively. The harness manages the agent loop, model configuration, and system prompt — see [Harness operations](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-operations.html) for what you can configure after creation.
+
+---
+
+## Next steps
+
+- [Prepare your agent for production traffic](/docs/operate/production-readiness)
+- [Explore deployment methods to choose your long-term workflow](/docs/get-started/deployment-methods)
+- [Add memory and tools with the Harness quickstart](/docs/workloads/conversational/harness-quickstart)
+
+:::warning
+Everything produced by this tutorial is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

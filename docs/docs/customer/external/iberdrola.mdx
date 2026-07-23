@@ -1,6 +1,7 @@
 ---
 title: Iberdrola - IT Operations
 sidebar_label: Iberdrola
+last_verified: 2026-07-15
 ---
 
 # Iberdrola - AI Agents for IT Operations
@@ -9,11 +10,57 @@ sidebar_label: Iberdrola
 
 <span className="tile-icon tile-icon-svg tile-icon--book" aria-hidden="true" /> [Blog Post →](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/)
 
-## Architecture
+**Industry:** Energy / Utilities | **Workload pattern:** Multi-pattern (sequential pipeline, enrichment, conversational) | **Integration type:** ServiceNow + enterprise identity
 
-![Iberdrola Architecture](/img/image70.jpeg)
+---
 
-Multi-agent IT operations system with LangGraph orchestration, VPC-secured and integrated with enterprise identity.
+## Source
+
+[AWS Machine Learning Blog - Iberdrola Enhances IT Operations Using Amazon Bedrock AgentCore](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/)
+
+Publication date: See linked source.
+
+---
+
+## Customer context
+
+Iberdrola is a global energy utility operating across Europe, the Americas, and beyond. IT operations at that scale involve high volumes of ServiceNow change requests and incident tickets, each requiring validation and enrichment steps before action.
+
+---
+
+## Challenge
+
+Manual ServiceNow change and incident management created bottlenecks. Change requests required multiple human validation steps, and incident resolution was slowed by incomplete ticket data. IT teams spent significant time on repetitive triage and data enrichment tasks rather than resolving issues.
+
+---
+
+## Solution
+
+Iberdrola chose to build a multi-agent AI system using LangGraph and deploy it on AgentCore. Three agentic patterns address different scenarios: a sequential validation pipeline for change requests (Rule Extractor, Content Validator, AIM Analyst, Phase Transition agents), an orchestrated incident enrichment workflow that pulls context from multiple sources, and a conversational change model assistant. LiteLLM routes between Amazon Nova and Claude based on task complexity. All agents run within a VPC and integrate with Entra ID for enterprise identity.
+
+---
+
+## AgentCore services used
+
+<div className="fancy-table">
+
+| AgentCore Service | How Iberdrola configured it                               | Why it mattered                                                   |
+|-------------------|-----------------------------------------------------------|-------------------------------------------------------------------|
+| Runtime           | LangGraph agents in VPC, model routing via LiteLLM       | VPC isolation met security requirements; flexible model choice reduced cost |
+| Observability     | Full trace capture of orchestration and agent decisions   | Root-cause analysis when agents routed incorrectly               |
+| Identity          | Entra ID OAuth 2.0 integration                            | Agents acted on behalf of authenticated users                    |
+
+</div>
+
+---
+
+## Architecture pattern
+
+![Iberdrola Architecture - Multi-agent IT operations system showing a ServiceNow ticket entering a LangGraph orchestrator that routes to four sequential validation agents before passing to AgentCore Runtime with observability capture](/img/image70.jpeg)
+
+*Architecture interpretation by this site based on the public source.*
+
+The diagram above shows a ServiceNow ticket entering the LangGraph orchestrator, which dispatches it through a sequential pipeline of four specialized agents (Rule Extractor, Content Validator, AIM Analyst, Phase Transition), each running on AgentCore Runtime within a VPC, with all steps captured by observability.
 
 ```mermaid
 flowchart LR
@@ -26,31 +73,11 @@ flowchart LR
     G --> H[Observability]
 ```
 
-## Customer Story
+**Entry point:** ServiceNow change or incident ticket.
+**Main flow:** The LangGraph orchestrator determines the pattern (sequential validation, enrichment, or conversational) and dispatches accordingly. Sequential tasks move through each agent in order.
+**Key boundary:** VPC perimeter; agents never call external APIs directly without routing through the enterprise identity layer.
 
-**Customer:** Iberdrola, a global energy utility operating across Europe, the Americas, and beyond
-
-**Challenge:** Manual ServiceNow change and incident management created bottlenecks. Change requests required multiple human validation steps, and incident resolution was slowed by incomplete ticket data. IT teams spent significant time on repetitive triage and data enrichment tasks.
-
-**Solution:** Multi-agent AI system built with LangGraph and deployed on AgentCore. Three agentic patterns: (1) Sequential validation pipeline for change requests (Rule Extractor, Content Validator, AIM Analyst, Phase Transition), (2) Orchestrated incident enrichment that pulls context from multiple sources, and (3) Conversational change model assistant. LiteLLM routes between Amazon Nova and Claude based on task complexity.
-
-## AgentCore Configuration
-
-<div className="fancy-table">
-
-| AgentCore Service | Configuration for Iberdrola                               | Why It Matters                                                    |
-|-------------------|-----------------------------------------------------------|-------------------------------------------------------------------|
-| Runtime           | LangGraph agents in VPC, model routing via LiteLLM       | VPC isolation meets security requirements, flexible model choice |
-| Observability     | Full trace capture of orchestration and agent decisions   | Root-cause analysis when agents route incorrectly                |
-| Identity          | Entra ID OAuth 2.0 integration                            | Agents act on behalf of authenticated users                      |
-
-</div>
-
-## Key Technical Decisions
-
-- **LangGraph for multi-step orchestration** because change request validation is inherently sequential (rule extraction must complete before content validation). LangGraph's state machine fit the existing ServiceNow workflow mental model.
-- **LiteLLM as a model router** to balance cost and quality. Routine triage uses Nova Micro, complex analysis escalates to Claude Sonnet.
-- **Three distinct agentic patterns** rather than one generic agent. Each pattern (validation pipeline, enrichment, conversational) has different orchestration needs and failure modes.
+---
 
 ## Results
 
@@ -61,8 +88,23 @@ flowchart LR
   <span className="result-chip">Framework-agnostic deployment</span>
 </div>
 
-## Lessons Learned
+---
 
-- **Different tasks need different orchestration patterns.** Validation pipelines are sequential, incident enrichment is parallel, conversational agents are iterative. A single orchestration approach would have been suboptimal.
-- **Model routing reduces cost without sacrificing quality** when you route by task complexity rather than applying the most expensive model everywhere.
-- **VPC deployment is not a barrier** to using AgentCore. Secure, private connectivity to ServiceNow and internal tools worked out of the box.
+## Transferable lessons
+
+- Iberdrola chose three distinct agentic patterns rather than one generic agent. Validation pipelines are sequential; incident enrichment is parallel; conversational assistance is iterative. Aligning architecture to task structure made each pattern simpler and more reliable.
+- The team used LiteLLM to route by task complexity: routine triage went to Nova Micro, complex analysis to Claude Sonnet. This controlled cost without sacrificing quality on demanding tasks.
+- Deploying inside a VPC with Entra ID integration was a hard requirement for the security team. The AgentCore Runtime accommodated this without requiring a custom runtime or proxy layer.
+
+---
+
+## When this is relevant
+
+This pattern fits IT operations and ITSM workflows where the same process involves multiple distinct steps (validate, enrich, classify, act) that must execute in sequence. It is also relevant for organizations that require enterprise identity integration (SSO, OAuth) and VPC-private deployment. The model routing approach (cheap model for volume, expensive model for complexity) applies broadly to cost-sensitive, high-volume workloads.
+
+---
+
+## Source and verification
+
+- [AWS Machine Learning Blog - Iberdrola Enhances IT Operations Using Amazon Bedrock AgentCore](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/)
+- Last verified: 2026-07-15

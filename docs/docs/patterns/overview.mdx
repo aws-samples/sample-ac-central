@@ -2,6 +2,7 @@
 title: Architectural Patterns
 sidebar_label: Overview
 sidebar_position: 1
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
@@ -16,13 +17,23 @@ Multi-agent patterns supported by AgentCore and the Strands SDK. Choose based on
 
 12 patterns organized into three tiers based on documentation maturity and production evidence. All are deployable on AgentCore Runtime.
 
-### Tier 1 - Officially Documented AgentCore Patterns
+:::info Pattern documentation sources
+Tier labels indicate where patterns are documented and evidenced, not their production
+readiness. Tier 1 patterns have official documentation in the
+[Strands Agents SDK](https://strandsagents.com/docs/user-guide/concepts/multi-agent/multi-agent-patterns/)
+and [AgentCore Samples](https://github.com/awslabs/agentcore-samples). Tier 2 patterns
+have published customer evidence. Tier 3 patterns are well-known industry patterns
+applicable on AgentCore but without specific AgentCore documentation.
+:::
+
+### Tier 1 - Documented in Strands SDK and AgentCore Samples
 
 <div className="tile-grid">
   <div className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--agent" aria-hidden="true" /><h3>Single Agent + Tools</h3></div>
     <p>One agent with multiple tools connected via AgentCore Gateway. The simplest production pattern - ideal for most initial deployments.</p>
     <p><strong>Example:</strong> <a href="https://aws.amazon.com/blogs/machine-learning/democratizing-business-intelligence-bgls-journey-with-claude-agent-sdk-and-amazon-bedrock-agentcore/">BGL - NL-to-SQL Agent</a></p>
+    <p><strong>Source:</strong> <a href="https://strandsagents.com/docs/user-guide/concepts/tools/">Strands SDK - Tools</a></p>
     <span className="service-tag tag--runtime">Low Complexity</span>
   </div>
 
@@ -30,6 +41,7 @@ Multi-agent patterns supported by AgentCore and the Strands SDK. Choose based on
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--tree" aria-hidden="true" /><h3>Agents-as-Tools (Subagents)</h3></div>
     <p>Parent/orchestrator invokes child agents as callable tools. Hierarchical delegation with the parent deciding which child to invoke.</p>
     <p><strong>Example:</strong> <a href="https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/">Thomson Reuters - Platform Hub</a></p>
+    <p><strong>Source:</strong> <a href="https://strandsagents.com/docs/user-guide/concepts/multi-agent/agents-as-tools/">Strands SDK - Agents-as-Tools</a></p>
     <span className="service-tag tag--identity">Medium Complexity</span>
   </div>
 
@@ -37,29 +49,33 @@ Multi-agent patterns supported by AgentCore and the Strands SDK. Choose based on
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--patterns" aria-hidden="true" /><h3>Graph Pattern</h3></div>
     <p>Developer-defined flowchart where the LLM decides the path at each node. Supports conditional logic, branching, and loops.</p>
     <p><strong>Example:</strong> <a href="https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/">Iberdrola - IT Ops</a></p>
+    <p><strong>Source:</strong> <a href="https://strandsagents.com/docs/user-guide/concepts/multi-agent/multi-agent-patterns/">Strands SDK - Multi-Agent Patterns</a></p>
     <span className="service-tag tag--identity">Medium Complexity</span>
   </div>
 
   <div className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--swarm" aria-hidden="true" /><h3>Swarm Pattern</h3></div>
     <p>Dynamic collaborative team where agents autonomously hand off tasks to each other. Emergent execution path - no predefined orchestration.</p>
+    <p><strong>Source:</strong> <a href="https://strandsagents.com/docs/user-guide/concepts/multi-agent/multi-agent-patterns/">Strands SDK - Multi-Agent Patterns</a></p>
     <span className="service-tag tag--observability">Medium-High Complexity</span>
   </div>
 
   <div className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--workflow" aria-hidden="true" /><h3>Workflow Pattern (DAG)</h3></div>
     <p>Pre-defined task graph with deterministic execution. Independent tasks run in parallel. No cycles allowed - pure directed acyclic graph.</p>
+    <p><strong>Source:</strong> <a href="https://strandsagents.com/docs/user-guide/concepts/multi-agent/multi-agent-patterns/">Strands SDK - Multi-Agent Patterns</a></p>
     <span className="service-tag tag--identity">Medium Complexity</span>
   </div>
 
   <div className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--globe" aria-hidden="true" /><h3>Agent-to-Agent (A2A Protocol)</h3></div>
     <p>Peer agents communicate via the open A2A protocol. Cross-platform, cross-framework interoperability for federated agent ecosystems.</p>
+    <p><strong>Source:</strong> <a href="https://strandsagents.com/docs/user-guide/concepts/multi-agent/agent-to-agent/">Strands SDK - Agent-to-Agent</a></p>
     <span className="service-tag tag--evaluations">High Complexity</span>
   </div>
 </div>
 
-### Tier 2 - Production-Proven Patterns
+### Tier 2 - Production-Proven Patterns (Customer Evidence)
 
 <div className="tile-grid">
   <div className="tile-card">
@@ -79,6 +95,7 @@ Multi-agent patterns supported by AgentCore and the Strands SDK. Choose based on
   <div className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--knowledge" aria-hidden="true" /><h3>RAG-Augmented Agent</h3></div>
     <p>Retrieves enterprise data to ground responses in facts. Tool-use pattern where retrieval is one of several tools available to the agent.</p>
+    <p><strong>Example:</strong> <a href="https://aws.amazon.com/blogs/machine-learning/democratizing-business-intelligence-bgls-journey-with-claude-agent-sdk-and-amazon-bedrock-agentcore/">BGL - Knowledge-Grounded Agent</a></p>
     <span className="service-tag tag--runtime">Low-Medium Complexity</span>
   </div>
 </div>
@@ -155,4 +172,4 @@ Which patterns are most relevant for each agent archetype.
 - [Strands Multi-Agent Docs](https://strandsagents.com/docs/user-guide/concepts/multi-agent/multi-agent-patterns/)
 - [Strands A2A Docs](https://strandsagents.com/docs/user-guide/concepts/multi-agent/agent-to-agent/)
 - [Strands Agents-as-Tools Docs](https://strandsagents.com/docs/user-guide/concepts/multi-agent/agents-as-tools/)
-- [Strands Deploy Guide](https://strandsagents.com/docs/user-guide/deploy/)
+- [Strands Deploy Guide](https://strandsagents.com/docs/user-guide/deploy/deploy_to_bedrock_agentcore/)

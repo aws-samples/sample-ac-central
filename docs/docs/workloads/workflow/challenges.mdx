@@ -1,0 +1,257 @@
+---
+title: Production Challenges
+sidebar_label: Production Challenges
+sidebar_position: 9
+last_verified: 2026-07-22
+---
+
+import Link from '@docusaurus/Link';
+
+# Production Challenges for Workflow Agents
+
+:::tip Who this is for
+Teams with a working workflow prototype that are heading toward production. If you're still in the build phase, finish the [quickstart](/docs/workloads/workflow/quickstart) first.
+:::
+
+Workflow agents are harder to operate than conversational agents. When something goes wrong in a chat session, a user notices and complains. When something goes wrong in an event-driven automation, it can silently compound for hours — or fan out across dozens of downstream systems before anyone realizes there's a problem.
+
+These are the failure modes that matter in production, what causes them, and what to do about it.
+
+---
+
+## 1. Runaway Automation and Event Storms
+
+An agent that responds to events and emits new events can create a feedback loop. One action triggers an EventBridge rule that fires the same agent again, repeatedly, until you hit throttling limits or a budget alarm.
+
+**Why it's dangerous for workflow agents:** Conversational agents respond to humans who stop typing. Workflow agents respond to system events — and systems don't get tired.
+
+**Failure modes:**
+- Agent action emits an event that matches its own trigger rule → infinite loop
+- Event pattern is too broad, matching events the agent wasn't meant to handle
+- DLQ not configured, so throttled invocations are silently dropped rather than retried
+- Retry storms from multiple agents hitting the same downstream service simultaneously
+
+**Must-dos:**
+- Make event patterns as specific as possible: source + `detail-type` + account + region + content filters. Validate them with [`aws events test-event-pattern`](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-patterns-best-practices.html) before deployment.
+- Never emit events that match your own trigger rule without explicit loop-breaking logic (a depth counter in the event payload, or a distinct output event type).
+- Set invocation rate limits and budget alerts before going live.
+- Carry a hop counter in every event payload — terminate the agent when it exceeds a configured maximum.
+
+---
+
+## 2. Unbounded Autonomy
+
+An agent with tool access but no policy constraints can execute anything the model decides on, including destructive operations triggered by hallucinated reasoning or misclassified inputs.
+
+**Why it's dangerous for workflow agents:** Workflow agents operate on infrastructure and data, not just words. A misclassified alert that leads to a service restart, or a hallucinated analysis that modifies database records, has immediate real-world impact.
+
+**Failure modes:**
+- Agent restarts a production service based on a misinterpreted low-priority alert
+- Agent modifies records based on hallucinated analysis
+- Agent cascades changes across systems without understanding the rollback implications
+- No policy engine attached → all tools permitted by default
+
+**Must-dos:**
+- Deploy Cedar policies from day one — even `LOG_ONLY` mode to observe behavior before enforcing it. Use the [Agentic AI Security Scoping Matrix](https://aws.amazon.com/ai/security/agentic-ai-scoping-matrix/) to classify autonomy risk, then see the [Bounded Autonomy guide](/docs/workloads/workflow/bounded-autonomy) and [AgentCore Policy Getting Started](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-getting-started.html).
+- Start with deny-all, permit specific tool/action combinations explicitly.
+- Separate read tools from write tools in policy design. Permit reads broadly; gate writes strictly.
+- Use Cedar conditions (priority, entity type, time window) to narrow permitted actions.
+- Graduate from `LOG_ONLY` to `ENFORCE` only after validating the policy set against real traffic.
+
+---
+
+## 3. Idempotency Violations
+
+Most event delivery systems guarantee at-least-once delivery. Without idempotent tool design, a duplicate event causes repeated side effects: double charges, duplicate tickets, conflicting state changes.
+
+**Why it's dangerous for workflow agents:** A retry that seems harmless can restart a service that already recovered, creating a new outage. A DLQ redrive can re-execute stale actions against current state.
+
+**Failure modes:**
+- SQS delivers the same message twice → agent creates duplicate incident ticket
+- EventBridge retry causes the agent to restart a service that already recovered
+- DLQ redrive re-processes an old event against state that has since changed
+
+**Must-dos:**
+- Design every write tool to be idempotent: check-before-act, or use idempotency keys stored in DynamoDB or ElastiCache.
+- Use [SQS FIFO `MessageDeduplicationId`](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/using-messagededuplicationid-property.html) for queue-level deduplication.
+- Store operation results keyed by event/request ID — short-circuit on re-delivery.
+- Test tools with duplicate invocations as part of standard validation, not as an afterthought.
+
+---
+
+## 4. Missing Dead-Letter Handling
+
+Failed agent invocations or undeliverable events disappear without a trace when DLQs are not configured. You have no alarm, no audit trail, and no way to replay the lost work.
+
+**Why it's dangerous for workflow agents:** A partial workflow can complete successfully while a critical final step fails silently. If no one is watching, automated remediation appears to work while actually leaving systems in a broken state.
+
+**Failure modes:**
+- EventBridge target fails repeatedly → events dropped with no record
+- SQS message exceeds `maxReceiveCount` → message disappears (no DLQ configured)
+- Partial workflow completes but failure on the final step goes unnoticed for days
+
+**Must-dos:**
+- Configure DLQs on every [EventBridge rule target](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rule-dlq.html) and every [SQS queue](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html) that triggers agents.
+- Set DLQ retention longer than source queue retention so messages don't expire before investigation.
+- Monitor DLQ depth with CloudWatch alarms — non-zero depth means something is failing.
+- Build a controlled DLQ drain/redrive process. Never blindly redrive without reviewing message content first.
+
+---
+
+## 5. Missing Circuit Breakers
+
+An agent that retries a failing tool call indefinitely makes a degraded downstream system worse. Without circuit breakers, the agent becomes a source of additional load during an outage.
+
+**Why it's dangerous for workflow agents:** Incident-response agents that hammer a database during an outage extend the outage. Cost escalates from failed inference calls and exhausted retries. The agent that was supposed to help is now contributing to the problem.
+
+**Failure modes:**
+- Agent retries a failing database call with exponential backoff but never stops
+- Multiple agents pile onto the same degraded service simultaneously
+- Lambda timeout cascade: invocations stack up waiting for responses that won't come
+- Cost spike from thousands of failed inference and tool calls
+
+**Must-dos:**
+- Implement the [circuit breaker pattern](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/circuit-breaker.html): closed → open (stop calls) → half-open (probe) → closed.
+- Set failure thresholds on both error rate and latency, not just error rate.
+- When the circuit opens, the agent should replan: escalate to a human, log for later retry, or skip. Not retry.
+- Coordinate circuit breakers with retry policies — the breaker should open before retries are exhausted.
+- For complex multi-step workflows, use [Step Functions error handling](https://docs.aws.amazon.com/step-functions/latest/dg/concepts-error-handling.html) with `MaxAttempts` as a basic built-in safeguard.
+
+---
+
+## 6. Goal Drift in Long Trajectories
+
+Over multi-step reasoning, agents gradually deviate from their original intent. Ambiguous intermediate results, pattern-matching bias, and compounding small errors accumulate into actions that have little to do with the original goal.
+
+**Why it's dangerous for workflow agents:** An agent that starts by investigating an error rate and drifts into making unrelated infrastructure changes is doing unsanctioned work. The policy engine can bound the tools, but it cannot bound the agent's reasoning trajectory.
+
+**Failure modes:**
+- Agent starts investigating an error rate → drifts into unrelated infrastructure changes
+- Agent scope-creeps from "create ticket" to "resolve ticket" to "modify production config"
+- Agent optimizes for an intermediate metric (close tickets fast) instead of the actual goal (fix problems)
+- Misalignment accumulates across 10+ tool calls without any single step looking obviously wrong
+
+**Must-dos:**
+- Set a hard cap on maximum steps per invocation — not a soft suggestion in the system prompt.
+- Re-inject the original goal at each reasoning step, not just at initialization.
+- Add explicit scope boundaries in the system prompt: "You may only do X, Y, Z. You may not do A, B, C."
+- Log the full trajectory for post-hoc analysis. Use [trajectory evaluators](/docs/workloads/workflow/evaluations) to detect drift in production.
+- Consider a dual-agent separation: one agent reasons and proposes, another executes — the boundary makes drift visible before actions are taken.
+
+---
+
+## 7. Unsafe Default Tool Exposure
+
+Quickstarts that ship with destructive tools (restart service, delete record, approve payment) as defaults, without policy gating, teach patterns that propagate to production.
+
+**Why it's dangerous for workflow agents:** Developers copy examples into production. If the example doesn't show Cedar policies alongside the destructive tools, those tools reach production without constraints. Cedar is default-deny only when policies exist — without policies, all tools are permitted.
+
+**Failure modes:**
+- Developer copies a quickstart into production → agent can restart services without approval
+- No policy engine attached → all tools permitted by default
+- Tool schemas accept unvalidated string inputs → agent passes hallucinated parameters that the tool executes
+
+**Must-dos:**
+- Default quickstart examples should use non-destructive tools: gather diagnostics, create a ticket, generate a report. Destructive tools belong in advanced examples that show the full policy + HITL setup alongside them.
+- Every tool must have typed input schemas with validation and explicit tool specification, following [Strands: Operating in Production](https://strandsagents.com/docs/user-guide/deploy/operating-agents-in-production/) and [AWS input validation guidance](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/best-practices-input-validation.html).
+- Explicitly document the risk level of each tool: read / write / destructive. Make it obvious which tier needs policy coverage.
+- Refer to the [AWS Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) for security baseline requirements.
+
+---
+
+## 8. Human-in-the-Loop Implementation Gaps
+
+High-risk actions require human approval, but "add a human approval step" is not a complete implementation. Approvals need durable state, timeouts, full context for the approver, and protection against bypass.
+
+**Why it's dangerous for workflow agents:** An approval gate that does not persist state durably can lose the approval response and leave the agent stuck or timed out. An approval request without sufficient context leads to approvers rubber-stamping requests they don't understand.
+
+**Three HITL modes:**
+
+<div className="fancy-table">
+
+| Mode | Description | Implementation |
+|------|-------------|----------------|
+| **Blocking HITL** | Agent pauses and waits for human approval | [Step Functions callback + SNS notification](https://docs.aws.amazon.com/step-functions/latest/dg/tutorial-human-approval.html) |
+| **Monitoring HOTL** | Agent acts; human monitors and can override | Dashboard with real-time alerts and manual override API |
+| **Confidence-gated** | Auto-execute above threshold; escalate below | Risk scoring → conditional routing in Step Functions |
+
+</div>
+
+**Must-dos:**
+- Define which actions require blocking HITL vs. monitoring HOTL vs. autonomous execution before writing any code, using the [Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) for human oversight tiering.
+- Use [Step Functions callback tokens](https://docs.aws.amazon.com/step-functions/latest/dg/tutorial-human-approval.html) for durable approval state — the workflow execution pauses and can resume after days if needed.
+- Approval requests must include: what the agent wants to do, why it wants to do it, and the estimated impact. Do not ask for approval without this context.
+- Set a timeout on every approval request. Decide whether timeout means "deny" or "escalate" for each action type.
+- Log every human decision (approve / reject / modify) for audit and future evaluation data.
+- Ensure HITL gates cannot be bypassed via prompt injection — the gate must be enforced at the platform level (Step Functions state), not in the agent's reasoning.
+
+---
+
+## 9. Rollback and Compensating Actions
+
+When a multi-step agent workflow partially fails, the completed steps need to be undone to maintain consistency. Agents should not improvise rollback — pre-defined compensating actions are the only safe approach.
+
+**Why it's dangerous for workflow agents:** An agent that improvises rollback may make additional errors under uncertainty. Uncoordinated partial rollback can leave systems in a worse state than the original failure.
+
+**Failure modes:**
+- Step 3 of 5 fails → steps 1-2 are not reversed → system left in inconsistent state
+- Agent improvises rollback using tools not designed for compensation
+- Rollback action itself fails → no recovery path
+
+**Must-dos:**
+- Define compensating transactions for every write action before deploying: restart → verify health; create ticket → close ticket; modify config → revert config.
+- Implement compensating actions as tools, subject to the same Cedar policies as forward actions.
+- Use [Step Functions error handling with catch and rollback states](https://docs.aws.amazon.com/step-functions/latest/dg/concepts-error-handling.html) for complex multi-step workflows. This is the Saga pattern applied to agent orchestration.
+- Test rollback paths as rigorously as the happy path. A rollback that has never been tested will fail when you need it most.
+- Require human approval for rollback of high-impact changes, using the same HITL pattern described above.
+
+---
+
+## 10. Evaluation for Autonomous Agents
+
+Traditional accuracy metrics — does the response look correct? — are insufficient for agents that take actions. You need trajectory-level evaluation, tool-usage analysis, and goal-completion measurement running continuously in production.
+
+**Why it's dangerous for workflow agents:** A model update, prompt change, or new tool can introduce regressions that only show up as incorrect actions. Without ongoing evaluation, you won't know until something breaks in production.
+
+**Key metrics:**
+
+<div className="fancy-table">
+
+| Metric | What It Measures |
+|--------|-----------------|
+| **[`Builtin.GoalSuccessRate`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html)** | Did the agent achieve the stated objective? |
+| **[`Builtin.TrajectoryInOrderMatch`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) / [`Builtin.TrajectoryAnyOrderMatch`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) / [`Builtin.TrajectoryExactOrderMatch`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html)** | Did actual tool calls match the expected pattern? |
+| **Tool call success rate** | What fraction of tool invocations succeeded? |
+| **Escalation rate** | How often did the agent need human intervention? |
+| **DLQ volume** | How many events ended up in dead-letter queues? |
+| **Side effect correctness** | Did tool actions produce the intended outcomes? |
+
+</div>
+
+**Must-dos:**
+- Define success criteria before deploying, not after. What does "completed correctly" look like for each event type?
+- Run in shadow mode first: agent proposes actions but doesn't execute them. Compare proposals to human baseline before granting execution access.
+- Use trajectory evaluators (programmatic, zero token cost) on 100% of invocations. Reserve LLM-judged evaluators for sampled traffic. See [AGENTOPS06 in the Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentops06.html) and the [Evaluations guide](/docs/workloads/workflow/evaluations) for implementation details.
+- Track drift over time. Model updates, prompt changes, and new tools can all cause silent regressions.
+- Feed human review decisions back into your evaluation dataset — every approval or rejection is training data.
+
+---
+
+## Next Steps
+
+<div className="tile-grid">
+  <Link to="/docs/workloads/workflow/bounded-autonomy" className="tile-card">
+    <div className="tile-heading"><h3>Bounded Autonomy →</h3></div>
+    <p>Cedar policy design, LOG_ONLY vs ENFORCE, and the deployment workflow for constraining what your agent can do.</p>
+  </Link>
+
+  <Link to="/docs/workloads/workflow/evaluations" className="tile-card">
+    <div className="tile-heading"><h3>Evaluations →</h3></div>
+    <p>Built-in evaluators, trajectory matching, and running continuous quality assessment in production.</p>
+  </Link>
+
+  <Link to="/docs/workloads/workflow/patterns-and-architecture" className="tile-card">
+    <div className="tile-heading"><h3>Patterns & Architecture →</h3></div>
+    <p>Reference architectures including event-driven patterns, DLQ setup, and multi-step orchestration.</p>
+  </Link>
+</div>

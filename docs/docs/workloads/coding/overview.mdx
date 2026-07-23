@@ -2,11 +2,16 @@
 title: Coding Agents
 sidebar_label: Overview
 sidebar_position: 1
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 
 # Coding Agents
+
+:::tip Who this is for
+Developers evaluating whether a coding-agent workload fits their use case. If you've already decided and want working code, jump to the [Quick Start](/docs/workloads/coding/quickstart). Still comparing workload types? See the [Workloads overview](/docs/workloads/overview).
+:::
 
 Long-running code generation, review, and migration agents with sandboxed execution, governance, and scalability. AgentCore provides the secure runtime for tasks that produce code as output.
 
@@ -39,6 +44,8 @@ Choose this workload when:
 - Results go through a human review gate before merging
 - The agent operates on a codebase with version control
 
+For a side-by-side comparison with Conversational and Workflow patterns, see the [Workloads overview comparison table](/docs/workloads/overview#how-they-compare).
+
 ---
 
 ## Strengths and Limitations
@@ -48,28 +55,10 @@ Choose this workload when:
 | Strengths                                             | Limitations                                                  |
 |-------------------------------------------------------|--------------------------------------------------------------|
 | Long-running execution (hours) for complex tasks      | Non-deterministic output requires human review gates         |
-| Sandboxed Code Interpreter for safe execution         | Context window limits constrain codebase understanding       |
-| Identity-aware access to repositories and CI systems  | Evolving best practices; start with reference patterns       |
-| Scale-to-zero between tasks                           | Build/test feedback loops add latency                        |
+| Sandboxed [Code Interpreter](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-tool.html) for safe execution | Context window limits constrain codebase understanding       |
+| Identity-aware access to repositories and CI systems  | Nascent archetype; patterns are still maturing               |
+| [Scale-to-zero between tasks](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html) | Build/test feedback loops add latency                        |
 | Full traceability from trigger to PR                  | Complex multi-file reasoning still challenging for models    |
-
-</div>
-
----
-
-## How It Compares
-
-<div className="fancy-table fancy-table--auto-first">
-
-| Dimension          | Coding                             | Workflow                             | Conversational                         |
-|--------------------|------------------------------------|--------------------------------------|----------------------------------------|
-| Trigger            | Ticket / PR / schedule             | System event (alert, webhook)        | User message (human-initiated)         |
-| Session            | Long-lived, single task            | Short-lived, single invocation       | Long-lived, multi-turn                 |
-| Identity           | Developer identity                 | Service principal                    | End-user (OAuth bearer token)          |
-| Primary output     | Code + PR comments                 | Actions + events emitted             | Chat response to human                 |
-| Execution model    | Plan → Generate → Build → Test → PR | Trigger → Enrich → Reason → Act → Emit | Message → Reason → Respond           |
-| Sandbox            | Code Interpreter (file I/O, build) | Not typically needed                 | Not typically needed                   |
-| Review gate        | Always (PR or human approval)      | Optional (confidence-gated)          | Rarely (inline during conversation)    |
 
 </div>
 
@@ -79,43 +68,35 @@ Choose this workload when:
 
 <div className="fancy-table fancy-table--auto-first">
 
-| AgentCore Service  | Configuration for Coding                              | Why It Matters                                         |
-|--------------------|-------------------------------------------------------|--------------------------------------------------------|
-| **Identity**       | Developer identity or service account                 | Agent accesses repos as the developer                  |
-| **Memory**         | Project-scoped context (SEMANTIC per repo)            | Codebase understanding across invocations              |
-| **Runtime**        | Long-running (hours), Code Interpreter, session storage | Complex tasks need sustained compute and workspace    |
-| **Guardrails**     | Evaluator agent + code quality gates                  | Catch issues before merge                              |
-| **Evaluations**    | GoalSuccessRate, Trajectory, coding metrics           | Continuous quality measurement                         |
-| **Observability**  | Per-task tracing                                      | Understand what the agent changed and why              |
-| **Gateway**        | GitHub/GitLab MCP access with managed credentials     | Repo access without embedded secrets                   |
+| AgentCore Service | Configuration for Coding                      | Why It Matters                            |
+|-------------------|-----------------------------------------------|-------------------------------------------|
+| **Identity**      | Developer identity                            | Agent accesses repos as the developer     |
+| **Memory**        | Project-scoped context                        | Codebase understanding across invocations |
+| **Runtime**       | Long-running (hours), [Code Interpreter](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-tool.html) | Complex tasks need sustained compute      |
+| **Guardrails**    | Code quality + security scanning gates, [Cedar tool policies](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) | Catch vulnerabilities before merge        |
+| **Observability** | Per-task tracing                              | Understand what the agent changed and why |
 
 </div>
 
 ---
 
-## Why AgentCore for Coding
+## When Not to Use This Pattern
 
-<div className="tile-grid">
-  <Link to="/docs/workloads/coding/sandbox-and-tools" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--guardrails" aria-hidden="true" /><h3>Sandboxed Execution</h3></div>
-    <p>Isolated microVM per session with Code Interpreter, shell access, and persistent filesystem. No shared state, no credential leaks.</p>
-  </Link>
+**Skip the Coding pattern when:**
 
-  <Link to="/docs/workloads/coding/execution-model" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--runtime" aria-hidden="true" /><h3>Long-Running Tasks</h3></div>
-    <p>Up to 8 hours of continuous execution with async task tracking. Session storage persists across stop/resume cycles.</p>
-  </Link>
+- The task is short and deterministic (a script that bumps a version number or runs a formatter). A CI step or a scheduled Lambda is simpler and more reliable.
+- Real-time human interaction is needed during generation. If a developer needs to guide the agent turn-by-turn, the [Conversational pattern](/docs/workloads/conversational/overview) is a better fit.
+- You do not have a human review gate. Coding agents produce non-deterministic output. Merging code directly without a human or automated quality gate (tests, lint, security scan) is high risk.
+- The codebase context far exceeds the model's context window. Very large monorepos with tightly coupled modules may produce poor results until chunking and retrieval strategies are in place.
+- This is a greenfield project with no existing tests or CI. The build-test-validate loop that makes coding agents reliable requires existing scaffolding to run against.
 
-  <Link to="/docs/workloads/coding/source-control" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--identity" aria-hidden="true" /><h3>Identity-Aware Access</h3></div>
-    <p>GitHub Apps, Token Vault credentials, and on-behalf-of token exchange. The agent accesses repos without embedded secrets.</p>
-  </Link>
+---
 
-  <Link to="/docs/workloads/coding/patterns-and-architecture" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--patterns" aria-hidden="true" /><h3>Patterns & Architecture</h3></div>
-    <p>Plan-Act-Reflect, Swarm (multi-file refactor), HITL (code review gate), and durable orchestration for production pipelines.</p>
-  </Link>
-</div>
+## Further Reading
+
+- [AgentCore Code Interpreter](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-tool.html) — the managed sandbox that makes safe code execution possible
+- [Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) — reliability, cost, and security guidance for agentic workloads
+- [Agentic AI security best practices](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/best-practices.html) — Prescriptive Guidance on tool safety and input validation
 
 ---
 

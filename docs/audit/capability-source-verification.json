@@ -1,0 +1,97 @@
+{
+  "description": "Canonical source URL verification for AgentCore capability pages (Memory, Gateway, Guardrails, Policy Engine, Observability, Evaluations)",
+  "verifiedBy": "task-1.2-canonical-source-verification",
+  "verificationDate": "2025-07-24",
+  "last_verified": "2025-07-24",
+  "requirements": ["1.4", "6.4"],
+  "results": [
+    {
+      "capability": "Memory",
+      "page": "tutorials/add-memory.mdx",
+      "canonicalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html",
+      "getStartedUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-get-started.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "expectedTopic": "Add memory to your Amazon Bedrock AgentCore agent",
+      "httpStatus": 200,
+      "contentMatch": true,
+      "contentSummary": "AgentCore Memory overview covering short-term and long-term memory, key benefits, and common use cases",
+      "last_verified": "2025-07-24"
+    },
+    {
+      "capability": "Gateway",
+      "page": "tutorials/connect-gateway-tool.mdx",
+      "canonicalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html",
+      "getStartedUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-quick-start.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "expectedTopic": "Amazon Bedrock AgentCore Gateway: A secure AI gateway for agents, tools, and models",
+      "httpStatus": 200,
+      "contentMatch": true,
+      "contentSummary": "Gateway overview covering key benefits (tool development, unified access, authentication), key capabilities, and getting started guide",
+      "last_verified": "2025-07-24"
+    },
+    {
+      "capability": "Guardrails",
+      "page": "workloads/conversational/enterprise-features.mdx",
+      "canonicalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-guardrails-in-policies.html",
+      "alternativeUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-guardrails-getting-started.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "expectedTopic": "Guardrails in policies - Amazon Bedrock AgentCore",
+      "httpStatus": 200,
+      "contentMatch": true,
+      "contentSummary": "Explains how to define Bedrock Guardrails in policy, including content filter, prompt attack detection, and sensitive information safeguards with Cedar-based policy evaluation",
+      "note": "The enterprise-features.mdx page currently links to the generic devguide root for Guardrails. The more specific URL is policy-guardrails-in-policies.html which covers guardrails within the AgentCore policy engine context.",
+      "last_verified": "2025-07-24"
+    },
+    {
+      "capability": "Policy Engine",
+      "page": "workloads/conversational/enterprise-features.mdx",
+      "canonicalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "expectedTopic": "Authorization flow - Amazon Bedrock AgentCore",
+      "httpStatus": 200,
+      "contentMatch": true,
+      "contentSummary": "Explains how AgentCore Gateway evaluates Cedar policies against incoming requests, including JWT token processing, Cedar authorization request construction, entity store, and policy evaluation flow",
+      "last_verified": "2025-07-24"
+    },
+    {
+      "capability": "Observability",
+      "page": "workloads/conversational/enterprise-features.mdx",
+      "canonicalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "expectedTopic": "Add observability to your Amazon Bedrock AgentCore resources",
+      "httpStatus": 200,
+      "contentMatch": true,
+      "contentSummary": "Covers enabling AgentCore observability with CloudWatch Transaction Search, ADOT SDK instrumentation, unified traces destination, and per-agent log group configuration",
+      "last_verified": "2025-07-24"
+    },
+    {
+      "capability": "Evaluations",
+      "page": "workloads/conversational/enterprise-features.mdx",
+      "canonicalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/how-it-works-evaluations.html",
+      "getStartedUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-on-demand.html",
+      "batchUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/batch-evaluations-getting-started.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "expectedTopic": "How it works - Amazon Bedrock AgentCore Evaluations",
+      "httpStatus": 200,
+      "contentMatch": true,
+      "contentSummary": "AgentCore Evaluations overview covering end-to-end task completion, tool invocation accuracy, and custom metrics for both AgentCore-hosted and external agents",
+      "note": "The enterprise-features.mdx page currently links to the generic devguide root for Evaluations. The more specific URL is how-it-works-evaluations.html which covers the evaluations capability directly.",
+      "last_verified": "2025-07-24"
+    }
+  ],
+  "frontmatterDates": {
+    "tutorials/add-memory.mdx": "2025-07-24",
+    "tutorials/connect-gateway-tool.mdx": "2025-07-24",
+    "workloads/conversational/enterprise-features.mdx": "2025-07-24"
+  },
+  "summary": {
+    "totalCapabilities": 6,
+    "totalUrlsVerified": 6,
+    "allResolved": true,
+    "allContentMatched": true,
+    "recommendations": [
+      "Update enterprise-features.mdx Guardrails link from generic devguide root to https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-guardrails-in-policies.html",
+      "Update enterprise-features.mdx Evaluations link from generic devguide root to https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/how-it-works-evaluations.html"
+    ]
+  }
+}

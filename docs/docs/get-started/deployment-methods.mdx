@@ -1,0 +1,72 @@
+---
+title: Deployment Methods
+sidebar_label: Deployment Methods
+sidebar_position: 5
+last_verified: 2026-07-20
+---
+
+import Link from '@docusaurus/Link';
+
+# Deployment Methods
+
+:::tip Who this is for
+Developers choosing between CLI, console, direct code, or infrastructure-as-code for deploying agents. If you just want the fastest path to a running agent, start with the [CLI](/docs/get-started/quickstart).
+:::
+
+AgentCore supports four deployment methods. This page helps you choose the one that fits your stack, team workflow, and operational requirements.
+
+---
+
+## Comparison
+
+<div className="fancy-table">
+
+| Method | Local vs. CI/CD tooling | Container control | Declarative lifecycle | Canonical source |
+|---|---|---|---|---|
+| CLI | Local dev loop with hot-reload; single-command deploy | Managed by CLI scaffolding | CLI-generated CDK stack; ejectable | [CLI Python tutorial](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html) |
+| Console | No local tooling required; browser-based | Managed by the service | Console-driven; no template files | [AgentCore console](https://console.aws.amazon.com/bedrock-agentcore/home#) |
+| Direct code | Full CI/CD integration; bring your own build | Full container ownership; custom base image | Programmatic via API or SDK | [Direct code deployment](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-custom.html) |
+| Infrastructure-as-Code | CI/CD pipeline with change review; GitOps-compatible | Defined in template; reproducible | Full declarative lifecycle via CloudFormation, CDK, or Terraform | See [IaC references](#infrastructure-as-code-references) below |
+
+</div>
+
+---
+
+## When to use each
+
+**CLI** — The recommended default for most developers. Fastest path from zero to deployed endpoint. Use it when you want to iterate locally, manage configuration in version control, and avoid writing CloudFormation or Dockerfiles manually. Also available for TypeScript: [CLI TypeScript tutorial](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli-typescript.html).
+
+**Console** — Best for first-time builders, demos, and situations where you don't need a local development environment. The UI guides you through creating a harness with a model, system prompt, and tools. No dedicated AWS docs walkthrough exists yet; the console is self-guided.
+
+**Direct code** — Choose this when you need full container control: custom base images, specific system-level dependencies, or integration with an existing CI/CD pipeline. You own the Dockerfile and push an ARM64 image to ECR yourself. See [Get started without the AgentCore CLI](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-custom.html) for the full Dockerfile, contract, and ECR deployment walkthrough.
+
+**Infrastructure-as-Code** — Choose this when you need declarative, reviewable, reproducible deployments. Fits GitOps workflows and teams that require change approval gates before any infrastructure mutation.
+
+---
+
+## Infrastructure-as-Code references
+
+AgentCore resources are supported across the major IaC tools:
+
+**CloudFormation**
+- [AWS::BedrockAgentCore resource types](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/AWS_BedrockAgentCore.html) — full namespace reference (Runtime, Gateway, Harness, Memory, etc.)
+- [AWS::BedrockAgentCore::Runtime](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-bedrockagentcore-runtime.html) — Runtime resource properties and configuration
+- [AWS::BedrockAgentCore::Gateway](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-bedrockagentcore-gateway.html) — Gateway resource properties and configuration
+
+**AWS CDK**
+- [aws-cdk-lib.aws_bedrockagentcore module](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_bedrockagentcore-readme.html) — L1 (CloudFormation-level) constructs
+- [aws_bedrock_agentcore_alpha module](https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_bedrock_agentcore_alpha/README.html) — L2 constructs with higher-level abstractions (Runtime, Gateway)
+
+**Terraform**
+- [aws_bedrockagentcore_agent_runtime](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/bedrockagentcore_agent_runtime) — Terraform AWS provider resource for AgentCore Runtime
+
+---
+
+## Next steps
+
+- [Prepare your agent for production traffic](/docs/operate/production-readiness)
+- [Explore deployment patterns for multi-agent systems](/docs/patterns/overview)
+
+:::warning
+Everything produced by a Get Started tutorial is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

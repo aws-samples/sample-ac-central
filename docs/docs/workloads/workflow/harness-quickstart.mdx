@@ -1,0 +1,106 @@
+---
+title: "Quick Start: Workflow Agent on Harness"
+sidebar_label: Harness Quick Start
+sidebar_position: 3
+last_verified: 2026-07-22
+---
+
+import Link from '@docusaurus/Link';
+import CanonicalRecommendation from '@site/src/components/CanonicalRecommendation';
+
+# Quick Start: Workflow Agent on Harness
+
+:::tip Who this is for
+Config-first builders who want a bounded reasoning step between existing systems without writing an agent loop. If you prefer a code-first path with full Enrich/Act tools in the loop, see the [workflow quickstart](/docs/workloads/workflow/quickstart).
+:::
+
+Use an AgentCore Harness when your event pipeline needs a **bounded reasoning step** declared as configuration rather than code.
+
+<CanonicalRecommendation
+  defaultSource={{
+    url: "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html",
+    title: "Harness Getting Started",
+    description: "Deploy a managed agent loop using configuration only — no agent code. Covers project creation, harness configuration, deployment, and invocation."
+  }}
+  selectionCriteria={[
+    "Your event pipeline needs an LLM triage or classification step between existing systems",
+    "The reasoning step is declarative — no custom local tool code in the agent loop",
+    "You want execution caps (iterations, timeout) as configuration rather than code",
+    "Actions run downstream of the harness verdict, not inside the agent loop"
+  ]}
+  fitRationale="Harness fits when the reasoning step is bounded and declarative. The upstream event source triggers the harness, the harness classifies or triages the event, and downstream automation (Step Functions, Lambda) acts on the verdict. Execution limits — a core workflow concern — become config fields (maxIterations, timeoutSeconds) instead of code you maintain."
+  alternatives={[
+    {
+      condition: "You need event sources, durable state, or action execution beyond Harness scope",
+      destination: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents",
+      label: "Workflow automation samples"
+    }
+  ]}
+  actionRisk={{
+    summary: "Harness is sandbox-scoped; workflow samples carry their documented risk",
+    details: "A Harness deployment classifies and emits structured verdicts — it does not execute actions itself. Workflow automation samples that include tool-calling may read data, invoke APIs, or mutate state depending on their configuration. Review each sample's Action_Risk disclosure before connecting to production event sources or systems."
+  }}
+  productionReadinessLink="/docs/operate/production-readiness"
+  nextSteps={[
+    { label: "Runtime Quick Start — code-first path with Enrich/Act tools in the loop", url: "/docs/workloads/workflow/quickstart" },
+    { label: "Wire up event sources (EventBridge, SNS, SQS)", url: "/docs/workloads/workflow/event-processing" },
+    { label: "Add Cedar policies for bounded autonomy", url: "/docs/workloads/workflow/bounded-autonomy" },
+    { label: "Production Readiness checklist", url: "/docs/operate/production-readiness" },
+    { label: "AWS Harness documentation — versioning, endpoints, export to code", url: "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness.html" }
+  ]}
+/>
+
+---
+
+## Harness vs. Runtime for workflow agents
+
+The [Runtime quickstart](/docs/workloads/workflow/quickstart) implements the full Trigger → Enrich → Reason → Act → Emit loop in code, with Python tool functions for the Enrich and Act phases. An **AgentCore Harness** is a managed agent loop declared as configuration — a natural fit when your pipeline needs a *bounded reasoning step* between systems that already exist:
+
+```
+① TRIGGER  → EventBridge/SQS delivers the event
+② REASON   → Harness classifies and emits a structured verdict   ← this page
+③ ACT      → Downstream automation executes the verdict
+```
+
+### When execution limits are config, not code
+
+Execution limits — a core workflow concern — become config fields instead of hand-written guards:
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Concern | Runtime (code) | Harness (config) |
+|---|---|---|
+| Agent loop | You write it in `main.py` | Managed agent loop |
+| Iteration/time caps | You implement them | `maxIterations`, `timeoutSeconds` in `harness.json` |
+| Tools | Local Python functions | Declared config: gateway, MCP, browser, code interpreter |
+
+</div>
+
+Choose the harness when the reasoning step is declarative and actions run downstream. Choose Runtime when Enrich/Act require custom local tool code in the same loop. See the [AWS harness vs. Runtime comparison](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-vs-runtime.html) for the full grid.
+
+---
+
+## Workflow-specific context
+
+The [Harness Getting Started](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html) tutorial covers project creation, configuration, deployment, and invocation. The sections below cover what matters specifically for **workflow workloads**:
+
+- **Decision criteria** — when a config-only reasoning step is enough vs. when you need the full Runtime with local tools.
+- **Execution-limit mapping** — how `maxIterations` and `timeoutSeconds` replace the runaway-loop and timeout guards you would otherwise code by hand.
+- **Event-pipeline positioning** — a harness sits at the Reason step; it does not own Trigger or Act. Downstream systems (Step Functions, Lambda) execute the verdict.
+- **Production boundary** — Harness creates a working prototype. Real event-driven pipelines need dead-letter handling, schema validation, and policy enforcement before acting on verdicts. See the [Production Readiness checklist](/docs/operate/production-readiness).
+
+---
+
+## When to switch to the workflow samples
+
+The Harness path covers bounded reasoning with no local tools. Switch to a [workflow automation sample](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents) when you need:
+
+- **Event sources** — wiring EventBridge rules, SQS queues, or SNS subscriptions to trigger the agent directly.
+- **Durable state** — maintaining context across multiple events or long-running workflows.
+- **Action execution in the agent loop** — calling tools that read services, create tickets, or notify on-call as part of the same reasoning pass.
+
+Workflow samples carry their own documented risk profiles. Review each sample's Action_Risk disclosure and apply [bounded autonomy policies](/docs/workloads/workflow/bounded-autonomy) before connecting to production systems.
+
+:::warning
+Everything produced by the samples on this page is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

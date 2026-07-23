@@ -2,304 +2,122 @@
 title: "Quick Start: Coding Agent"
 sidebar_label: Quick Start
 sidebar_position: 2
-last_verified: 2026-07-08
+last_verified: 2026-07-22
 ---
 
-:::info Versions
-Examples built with **Strands Agents SDK** `1.46.0`, **bedrock-agentcore** `1.17.0`, and **Claude Sonnet 4.6** (`global.anthropic.claude-sonnet-4-6`). APIs may differ in other versions.
-:::
-
 import Link from '@docusaurus/Link';
+import CanonicalRecommendation from '@site/src/components/CanonicalRecommendation';
 
 # Quick Start: Coding Agent
 
-Deploy a working test-generation agent in under 10 minutes. Given a Python source file, the agent analyzes it, generates unit tests, executes them in a sandbox, and returns validated results.
-
----
-
-## 5 Steps to Deploy
-
-<div className="fancy-table fancy-table--auto-first">
-
-| Step | Action          | Command                                   |
-|------|-----------------|-------------------------------------------|
-| 1    | Install CLI     | `npm install -g @aws/agentcore`           |
-| 2    | Create Agent    | `agentcore create`                        |
-| 3    | Add SDK         | `uv add strands-agents bedrock-agentcore` |
-| 4    | Develop Locally | `agentcore dev`                           |
-| 5    | Deploy          | `agentcore deploy`                        |
-
-</div>
-
----
-
-## Complete Working Example
-
-A coding agent that follows the Plan → Generate → Validate loop. It reads source code, generates pytest-style tests, and executes them to confirm they pass. Copy this into `app/TestGenAgent/main.py`:
-
-```python
-"""Test generation agent - Plan → Generate → Validate."""
-
-import json
-import logging
-import subprocess
-import tempfile
-import textwrap
-from pathlib import Path
-
-from strands import Agent, tool
-
-from bedrock_agentcore.runtime import BedrockAgentCoreApp
-
-log = logging.getLogger(__name__)
-app = BedrockAgentCoreApp()
-
-
-# --- Tools (Generate + Validate phases) ---
-
-
-@tool
-def read_source_file(file_content: str) -> dict:
-    """Parse and analyze a Python source file for testable functions.
-
-    Args:
-        file_content: The full content of a Python source file.
-
-    Returns:
-        Analysis of the file including function signatures, docstrings, and complexity.
-    """
-    import ast
-
-    try:
-        tree = ast.parse(file_content)
-    except SyntaxError as e:
-        return {"error": f"Syntax error in source: {e}"}
-
-    functions = []
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            args = [a.arg for a in node.args.args if a.arg != "self"]
-            docstring = ast.get_docstring(node) or "No docstring"
-            functions.append({
-                "name": node.name,
-                "args": args,
-                "docstring": docstring,
-                "line": node.lineno,
-                "is_async": isinstance(node, ast.AsyncFunctionDef),
-            })
-
-    return {
-        "function_count": len(functions),
-        "functions": functions,
-        "imports": [
-            ast.unparse(node)
-            for node in ast.walk(tree)
-            if isinstance(node, (ast.Import, ast.ImportFrom))
-        ],
-    }
-
-
-@tool
-def run_tests(source_code: str, test_code: str) -> dict:
-    """Execute generated tests against the source code in a sandboxed environment.
-
-    Args:
-        source_code: The original Python source file content.
-        test_code: The pytest-style test code to execute.
-
-    Returns:
-        Test execution results including pass/fail status and output.
-    """
-    with tempfile.TemporaryDirectory() as tmpdir:
-        src_path = Path(tmpdir) / "source_module.py"
-        test_path = Path(tmpdir) / "test_source_module.py"
-
-        src_path.write_text(source_code)
-        test_path.write_text(test_code)
-
-        try:
-            import os as _os
-            env = {**_os.environ, "HOME": tmpdir}
-            result = subprocess.run(
-                ["python", "-m", "pytest", str(test_path), "-v", "--tb=short"],
-                capture_output=True,
-                text=True,
-                timeout=30,
-                cwd=tmpdir,
-                env=env,
-            )
-
-            passed = result.returncode == 0
-            return {
-                "passed": passed,
-                "returncode": result.returncode,
-                "stdout": result.stdout[-2000:] if len(result.stdout) > 2000 else result.stdout,
-                "stderr": result.stderr[-1000:] if len(result.stderr) > 1000 else result.stderr,
-            }
-
-        except subprocess.TimeoutExpired:
-            return {"passed": False, "error": "Tests timed out after 30 seconds"}
-        except FileNotFoundError:
-            return {"passed": False, "error": "pytest not available in sandbox"}
-
-
-# --- System prompt (Plan phase) ---
-
-SYSTEM_PROMPT = """You are a test generation agent. When you receive source code,
-follow this protocol:
-
-1. PLAN: Use read_source_file to analyze the code structure and identify testable
-   functions. Note edge cases, error paths, and boundary conditions.
-
-2. GENERATE: Write comprehensive pytest-style unit tests. For each function:
-   - Test the happy path with typical inputs
-   - Test edge cases (empty inputs, None, boundary values)
-   - Test error handling (invalid inputs that should raise exceptions)
-   - Use descriptive test names: test_<function>_<scenario>
-
-3. VALIDATE: Use run_tests to execute your tests against the source code.
-   - If tests fail, analyze the failure output and fix the test code.
-   - Iterate until all tests pass (max 3 attempts).
-
-4. DELIVER: Return the validated test code and a summary of coverage.
-
-Rules:
-- Import the source module as: from source_module import <functions>
-- Keep tests focused and independent (no shared mutable state)
-- Use pytest fixtures for common setup
-- Each test should verify one behavior
-- Do NOT modify the source code, only generate tests for it"""
-
-
-@app.entrypoint
-def invoke(payload, context):
-    """Agent entrypoint - generates tests for provided source code."""
-    source_code = payload.get("source_code", "")
-    prompt_text = payload.get("prompt", "")
-
-    if source_code:
-        prompt = (
-            f"Generate comprehensive unit tests for this Python module:\n\n"
-            f"```python\n{source_code}\n```\n\n"
-            f"Analyze the code, generate tests, and validate them."
-        )
-    elif prompt_text:
-        prompt = prompt_text
-    else:
-        return {"error": "Provide 'source_code' or 'prompt' in the payload."}
-
-    agent = Agent(
-        model="global.anthropic.claude-sonnet-4-6",
-        system_prompt=SYSTEM_PROMPT,
-        tools=[read_source_file, run_tests],
-    )
-
-    result = agent(prompt)
-    return {"response": result.message}
-
-
-if __name__ == "__main__":
-    app.run()
-```
-
----
-
-## Configuration
-
-### `agentcore/agentcore.json`
-
-```json
-{
-  "runtimes": [
-    {
-      "name": "TestGenAgent",
-      "build": "CodeZip",
-      "entrypoint": "main.py",
-      "codeLocation": "app/TestGenAgent/",
-      "runtimeVersion": "PYTHON_3_13",
-      "protocol": "HTTP",
-      "networkMode": "PUBLIC",
-      "filesystemConfigurations": [
-        {"sessionStorage": {"mountPath": "/mnt/workspace"}}
-      ]
-    }
-  ]
-}
-```
-
-:::tip Session storage
-The `filesystemConfigurations` block gives your agent a persistent workspace at `/mnt/workspace`. Files survive session stop/resume, so your agent can clone repos, install packages, and cache build artifacts across invocations. See <Link to="/docs/workloads/coding/sandbox-and-tools">Sandbox & Tools</Link> for details.
+:::tip Who this is for
+Developers ready to build a coding agent that generates, executes, or validates code from a maintained sample. Still deciding whether coding is the right workload? Start with the [Coding overview](/docs/workloads/coding/overview).
 :::
 
-### `app/TestGenAgent/pyproject.toml` (additional dependency)
-
-Add `pytest` so the sandbox can execute tests:
-
-```toml
-[project]
-dependencies = [
-    "strands-agents>=1.46.0",
-    "bedrock-agentcore>=1.17.0",
-    "pytest>=8.0.0",
-]
-```
+Find the right coding agent sample for your use case, understand the isolation models, and get to working code fast.
 
 ---
 
-## Test It
-
-```bash
-# Terminal 1: start the local dev server (runs until you stop it)
-agentcore dev
-
-# Terminal 2: invoke the running dev server with a JSON payload
-agentcore dev '{
-  "source_code": "def add(a: int, b: int) -> int:\n    \"\"\"Add two numbers.\"\"\"\n    return a + b\n\ndef divide(a: float, b: float) -> float:\n    \"\"\"Divide a by b. Raises ZeroDivisionError if b is zero.\"\"\"\n    if b == 0:\n        raise ZeroDivisionError(\"Cannot divide by zero\")\n    return a / b\n\ndef fizzbuzz(n: int) -> str:\n    \"\"\"Return fizz, buzz, fizzbuzz, or the number as string.\"\"\"\n    if n % 15 == 0:\n        return \"fizzbuzz\"\n    if n % 3 == 0:\n        return \"fizz\"\n    if n % 5 == 0:\n        return \"buzz\"\n    return str(n)"
-}'
-```
-
-Expected behavior:
-
-1. Agent calls `read_source_file` to analyze `add`, `divide`, and `fizzbuzz`
-2. Generates pytest tests covering happy paths, edge cases, and error handling
-3. Calls `run_tests` to execute them in the sandbox
-4. If any test fails, analyzes the output and retries with a fix
-5. Returns validated test code and a coverage summary
-
----
-
-## The Plan → Generate → Validate Loop
-
-```
-① PLAN      → Agent analyzes source: 3 functions, identifies edge cases
-② GENERATE  → Agent writes ~15 test cases (happy + edge + error paths)
-③ VALIDATE  → Agent runs tests in sandbox → sees 2 failures
-④ FIX       → Agent reads failure output, corrects test assertions
-⑤ VALIDATE  → Agent re-runs → all tests pass
-⑥ DELIVER   → Returns validated test code + summary
-```
-
-This iterative loop is the key differentiator of coding agents: they validate their own output before delivering it.
+<CanonicalRecommendation
+  defaultSource={{
+    url: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/03-coding-assistants/text-to-python-ide",
+    title: "Text-to-Python IDE Sample",
+    description: "A maintained coding agent that analyzes source code, generates tests, and validates them using AgentCore Code Interpreter for managed isolated execution. Includes deployment instructions, configuration, and test scripts maintained by the AgentCore team."
+  }}
+  selectionCriteria={[
+    "Your agent generates, executes, or validates code on behalf of a user",
+    "You need isolated execution of agent-generated or user-supplied code",
+    "The agent's output must be validated (run tests, check syntax, evaluate results) before delivery",
+    "You want managed sandboxing without building your own container isolation",
+    "Code execution should be isolated from the agent's own filesystem and credentials"
+  ]}
+  fitRationale="The text-to-python-ide sample demonstrates the Plan → Generate → Validate loop with Code Interpreter providing fully managed isolation. Start here when your agent needs to execute code safely without building custom sandboxing infrastructure."
+  alternatives={[
+    {
+      condition: "You need patterns beyond sandboxed code execution — code review, multi-file refactoring, repository analysis, or CI integration without runtime execution",
+      destination: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/03-coding-assistants",
+      label: "Coding Assistants Catalog"
+    }
+  ]}
+  actionRisk={{
+    summary: "Executes agent-generated code in a managed sandbox",
+    details: "The default sample executes code inside AgentCore Code Interpreter — a fully managed, isolated execution environment. Code runs in its own sandbox, isolated from the agent's filesystem and credentials. Network access depends on the configured network mode: Sandbox (default) restricts external access to AWS services like S3, Public mode enables internet access, and VPC mode connects to private resources. Samples in the coding catalog that use subprocess execution instead of Code Interpreter do NOT provide this isolation — review each sample's README for its specific execution model."
+  }}
+  productionReadinessLink="/docs/operate/production-readiness"
+  nextSteps={[
+    { label: "Production Readiness checklist", url: "/docs/operate/production-readiness" },
+    { label: "Coding Overview — positioning and architecture", url: "/docs/workloads/coding/overview" },
+    { label: "Patterns — multi-agent patterns for complex coding tasks", url: "/docs/patterns/overview" }
+  ]}
+/>
 
 ---
 
-## What's Next?
+### Managed Isolation vs. Generic Subprocess Execution
 
-You have a working test generation agent. Now add production capabilities:
+Coding agents that execute code must choose between two fundamentally different isolation models. Conflating them creates security risks:
 
-- <Link to="/docs/workloads/coding/source-control">Add repository access — GitHub/GitLab via MCP Gateway →</Link>
-- <Link to="/docs/workloads/coding/source-control">Add PR creation — commit and open pull requests →</Link>
-- <Link to="/docs/workloads/coding/execution-model">Add trigger automation — fire from CI, webhooks, or schedules →</Link>
-- <Link to="/docs/workloads/coding/evaluations">Add evaluation — trajectory checks and quality metrics →</Link>
+<div className="fancy-table">
 
-<div className="tile-grid">
-  <Link to="/docs/workloads/coding/hosted-agents" className="tile-card">
-    <div className="tile-heading"><h3>Hosted IDE Agents →</h3></div>
-    <p>Already use Claude Code or Kiro? Run them on AgentCore instead of your laptop.</p>
-  </Link>
+| | **`Code Interpreter`** (Managed Isolation) | **`subprocess.run()`** (Generic Subprocess) |
+|---|---|---|
+| **Execution environment** | Fully managed, isolated sandbox provided by [AgentCore Code Interpreter](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-tool.html) | Same container, same filesystem, same network as the agent |
+| **Filesystem access** | Isolated — cannot read or write the agent's files | Shared — can read/write anything the agent process can |
+| **Network access** | Governed by the configured [network mode](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-resource-management.html): Sandbox (default, AWS services only), Public, or VPC | Same network as the agent (VPC, internet access, internal APIs) |
+| **Credential exposure** | [None by default](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-session-characteristics.html) — the sandbox has no access to the agent's IAM role or environment variables; VPC-mode configurations may grant explicit, scoped access | Full — inherits the agent's IAM role and environment variables |
+| **Use case** | Untrusted or user-supplied code, agent-generated code that needs validation | Trusted, deterministic operations where isolation is unnecessary (e.g., running a known linter) |
+| **Blast radius** | Contained to the sandbox session | Entire agent container and anything it can reach |
 
-  <Link to="/docs/workloads/coding/patterns-and-architecture" className="tile-card">
-    <div className="tile-heading"><h3>Patterns & Architecture →</h3></div>
-    <p>Multi-agent patterns: Swarm for multi-file refactors, Coder + Reviewer, HITL review gates.</p>
-  </Link>
 </div>
+
+:::danger Choose the right model for your risk level
+- **Use Code Interpreter** when executing agent-generated code, user-supplied code, or any code whose behavior you cannot fully predict. This is the default recommendation.
+- **Use subprocess.run()** only for trusted, deterministic commands (running a known test suite, formatting code with a pinned tool version) where you control every input and the failure mode is acceptable.
+- **Never use subprocess.run() as a "sandbox"** — restricted `PATH` or `env` variables do not provide isolation. A malicious or buggy script still shares the agent's filesystem, network, and credentials.
+:::
+
+### Repository and Data Boundaries
+
+Coding agents often need access to source code repositories and project data. Define clear boundaries:
+
+- **Repository access scope** — Grant read access only to the specific repositories the agent needs. Use fine-grained tokens (GitHub App installation tokens, GitLab project access tokens) scoped to individual repositories, not organization-wide personal access tokens.
+- **Data classification** — Determine whether the code the agent processes contains secrets, PII, or proprietary logic. If it does, Code Interpreter's isolated sandbox prevents that data from leaking through agent-side file access or network calls.
+- **Output boundaries** — Define where agent-generated code can be written. Restrict to specific branches, draft PRs requiring human review, or ephemeral preview environments. Never auto-merge agent output to primary branches without approval.
+- **Input validation** — Validate file paths, repository references, and code payloads before passing them to execution tools. Reject path traversal patterns, excessively large files, and unexpected file types.
+
+### Approval Controls
+
+Before a coding agent's output reaches production systems, enforce approval gates:
+
+- **Human-in-the-loop for write actions** — Agent-generated code should create draft PRs or staged changes that require human review before merging.
+- **Policy-gated execution** — Use Cedar policies to restrict which code execution tools can be invoked, by which principals, and under what conditions (repository scope, file type restrictions, time windows).
+- **Execution budget limits** — Bound session lifetime with the Runtime [`idleRuntimeSessionTimeout` and `maxLifetime` settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html), and cap agent reasoning loops with your framework's or harness's iteration limits (for example, `maxIterations` in a harness configuration). This prevents runaway validation loops from consuming resources.
+- **Audit trail** — Log every code execution request, its inputs, outputs, and the policy decision that allowed it. This is required for compliance and incident investigation.
+
+### Resource and Cost Awareness
+
+<div className="fancy-table">
+
+| Cost Driver | What Generates It | How to Manage |
+|---|---|---|
+| Model inference tokens | Plan and Generate phases call the LLM; multi-turn validation loops multiply token usage | Choose model size for your task; set iteration limits |
+| Code Interpreter sessions | Each [session](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-session-characteristics.html) provides an isolated sandbox billed at $0.0895/vCPU-hour + $0.00945/GB-hour of active consumption; multiple code executions can share one session | Set session timeouts; reuse sessions within a single agent invocation when possible |
+| Runtime execution (CPU + memory) | Agent processing billed per second of active consumption ($0.0895/vCPU-hour + $0.00945/GB-hour) | [Scale-to-zero](https://aws.amazon.com/bedrock/agentcore/pricing/); bound validation loops with framework iteration limits |
+| Log ingestion | CloudWatch charges per GB for execution logs and outputs | Set retention policies; filter verbose execution output |
+
+</div>
+
+Scale-to-zero does not mean zero cost. CloudWatch log retention and any S3 artifacts written during execution continue to accrue charges even with no active traffic. Remove prototype resources when done experimenting. See [AgentCore pricing](https://aws.amazon.com/bedrock/agentcore/pricing/) for current rates.
+
+---
+
+## Further Reading
+
+- [AgentCore Code Interpreter](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-tool.html) — the managed sandbox capability in depth
+- [Code Interpreter network and resource management](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-resource-management.html) — Sandbox, Public, and VPC network modes
+- [Cost-efficient initialization and scale-to-zero](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html) — Well-Architected cost guidance for session reuse
+- [Agentic AI security best practices](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/best-practices.html) — tool safety and input validation guidance
+
+:::warning
+Everything produced by these samples is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

@@ -2,17 +2,24 @@
 title: Memory & State
 sidebar_label: Memory & State
 sidebar_position: 6
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 
 # Memory for Workflow Agents
 
+:::tip Who this is for
+Builders adding cross-invocation context to a workflow agent that processes recurring entities (incidents, tickets, devices). If you haven't wired up event sources yet, see [Event Processing](/docs/workloads/workflow/event-processing) first.
+:::
+
 Workflow agents use memory differently than conversational agents. Instead of multi-turn conversation history, they remember facts about *entities* (tickets, incidents, devices) across invocations.
 
 ---
 
 ## Memory Strategies
+
+See the [AgentCore memory types documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html) for full configuration details on each strategy.
 
 <div className="fancy-table fancy-table--auto-first">
 
@@ -59,19 +66,21 @@ Workflow agents use memory differently than conversational agents. Instead of mu
 
 ## Example: Entity-Scoped Memory
 
-When an incident recurs, the agent should know what happened last time:
+When an incident recurs, the agent should know what happened last time. Note the namespace semantics: the `session_id` scopes memory to the specific entity (incident), while the `actor_id` identifies the service. For long-term isolation purposes, memory is [actor-scoped](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-organization.html) — different actor IDs produce independent memory stores even for the same session ID.
 
 ```python
 from bedrock_agentcore.memory.integrations.strands import (
     AgentCoreMemorySessionManager,
 )
 
-# Use the entity ID (incident ID) as the session scope
+# Use the entity ID (incident ID) as the session scope.
+# actor_id identifies the service; memory is actor-scoped for long-term isolation
+# — see: https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-organization.html
 session_manager = AgentCoreMemorySessionManager(
     memory_id=os.environ["BEDROCK_AGENTCORE_MEMORY_ID"],
     region=os.environ.get("AWS_REGION", "us-east-1"),
     session_id=f"incident-{incident_id}",  # entity-scoped
-    actor_id="incident-agent",  # service identity
+    actor_id="incident-agent",  # service identity — consistent across invocations
 )
 
 agent = Agent(
@@ -83,6 +92,15 @@ agent = Agent(
 ```
 
 With this configuration, when INC-001 fires again next week, the agent retrieves context like "Last time this incident occurred, we restarted the service and it resolved in 3 minutes."
+
+---
+
+## Further Reading
+
+- [AgentCore Memory overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html)
+- [Memory types (SEMANTIC, SUMMARIZATION)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html)
+- [Memory organization: actor and session namespaces](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-organization.html)
+- [Memory-augmented agents (AWS Prescriptive Guidance)](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/memory-augmented-agents.html)
 
 ---
 

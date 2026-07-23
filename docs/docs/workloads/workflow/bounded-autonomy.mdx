@@ -2,11 +2,16 @@
 title: Bounded Autonomy
 sidebar_label: Bounded Autonomy
 sidebar_position: 4
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 
 # Bounded Autonomy: Policy Engine
+
+:::tip Who this is for
+Builders who have a working workflow agent and are ready to add Cedar policy guardrails. If you're still picking a pattern, start with the [workflow overview](/docs/workloads/workflow/overview).
+:::
 
 The single most important differentiator for production workflow agents. Without policy enforcement, an agent with access to infrastructure tools is a liability. With it, the agent operates within a provable boundary.
 
@@ -19,7 +24,7 @@ Without bounded autonomy, you get one of two outcomes:
 - **Over-permissive agents** that can cause outages when they make mistakes
 - **Under-permissive agents** that require human approval for every action, defeating the purpose of automation
 
-Cedar policies let you precisely define the boundary. The agent reasons freely within its allowed actions, and the platform prevents it from exceeding them, regardless of what the LLM decides.
+[Cedar policies](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) let you precisely define the boundary. The agent reasons freely within its allowed actions, and the platform prevents it from exceeding them, regardless of what the LLM decides. **Deny always wins over permit** — multiple policies compose safely, and an explicit `forbid` overrides any `permit`.
 
 ---
 
@@ -31,11 +36,17 @@ Cedar policies let you precisely define the boundary. The agent reasons freely w
 |-----------------------------|-----------------------------------------------------------------------------|
 | Tool-level access control   | Allow or deny specific tools based on Cedar policies.                       |
 | Condition-based enforcement | Restrict tool use based on request context (time, entity type, priority).   |
-| LOG_ONLY vs ENFORCE modes   | Start with LOG_ONLY to observe decisions; switch to ENFORCE for production. |
-| Audit trail                 | Every policy evaluation is logged with full context in CloudWatch.          |
+| [LOG_ONLY vs ENFORCE modes](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-getting-started.html)   | Start with LOG_ONLY to observe decisions; switch to ENFORCE for production. |
+| [Audit trail](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html)                 | Every policy evaluation is logged with full context in CloudWatch.          |
 | Multi-policy composition    | Combine multiple policies. Deny always wins over permit.                    |
 
 </div>
+
+---
+
+## Autonomy Risk Classification
+
+Before writing policies, classify each action's risk level using the [Agentic AI Security Scoping Matrix](https://aws.amazon.com/ai/security/agentic-ai-scoping-matrix/). This gives you a systematic basis for deciding which actions need condition-based gating, human approval, or time-windowing.
 
 ---
 
@@ -83,20 +94,33 @@ when {
 
 ## LOG_ONLY vs ENFORCE
 
-Start in LOG_ONLY mode to understand your agent's decision patterns before constraining it:
+Start in [LOG_ONLY mode](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-getting-started.html) to understand your agent's decision patterns before constraining it:
 
 1. **LOG_ONLY** — Policies are evaluated but not enforced. Violations are logged but the agent proceeds. Use during development and initial production deployment to build confidence.
 2. **ENFORCE** — Policies are evaluated and enforced. The agent cannot exceed its permitted actions. Switch to this once you've validated the policy set against real traffic.
+
+[Policy evaluation logs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html) in CloudWatch show every evaluation decision — use them during the LOG_ONLY phase to identify gaps before switching to ENFORCE.
 
 ---
 
 ## Deployment Workflow
 
-1. **Define policies** — Write Cedar policies that match your organization's autonomy boundaries.
-2. **Deploy in LOG_ONLY** — Observe the agent's behavior against real events. Review policy evaluation logs.
-3. **Tune policies** — Adjust based on false positives (blocking legitimate actions) and false negatives (allowing unintended actions).
-4. **Switch to ENFORCE** — Once satisfied, flip to enforcement mode. The agent is now bounded.
-5. **Iterate** — As you add new tools or domains, add corresponding policies before granting access.
+1. **Classify risk** — Use the [Agentic AI Security Scoping Matrix](https://aws.amazon.com/ai/security/agentic-ai-scoping-matrix/) to determine which actions need conditions or human approval.
+2. **Define policies** — Write Cedar policies that match your organization's autonomy boundaries.
+3. **Deploy in LOG_ONLY** — Observe the agent's behavior against real events. Review [policy evaluation logs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html).
+4. **Tune policies** — Adjust based on false positives (blocking legitimate actions) and false negatives (allowing unintended actions).
+5. **Switch to ENFORCE** — Once satisfied, flip to enforcement mode. The agent is now bounded.
+6. **Iterate** — As you add new tools or domains, add corresponding policies before granting access.
+
+---
+
+## Further Reading
+
+- [Cedar policy authorization flow](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) — how deny-wins composition works
+- [Policy Engine getting started](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-getting-started.html) — LOG_ONLY, ENFORCE, and first policy setup
+- [Observability and policy evaluation logging](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html)
+- [Agentic AI Security Scoping Matrix](https://aws.amazon.com/ai/security/agentic-ai-scoping-matrix/) — autonomy risk classification
+- [AWS Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html)
 
 ---
 

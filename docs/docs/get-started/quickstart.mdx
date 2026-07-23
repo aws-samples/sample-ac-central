@@ -2,230 +2,66 @@
 title: "Build your agents from terminal"
 sidebar_label: Build from CLI
 sidebar_position: 1
-last_verified: 2026-07-08
+last_verified: 2026-07-16
 ---
-
-:::info Versions
-Examples built with **AgentCore CLI** `@aws/agentcore@0.23.0`, **Strands Agents SDK** `1.46.0`, and **bedrock-agentcore** `1.17.0`. Commands or APIs may differ in other versions.
-:::
-
 
 import Link from '@docusaurus/Link';
 
-# Build your agents from terminal
+# Build Your Agent from the CLI
 
-Go from zero to a working agent on AgentCore. This guide creates a simple weather agent with one tool, tests it locally, and deploys it, all from the terminal.
-
-:::info Prerequisites
-- **Node.js 18+**: for the AgentCore CLI
-- **Python 3.12+**: for the agent runtime
-- **uv**: Python package manager ([install guide](https://docs.astral.sh/uv/getting-started/installation/))
-- **AWS credentials**: configured with `aws configure` or environment variables
-- **Bedrock model access**: Claude Sonnet 4.5 enabled in your AWS account ([enable models](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access-modify.html))
+:::tip Who this is for
+Developers who prefer working in a terminal, iterating locally, and managing configuration in version control. If you'd rather use a UI without local tooling, see [First Agent (Console)](/docs/get-started/firstagent).
 :::
 
+The fastest code-first path to a running agent. You'll scaffold a project, iterate locally with hot-reload, and deploy with a single command — all from your terminal.
+
 ---
 
-## Step 1: Install the CLI
+## Canonical tutorial
+
+Follow the CLI Python tutorial to scaffold, test, and deploy your first agent:
+
+- [Build and deploy a Python agent with the AgentCore CLI](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html)
+
+If your agent codebase is TypeScript:
+
+- [Build and deploy a TypeScript agent with the AgentCore CLI](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli-typescript.html)
+
+## Quick CLI flow
 
 ```bash
-npm install -g @aws/agentcore
-agentcore --version
-```
+# Scaffold a project using the interactive wizard
+agentcore create
 
----
-
-## Step 2: Scaffold the Project
-
-```bash
-agentcore create --name WeatherAgent --framework Strands \
-  --model-provider Bedrock --language Python \
-  --memory none --build CodeZip --skip-install
-```
-
-`--skip-install` skips both `npm install` (for the CDK project) and `uv sync` (for the agent), so scaffolding finishes in under a second. You'll install dependencies in the next step.
-
-This creates the project structure with `agentcore/agentcore.json` as the declarative config.
-
----
-
-## Step 3: Install Python Dependencies
-
-```bash
-cd WeatherAgent/app/WeatherAgent && uv venv && uv sync && cd ../../..
-```
-
----
-
-## Step 4: Write Your Agent
-
-Replace the scaffolded `WeatherAgent/app/WeatherAgent/main.py` with:
-
-```python
-"""Weather agent that answers weather questions using a simple tool."""
-
-import json
-import random
-
-from strands import Agent, tool
-from bedrock_agentcore.runtime import BedrockAgentCoreApp
-
-app = BedrockAgentCoreApp()
-log = app.logger
-
-
-@tool
-def get_weather(city: str) -> dict:
-    """Get the current weather for a city.
-
-    Args:
-        city: The name of the city to check weather for.
-
-    Returns:
-        A dictionary with weather information.
-    """
-    # Simulated weather data for demo purposes
-    conditions = ["sunny", "cloudy", "rainy", "partly cloudy"]
-    return {
-        "city": city,
-        "temperature_celsius": random.randint(15, 35),
-        "condition": random.choice(conditions),
-        "humidity_percent": random.randint(30, 90),
-    }
-
-
-SYSTEM_PROMPT = """You are a helpful weather assistant. When users ask about
-the weather, use the get_weather tool to look up current conditions.
-Always include the temperature and conditions in your response."""
-
-agent = Agent(
-    model="global.anthropic.claude-sonnet-4-5-20250929-v1:0",
-    system_prompt=SYSTEM_PROMPT,
-    tools=[get_weather],
-)
-
-
-@app.entrypoint
-async def invoke(payload, context):
-    """Agent entrypoint, called by AgentCore Runtime on each request."""
-    prompt = payload.get("prompt", "Hello!")
-    log.info("Invoking agent with prompt: %s", prompt)
-
-    async for event in agent.stream_async(prompt):
-        if "event" in event:
-            yield event
-
-
-if __name__ == "__main__":
-    app.run()
-```
-
-:::info Why streaming?
-`app.entrypoint` supports async generators. Yielding raw Strands stream events lets `agentcore dev` and AgentCore Runtime render the response as it's generated instead of waiting for the full answer. This is the same pattern the CLI scaffolds by default.
-:::
-
----
-
-## Step 5: Test Locally
-
-Start the dev server (needs a real terminal, not a piped/non-interactive shell):
-
-```bash
-cd WeatherAgent
+# Run locally with hot-reload
 agentcore dev
-```
 
-From a **second terminal**, send a prompt as a plain positional argument:
-
-```bash
-agentcore dev "What is the weather in Seattle?"
-```
-
-Expected output:
-
-```
-The weather in Seattle is currently partly cloudy with a temperature
-of 22°C and humidity at 65%.
-```
-
-:::tip
-`agentcore dev` requires an interactive terminal. If you see `No agents defined in project` even though `agentcore validate` says your config is valid, you're likely running it through a pipe or a non-TTY shell. Run it directly in Terminal.app, iTerm, or your IDE's integrated terminal.
-:::
-
----
-
-## Step 6: Deploy to AgentCore
-
-```bash
+# Deploy when ready
 agentcore deploy
 ```
 
-Once deployed, invoke the live agent:
-
-```bash
-agentcore invoke "What is the weather in Tokyo?"
-```
-
-That's it. Your agent is running on AgentCore Runtime with:
-- **MicroVM isolation**: each session in a dedicated sandbox
-- **Scale-to-zero**: no idle cost when there are no requests
-- **OpenTelemetry tracing**: full observability via CloudWatch
+The wizard prompts for your language, framework, model provider, and build method. See the canonical tutorials above for non-interactive options and complete configuration details.
 
 ---
 
-## What's in `agentcore/agentcore.json`
+## Why CLI is the fastest code-first path
 
-The CLI generated this configuration for your agent:
+The CLI gives you a local dev loop with hot-reload, version-controlled declarative configuration, and a single command (`agentcore deploy`) to move from prototype to deployed endpoint. You own the code, control the dependencies, and can test against a live model locally before deploying.
 
-```json
-{
-  "name": "WeatherAgent",
-  "version": 1,
-  "managedBy": "CDK",
-  "runtimes": [
-    {
-      "name": "WeatherAgent",
-      "build": "CodeZip",
-      "entrypoint": "main.py",
-      "codeLocation": "app/WeatherAgent/",
-      "runtimeVersion": "PYTHON_3_13",
-      "networkMode": "PUBLIC",
-      "protocol": "HTTP"
-    }
-  ],
-  "memories": [],
-  "credentials": []
-}
-```
+---
 
-This is the declarative source of truth for your AgentCore resources. As you add Memory, Gateway, or credentials via `agentcore add`, they appear as new entries under `runtimes`, `memories`, `agentCoreGateways`, and so on.
+## What happens after deployment
 
-:::info Runtime version
-The CLI may scaffold `runtimeVersion: "PYTHON_3_14"` (a pre-release version). Change it to `"PYTHON_3_13"` before deploying.
+The deployed endpoint uses [IAM authorization with SigV4-signed requests](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-permissions.html) by default — it cannot be invoked without valid AWS credentials. For production, follow the [Runtime security best practices](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-security-best-practices.html) and scope [`bedrock-agentcore:InvokeAgentRuntime`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-permissions.html) to specific principals. Consider [AWS PrivateLink](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/vpc-interface-endpoints.html) if you need private API access from your VPC to AgentCore without traversing the public internet. Configure Runtime VPC connectivity and egress controls separately for the agent's outbound traffic.
+
+---
+
+## Next steps
+
+- [Prepare your agent for production traffic](/docs/operate/production-readiness)
+- [Add memory and identity for a conversational agent](/docs/workloads/conversational/quickstart)
+- [Explore multi-agent patterns](/docs/patterns/overview)
+
+:::warning
+Everything produced by this tutorial is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
 :::
-
----
-
-## Next Steps
-
-<div className="tile-grid">
-  <Link to="/docs/get-started/agentcore-cli" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--terminal" aria-hidden="true" /><h3>Explore the CLI</h3></div>
-    <p>Learn about <code>agentcore add</code>, <code>agentcore validate</code>, and the full command set.</p>
-  </Link>
-
-  <Link to="/docs/workloads/conversational/quickstart" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--chat" aria-hidden="true" /><h3>Build a Chat Agent</h3></div>
-    <p>Add memory, identity, and streaming for a production conversational agent.</p>
-  </Link>
-
-  <Link to="/docs/workloads/workflow/quickstart" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--runtime" aria-hidden="true" /><h3>Build a Workflow Agent</h3></div>
-    <p>Event-driven automation with bounded autonomy and Cedar policies.</p>
-  </Link>
-
-  <Link to="/docs/patterns/overview" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--patterns" aria-hidden="true" /><h3>Explore Patterns</h3></div>
-    <p>Multi-agent patterns: from single agent to swarm, graph, and A2A.</p>
-  </Link>
-</div>

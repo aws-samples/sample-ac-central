@@ -2,11 +2,20 @@
 title: Agent Workloads
 sidebar_label: Overview
 sidebar_position: 1
+last_verified: 2026-07-16
 ---
 
 import Link from '@docusaurus/Link';
 
 # Choose the right agent workload
+
+:::tip Who this is for
+Builders deciding which agent architecture fits their use case before writing code. If you already know your workload type, jump straight to its overview: [Conversational](/docs/workloads/conversational/overview), [Workflow](/docs/workloads/workflow/overview), or [Coding](/docs/workloads/coding/overview). If you haven't deployed anything on AgentCore yet, start with [Get Started](/docs/get-started/overview) first.
+:::
+
+:::note Reference categorization — not AgentCore product types
+The **Conversational**, **Workflow**, and **Coding** categories on this site are reference patterns created to organize architecture guidance. They are not AgentCore product types, named tiers, or mandatory configurations. AgentCore capabilities (Runtime, Memory, Gateway, Identity, Guardrails, Evaluations, Observability) are modular — you combine them based on your use case. These categories help you reason about which combination typically fits a given problem.
+:::
 
 AgentCore supports many agent archetypes including the following three. Each is optimized for a different interaction model, trigger pattern, and operational profile. Pick the one that matches your use case, then follow its Quick Start to deploy in minutes.
 
@@ -35,25 +44,49 @@ AgentCore supports many agent archetypes including the following three. Each is 
 
 ## When to Use Each Workload
 
-<div className="fancy-table">
+<div className="fancy-table fancy-table--auto-first">
 
-| Use Case                                    | Workload         | Why This Fits                                                |
-|---------------------------------------------|------------------|--------------------------------------------------------------|
-| Customer support / helpdesk agent           | Conversational   | Human-initiated, multi-turn, needs memory of prior exchanges |
-| Internal knowledge assistant (HR, IT, etc.) | Conversational   | Q&A with employees, auth-scoped answers per user             |
-| Sales co-pilot / deal desk assistant        | Conversational   | Real-time advice during live user interactions               |
-| NL-to-SQL / self-serve analytics            | Conversational   | User asks a question, agent queries data and responds        |
-| Claims processing / adjudication            | Workflow          | Event-triggered, rules-based, needs bounded autonomy         |
-| IT incident response / auto-remediation     | Workflow          | Alert fires, agent triages and acts without a human          |
-| Document intake and routing                 | Workflow          | Document uploaded → classify → route → notify                |
-| Compliance monitoring / drift detection     | Workflow          | Scheduled scan → detect → remediate or escalate              |
-| Order fulfillment exception handling        | Workflow          | System event (stuck order) triggers investigation            |
-| Email / ticket triage and auto-response     | Workflow          | Inbound message → classify → auto-reply or route             |
-| Feature implementation from Jira tickets    | Coding           | Ticket created → agent generates code → PR for review        |
-| Automated code review / security scanning   | Coding           | PR opened → agent reviews → comments inline                  |
-| Codebase migration / refactoring            | Coding           | Batch task: transform patterns across many files             |
-| Test generation from specifications         | Coding           | Spec updated → agent writes/updates test suites              |
-| Documentation generation from code          | Coding           | Code merged → agent generates/updates docs                   |
+| Use Case | Why This Fits |
+|---|---|
+| **Conversational** | |
+| Customer support / helpdesk agent | Human-initiated, multi-turn, needs memory of prior exchanges |
+| Internal knowledge assistant (HR, IT, etc.) | Q&A with employees, auth-scoped answers per user |
+| Sales co-pilot / deal desk assistant | Real-time advice during live user interactions |
+| NL-to-SQL / self-serve analytics | User asks a question, agent queries data and responds |
+| **Workflow** | |
+| Claims processing / adjudication | Event-triggered, rules-based, needs bounded autonomy |
+| IT incident response / auto-remediation | Alert fires, agent triages and acts without a human |
+| Document intake and routing | Document uploaded → classify → route → notify |
+| Compliance monitoring / drift detection | Scheduled scan → detect → remediate or escalate |
+| Order fulfillment exception handling | System event (stuck order) triggers investigation |
+| Email / ticket triage and auto-response | Inbound message → classify → auto-reply or route |
+| **Coding** | |
+| Feature implementation from Jira tickets | Ticket created → agent generates code → PR for review |
+| Automated code review / security scanning | PR opened → agent reviews → comments inline |
+| Codebase migration / refactoring | Batch task: transform patterns across many files |
+| Test generation from specifications | Spec updated → agent writes/updates test suites |
+| Documentation generation from code | Code merged → agent generates/updates docs |
+
+</div>
+
+---
+
+## Decision Criteria at a Glance
+
+Use this table to map your requirements to a reference category. Multiple "best fit" matches in a row point to the same workload.
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Criterion               | Conversational                          | Workflow                                   | Coding                                  |
+|-------------------------|-----------------------------------------|--------------------------------------------|-----------------------------------------|
+| **Trigger source**      | Human typing a message                  | System event (alert, webhook, schedule, queue) | Ticket, PR, CI event, or schedule    |
+| **Human interaction**   | Continuous, real-time back-and-forth    | Minimal during execution; human-in-the-loop (HITL) for approvals on high-risk actions | Review gate at the end (PR/approval)    |
+| **Action risk**         | Low-to-medium (user-scoped actions)     | Medium-to-high (autonomous system actions) | Medium (code change, auto-merged PR)    |
+| **Duration**            | Minutes to hours across many turns      | Seconds to minutes per invocation          | Minutes to hours per task               |
+| **Identity model**      | End-user identity (OAuth bearer token)  | Service identity (machine-to-machine)      | Developer identity (repo/CI access)     |
+| **State / memory**      | Session + long-term per user            | Per-entity cross-invocation context        | Project-scoped codebase context         |
+| **Latency requirement** | Low (streaming token-by-token to UI)    | Tolerant (results to downstream systems)   | Tolerant (background task)              |
+| **Integration pattern** | Frontend / chat UI, IdP, streaming API  | EventBridge, SNS, SQS, S3, webhooks        | GitHub/GitLab, Jira, CI/CD pipelines    |
 
 </div>
 
@@ -67,36 +100,137 @@ AgentCore supports many agent archetypes including the following three. Each is 
 |------------------------|----------------------------------------|---------------------------------------------------|------------------------------------------|
 | **Trigger**            | User message (human-initiated)         | System event (machine-initiated)                  | Ticket/PR/schedule (machine-initiated)   |
 | **Session duration**   | Minutes to hours (multi-turn)          | Seconds to minutes (single invocation)            | Minutes to hours (long-running task)     |
-| **Identity model**     | End-user OAuth bearer tokens (acts as user) | Service identity (acts as system)                 | Developer identity (acts as developer)   |
+| **Identity model**     | [End-user OAuth bearer tokens](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-oauth.html) (acts as user) | Service identity (acts as system)                 | Developer identity (acts as developer)   |
 | **Memory**             | Session + long-term per user           | Cross-invocation context per entity               | Project-scoped context                   |
 | **Streaming**          | Token-by-token to UI                   | Optional (results go to downstream systems)       | Optional (progress updates to IDE/CI)    |
 | **Primary output**     | Natural language response to human     | Actions taken + structured events emitted         | Code artifacts + PR/review comments      |
 | **Scaling pattern**    | Concurrent sessions (many users)       | Event throughput (many events per second)         | Concurrent tasks (many repos/PRs)        |
-| **Key metrics**        | Helpfulness, Correctness               | GoalSuccessRate, TrajectoryMatch                  | Code quality, test pass rate             |
-| **Idle cost**          | Scale-to-zero between sessions         | Scale-to-zero between events                      | Scale-to-zero between tasks              |
-| **Compute lifecycle**  | Up to 8 hours (session affinity)       | Up to 15 minutes (short-lived)                    | Up to 8 hours (long-running)             |
-| **Guardrails focus**   | Content filters, PII, prompt injection | Tool-level policies (Cedar), bounded autonomy     | Code quality gates, security scanning    |
+| **Key metrics** ²      | `Builtin.Helpfulness`, `Builtin.Correctness` | `Builtin.GoalSuccessRate`, trajectory match evaluators | Code quality, test pass rate (no code-specific built-in evaluator) |
+| **Idle cost** ³        | Scale-to-zero between sessions         | Scale-to-zero between events                      | Scale-to-zero between tasks              |
+| **Compute lifecycle**  | Up to 8 hours (session affinity) ¹    | Short-lived by design; sessions stop at the default 15-minute idle timeout ¹ | Up to 8 hours (long-running) ¹          |
+| **Guardrails focus**   | [Content filters, PII, prompt injection](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-guardrails-in-policies.html) | [Tool-level policies (Cedar)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html), bounded autonomy | Code quality gates, security scanning    |
 
 </div>
+
+> ¹ Session duration and scaling behaviors are architecture guidance based on typical AgentCore usage patterns, not per-workload limits — the maximum compute lifetime is the same for every runtime. Verify current limits in the [AgentCore service quotas](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/bedrock-agentcore-limits.html).
+>
+> ² `Builtin.*` names are [AgentCore Evaluations built-in evaluators](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html). Trajectory matching is a family: `Builtin.TrajectoryInOrderMatch`, `Builtin.TrajectoryAnyOrderMatch`, and `Builtin.TrajectoryExactOrderMatch`.
+>
+> ³ Runtime uses [active-resource consumption pricing](https://aws.amazon.com/bedrock/agentcore/pricing/); idle agents [scale to zero after their sessions stop](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html).
 
 ---
 
 ## Decision Guide
 
-**Choose Conversational when:**
+**Choose `Conversational` when:**
 - A human is typing messages and expecting real-time responses
 - You need multi-turn memory and session continuity
 - The agent acts on behalf of the end-user (their identity, their permissions)
 
-**Choose Workflow when:**
+**Choose `Workflow` when:**
 - A system event triggers the agent (alert, webhook, schedule, file upload)
 - The agent needs to make decisions and take actions autonomously
 - You need bounded autonomy: the agent should act within defined guardrails, not freely
 
-**Choose Coding when:**
+**Choose `Coding` when:**
 - The output is code, tests, documentation, or PR comments
 - Tasks are long-running and involve file system or repository operations
 - You need sandbox isolation for code execution and validation
+
+---
+
+## Create a project and agent with the AgentCore CLI
+
+The workload categories on this page are architecture guidance, not `agentcore create` options. The CLI creates a project and, unless `--no-agent` is specified, an agent resource inside it. Choose the framework, model provider, memory, build, protocol, and network settings based on the agent's requirements.
+
+:::info Verified CLI version
+The commands in this section were checked with AgentCore CLI `0.24.1` on July 16, 2026. Check the [AgentCore CLI project creation guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-get-started-cli.html) and run `agentcore create --help` when using a different CLI version.
+:::
+
+### Recommended workflow-agent command
+
+> **Guidance:** This is a recommended starting point for an event-driven workflow agent. The workload category does not require these exact values.
+
+Run the command from the directory where you want the project to be created:
+
+```bash
+npm install -g @aws/agentcore@0.24.1
+agentcore --version
+agentcore create \
+  --name WorkflowAgent \
+  --project-name workflowagent \
+  --framework Strands \
+  --model-provider Bedrock \
+  --memory longAndShortTerm \
+  --build CodeZip \
+  --language Python \
+  --protocol HTTP \
+  --network-mode PUBLIC
+```
+
+Replace `WorkflowAgent` and `workflowagent` with your agent and project names. A project name must start with a letter, contain only alphanumeric characters, and be no more than 23 characters long.
+
+The options in this example mean:
+
+<div className="fancy-table">
+
+| Option | Purpose |
+|--------|---------|
+| `--name` | Names the agent resource. |
+| `--project-name` | Names the generated project. |
+| `--framework Strands` | Uses the Strands Agents framework. |
+| `--model-provider Bedrock` | Uses Amazon Bedrock as the model provider. |
+| `--memory longAndShortTerm` | Provides both short-term and long-term memory for cross-invocation context. |
+| `--build CodeZip` | Uses a CodeZip deployment artifact instead of a container image. |
+| `--language Python` | Generates a Python agent project. |
+| `--protocol HTTP` | Uses HTTP for Runtime invocation. |
+| `--network-mode PUBLIC` | Uses public network access; use VPC mode when private connectivity is required. |
+
+</div>
+
+### Adjust the memory and network settings
+
+Use one of these memory options when the workflow does not need both forms of context:
+
+```bash
+# No AgentCore memory
+--memory none
+
+# Short-term memory only
+--memory shortTerm
+```
+
+For a VPC deployment, replace `--network-mode PUBLIC` and provide the required network resources:
+
+```bash
+--network-mode VPC \
+--subnets subnet-12345678,subnet-87654321 \
+--security-groups sg-12345678
+```
+
+VPC mode does not provide outbound internet access by default. For outbound internet access, route private subnets through a NAT gateway; for AWS service access without internet, configure the required VPC endpoints. See the [AgentCore VPC networking guidance](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-vpc.html) for subnet and Availability Zone requirements.
+
+The event source—such as EventBridge, SNS, SQS, S3, a webhook, or a schedule—is not selected by `agentcore create`. Configure that integration separately after scaffolding the Runtime project. If `--skip-install` or `--skip-python-setup` is used, create the environment and install dependencies before local development:
+
+```bash
+cd app/WorkflowAgent
+uv venv
+uv sync
+```
+
+Once dependencies are installed, run the agent locally:
+
+```bash
+agentcore dev
+```
+
+This starts the local dev server and opens the test page. You can also send a quick test prompt using the test page:
+
+```bash
+"What can you do?"
+```
+
+For conversational and coding agents, reuse the same command structure but select memory, build, network, and integration settings appropriate to those workloads.
 
 ---
 
@@ -118,3 +252,7 @@ AgentCore supports many agent archetypes including the following three. Each is 
     <p>Long-running code agents with sandbox execution and review gates.</p>
   </Link>
 </div>
+
+:::warning
+Any agent created with the commands on this page is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

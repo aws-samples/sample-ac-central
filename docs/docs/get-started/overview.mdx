@@ -2,34 +2,48 @@
 title: Get Started with AgentCore
 sidebar_label: Overview
 sidebar_position: 1
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
-import useBaseUrl from '@docusaurus/useBaseUrl';
-import ThemedImage from '@theme/ThemedImage';
 
-# Get Started Faster with AgentCore
+# Get Started with AgentCore
 
-Get to your first working agent in minutes. Choose the path that fits your workflow.
+This page helps you pick the right getting-started path. Whether you're a first-time agent builder evaluating managed vs. code-first approaches, or an experienced developer migrating an existing agent onto AgentCore Runtime, the decision tree below will route you to the right tutorial.
 
-<div className="tile-grid">
-  <Link to="/docs/get-started/firstagent" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--rocket" aria-hidden="true" /><h3>5-Minute Quickstart</h3></div>
-    <p>Build, test, and deploy your first agent with a complete working example. Zero to production in 5 minutes.</p>
-  </Link>
+---
 
-  <Link to="/docs/workloads/conversational/quickstart" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--chat" aria-hidden="true" /><h3>Conversational Agent</h3></div>
-    <p>Deploy a working chat agent with memory in under 10 minutes.</p>
-  </Link>
+## Pick your path
 
-  <Link to="/docs/workloads/workflow/quickstart" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--runtime" aria-hidden="true" /><h3>Workflow Agent</h3></div>
-    <p>Deploy a working event-driven incident response agent in under 10 minutes.</p>
-  </Link>
+<div className="fancy-table fancy-table--auto-first">
 
-  <Link to="/docs/workloads/coding/quickstart" className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--terminal" aria-hidden="true" /><h3>Coding Agent</h3></div>
-    <p>Deploy a working test-generation agent in under 10 minutes. Analyze, test, execute a Python source file and return validated results.</p>
-  </Link>
+| If you want to… | Start here |
+|---|---|
+| Deploy an agent through the console without writing orchestration code | [Your First Agent (Console)](/docs/get-started/firstagent) |
+| Build a code-first prototype from your terminal | [Build from CLI](/docs/get-started/quickstart) |
+| Migrate an existing agent (Strands, LangGraph, CrewAI, custom) onto AgentCore | [Existing Agent](/docs/get-started/existing-agent) |
+| Compare all deployment methods before deciding | [Deployment Methods](/docs/get-started/deployment-methods) |
+
 </div>
+
+:::tip Not sure where to start?
+Start with the [Harness getting-started guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html) for the fastest route to a running agent. Switch to the [CLI Python tutorial](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html) if you prefer writing agent logic in code.
+:::
+
+---
+
+## Before you begin
+
+Every path requires the same account and environment preparation. Complete the [Preflight Checklist](/docs/get-started/preflight) before starting any tutorial — it covers region selection, IAM permissions, model access, and cost awareness.
+
+---
+
+## What each path produces
+
+Each Get Started tutorial produces a working prototype: a deployed agent with a reachable endpoint you can invoke and iterate on. What remains after that is applying production controls — security, observability, policy enforcement, and operational readiness.
+
+Move to [Preparing for production](/docs/operate/production-readiness) once you have a working prototype and want to serve real user traffic.
+
+:::warning
+Everything produced by a Get Started tutorial is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

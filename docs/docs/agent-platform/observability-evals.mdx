@@ -2,13 +2,18 @@
 title: Observability & Evaluations
 sidebar_label: Observability & Evaluations
 sidebar_position: 5
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
 
+:::info Architecture Patterns
+These are target-state architecture patterns for agent observability and evaluation at enterprise scale, not required prerequisites for a first prototype. AgentCore Observability and Evaluations are native services; CloudWatch alarms and CI/CD integrations are adjacent AWS services you wire together.
+:::
+
 # Observability & Evaluations
 
-Agents are non-deterministic. The same input can produce different outputs, take different reasoning paths, and invoke different tools. Traditional monitoring (CPU, memory, error rates) is necessary but insufficient. Agent platforms need an **observe → evaluate → optimize** loop that continuously measures quality, safety, and performance.
+Agents are non-deterministic. The same input can produce different outputs, take different reasoning paths, and invoke different tools. Traditional monitoring (CPU, memory, error rates) is necessary but insufficient. Agent platforms need an **observe → evaluate → optimize** loop that continuously measures quality, safety, and performance. This page covers what AgentCore Observability and Evaluations provide natively, how to close the loop with adjacent AWS services, and which actions (such as rollback) remain customer-built patterns.
 
 ---
 
@@ -77,7 +82,7 @@ Close the loop by triggering automated actions when evaluations detect issues.
 | Action            | Trigger                               | Result                                             |
 | ----------------- | ------------------------------------- | -------------------------------------------------- |
 | **Alerts**        | Quality score drops below threshold   | PagerDuty/Slack notification to agent owner        |
-| **Auto-Rollback** | Safety evaluation fails in production | Revert to last known-good agent version            |
+| **Rollback**      | Safety evaluation fails in production | Repoint the `PROD` endpoint to a previous Runtime version (customer-built pattern using Runtime endpoint versioning + Observability metrics) |
 | **Throttle**      | Cost exceeds budget threshold         | Reduce rate limits or switch to cheaper model      |
 | **Update Evals**  | New failure patterns detected         | Add new evaluation criteria to catch edge cases    |
 | **Optimize**      | Ongoing quality metrics               | Model tuning, prompt refinement, data augmentation |

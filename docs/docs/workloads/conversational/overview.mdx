@@ -2,19 +2,24 @@
 title: Conversational Agents
 sidebar_label: Overview
 sidebar_position: 1
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 
 # Conversational Agents
 
-Human-initiated chat agents that respond in real-time with multi-turn memory, enterprise identity, and streaming. AgentCore handles the platform complexity so you focus on the agent's intelligence.
+:::tip Who this is for
+Developers evaluating whether a conversational workload fits their use case, or looking for the right entry point into building a chat agent on AgentCore. If you've already decided and want to start coding, jump to the [Quick Start](/docs/workloads/conversational/quickstart) or [Harness Quick Start](/docs/workloads/conversational/harness-quickstart).
+:::
+
+Human-initiated chat agents that respond in real-time with [multi-turn memory](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html), [enterprise identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html), and [streaming](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-http-protocol-contract.html). AgentCore handles the platform complexity so you focus on the agent's intelligence.
 
 ---
 
 ## What Is It?
 
-A conversational agent is a chat-based AI that interacts directly with humans. Users type messages, the agent reasons and responds, optionally calling tools along the way. Unlike traditional chatbots with scripted flows, conversational agents on AgentCore use LLM reasoning to handle open-ended queries, maintain context across turns, and take actions on behalf of the user.
+A conversational agent is a chat-based AI that interacts directly with humans. Users type messages, the agent reasons and responds, optionally calling tools along the way. Unlike traditional chatbots with scripted flows, conversational agents on AgentCore use LLM reasoning to handle open-ended queries, maintain context across turns, and take actions on behalf of the user. See [How AgentCore Runtime works](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html) for the underlying execution model.
 
 ---
 
@@ -34,40 +39,26 @@ A conversational agent is a chat-based AI that interacts directly with humans. U
 Choose this workload when:
 
 - A human is the primary trigger (they type a message)
-- The agent needs to respond in real-time with token-by-token streaming
+- The agent needs to respond in real-time with token-by-token [streaming](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-http-protocol-contract.html)
 - Multi-turn conversation state matters (the agent should remember what was said)
 - The agent acts on behalf of a specific user with their identity and permissions
 - The primary output is natural language directed at a human
 
+For a side-by-side comparison with Workflow and Coding patterns, see the [Workloads overview comparison table](/docs/workloads/overview#how-they-compare).
+
 ---
 
-## Strengths and Limitations
+## Strengths and Design Considerations
 
 <div className="fancy-table">
 
-| Strengths                                            | Limitations                                                        |
+| Strengths                                            | Design Considerations                                                        |
 |------------------------------------------------------|--------------------------------------------------------------------|
-| Real-time streaming for responsive UX                | Higher per-session cost (long-lived compute)                       |
-| Multi-turn memory with session + long-term recall    | Complex context window management for long conversations           |
-| End-user identity propagation (zero-trust)           | Requires IdP integration (Entra ID, Okta, Cognito)                 |
-| Natural fit for human-facing applications            | Adversarial input surface (prompt injection, social engineering)    |
-| Rich UI feedback (typing indicators, tool activity)  | Session affinity means scale-per-user, not scale-per-event         |
-
-</div>
-
----
-
-## How It Compares
-
-<div className="fancy-table fancy-table--auto-first">
-
-| Dimension          | Conversational                         | Workflow                             | Coding                             |
-|--------------------|----------------------------------------|--------------------------------------|------------------------------------|
-| Trigger            | User message                           | System event                         | Ticket / PR / schedule             |
-| Session            | Long-lived, multi-turn                 | Short-lived, single invocation       | Long-lived, single task            |
-| Identity           | End-user (OAuth bearer token)          | Service principal                    | Developer identity                 |
-| Primary output     | Chat response to human                 | Actions + events emitted             | Code + PR comments                 |
-| Streaming          | Always (token-by-token)                | Rarely needed                        | Optional (progress updates)        |
+| Real-time streaming for responsive UX                | Plan for per-session cost; use [scale-to-zero](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) and session timeouts to manage spend |
+| Multi-turn memory with session + long-term recall    | Long conversations need [context window strategies](/docs/workloads/conversational/session-management) (summarization, truncation) |
+| End-user identity propagation (zero-trust)           | Requires IdP integration (Entra ID, Okta, Cognito) — plan this early         |
+| Natural fit for human-facing applications            | Human-facing surface needs [input guardrails](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-guardrails-in-policies.html) (content filters, prompt boundaries) |
+| Rich UI feedback (typing indicators, tool activity)  | [Session affinity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-sessions.html) means scaling per user; size infrastructure accordingly      |
 
 </div>
 
@@ -77,15 +68,62 @@ Choose this workload when:
 
 <div className="fancy-table fancy-table--auto-first">
 
-| AgentCore Service | Configuration for Conversational                        | Why It Matters                                    |
-|-------------------|---------------------------------------------------------|---------------------------------------------------|
-| **Identity**      | End-user OAuth bearer tokens (Entra ID, Okta, Cognito)  | Agent acts on behalf of the user                  |
-| **Memory**        | Session + long-term, namespace per user                 | Multi-turn context + cross-session recall          |
-| **Runtime**       | Streaming enabled, session affinity, up to 8h lifecycle | Real-time UX, stateful conversations              |
-| **Guardrails**    | Content filters + topic boundaries + PII redaction      | Protect against adversarial inputs                |
-| **Evaluations**   | GoalSuccessRate, Helpfulness, Correctness               | Catch quality regressions before users feel them  |
-| **Observability** | Per-conversation tracing with user context              | Debug "the agent gave me wrong info"              |
-| **Gateway**       | User-scoped tool access with auth propagation           | Agent calls APIs as the user                      |
+| Purpose | Description | AgentCore capability |
+|---------|-------------|---------------------|
+| **User authentication** | End-user OAuth bearer tokens (Entra ID, Okta, Cognito) so the agent acts on behalf of the user | [Identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html) |
+| **Conversation context** | Session memory + long-term recall, namespaced per user for multi-turn continuity and cross-session personalization | [Memory](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html) |
+| **Execution environment** | Streaming-enabled runtime with session affinity and up to 8h lifecycle ¹ for real-time, stateful conversations | [Runtime](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html) |
+| **Input safety** | Content filters, topic boundaries, and PII redaction to protect against adversarial or off-topic inputs | [Guardrails](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-guardrails-in-policies.html) |
+| **Quality measurement** | [`Builtin.GoalSuccessRate`, `Builtin.Helpfulness`, and `Builtin.Correctness`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) evaluations to catch regressions before users feel them | [Evaluations](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/how-it-works-evaluations.html) |
+| **Debugging and tracing** | Per-conversation traces with user context to diagnose "the agent gave me wrong info" | [Observability](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html) |
+| **Tool access** | User-scoped API access with [auth propagation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/on-behalf-of-token-exchange.html) so the agent calls external services as the user | [Gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) |
+
+</div>
+
+> ¹ Session duration is architecture guidance based on typical AgentCore usage patterns. Verify current limits in the [AgentCore service quotas](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/bedrock-agentcore-limits.html).
+
+---
+
+## When Not to Use This Pattern
+
+**Skip the Conversational pattern when:**
+
+- There is no human in the loop. If an event (alert, webhook, file upload) triggers the agent and results go to a downstream system, the [Workflow pattern](/docs/workloads/workflow/overview) is a better fit — it is designed for machine-to-machine automation and costs less at scale.
+- The task produces code or structured file artifacts. Use the [Coding pattern](/docs/workloads/coding/overview) instead.
+- Interaction is single-turn and stateless. A simple API call to an LLM (with no memory or session state) is often enough — an AWS Lambda function calling the [Bedrock InvokeModel API](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-api.html) may be all you need, without the overhead of a persistent agent runtime.
+- You cannot integrate an identity provider. This pattern depends on user identity propagation (OAuth bearer tokens). If your deployment has no IdP, consider the Workflow pattern with service credentials. If you have Amazon Cognito, see the [Identity getting started with Cognito](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity-getting-started-cognito.html) tutorial.
+
+---
+
+## Start Building
+
+The [Conversational Agent Catalog](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents) is the primary starting point for conversational agent development. It contains maintained samples with identity, memory, and streaming built in.
+
+Scaffold a conversational project from your terminal:
+
+:::info Verified CLI version
+The commands below were checked with AgentCore CLI `0.24.1` on July 22, 2026. Run `agentcore create --help` and `agentcore add memory --help` when using a different CLI version.
+:::
+
+```bash
+# Create a harness with memory for multi-turn conversations
+agentcore create --name mychatagent --model-provider bedrock
+agentcore add memory --name chatmemory --strategies SEMANTIC,SUMMARIZATION
+
+# Test locally (deploys and opens browser test page)
+agentcore dev
+```
+
+Or choose a sample that matches your use case:
+
+<div className="fancy-table">
+
+| Use Case | Sample | Key Capability |
+|----------|--------|----------------|
+| General conversational AI | [Catalog default](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents) | Identity + Memory + Streaming |
+| Auth-scoped helpdesk | [Customer Support Assistant (VPC)](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/customer-support-assistant-vpc) | VPC-secured, customer identity propagation |
+| Operations collaboration (A2A) | [SRE/A2A Incident Response](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/A2A-multi-agent-incident-response) | Multi-agent, operations triage |
+| Browser/Evaluations/Optimization | [Market Trends Agent](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/market-trends-agent) | Browser use, data gathering, evaluation loops |
 
 </div>
 
@@ -100,10 +138,17 @@ Choose this workload when:
 | **[BGL](../../customer/external/bgl)**                      | Slack-based NL-to-SQL agent for self-serve BI                        | 200+ employees self-serve instantly    |
 | **[Iberdrola](../../customer/external/iberdrola)**          | Multi-agent IT operations with LangGraph + VPC-secured runtime       | Reduced resolution time                |
 | **[Thomson Reuters](../../customer/external/thomson-reuters)** | Central orchestrator routing to specialized service agents with HITL | Enterprise-scale multi-domain support  |
-| **[Kavak](../../customer/external/kavak)**                  | Autonomous concierge agent for automotive marketplace                | End-to-end customer journey automation |
-| **Swisscom**                                                | Enterprise-scale agentic AI platform                                 | Platform-level agent governance        |
 
 </div>
+
+---
+
+## Further Reading
+
+- [Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) — cognitive pipeline optimization, tool reliability, agent observability
+- [Agentic AI security best practices](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/best-practices.html) — identity propagation, input validation, tool safety
+- [Memory-augmented agents](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/memory-augmented-agents.html) — architectural patterns for agent memory (AWS Prescriptive Guidance)
+- [Deploy Strands agents to AgentCore](https://strandsagents.com/docs/user-guide/deploy/deploy_to_bedrock_agentcore/) — code-first deployment guide for the Strands framework
 
 ---
 
@@ -112,11 +157,16 @@ Choose this workload when:
 <div className="tile-grid">
   <Link to="/docs/workloads/conversational/quickstart" className="tile-card">
     <div className="tile-heading"><h3>Quick Start →</h3></div>
-    <p>Deploy a working conversational agent in 5 steps.</p>
+    <p>Choose the right conversational sample and understand action risks.</p>
+  </Link>
+
+  <Link to="/docs/workloads/conversational/harness-quickstart" className="tile-card">
+    <div className="tile-heading"><h3>Harness Quick Start →</h3></div>
+    <p>The config-only path: managed agent loop with built-in per-user memory.</p>
   </Link>
 
   <Link to="/docs/workloads/conversational/enterprise-features" className="tile-card">
-    <div className="tile-heading"><h3>Enterprise Features →</h3></div>
+    <div className="tile-heading"><h3>Architecture Guidance →</h3></div>
     <p>Identity, memory, runtime, gateway, and guardrails deep dive.</p>
   </Link>
 
@@ -130,3 +180,7 @@ Choose this workload when:
     <p>Reference architecture and recommended multi-agent patterns.</p>
   </Link>
 </div>
+
+:::warning
+Everything produced by the samples and commands on this page is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

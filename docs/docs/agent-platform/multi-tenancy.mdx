@@ -2,9 +2,14 @@
 title: Multi-Tenancy & Reference Architecture
 sidebar_label: Multi-Tenancy
 sidebar_position: 7
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
+
+:::info Architecture Patterns
+These are target-state architecture patterns for multi-tenant agent platforms at enterprise scale, not required prerequisites for a first prototype. Start with a single-account setup and evolve toward multi-account isolation as your platform matures.
+:::
 
 # Multi-Tenancy & Reference Architecture
 
@@ -133,10 +138,16 @@ Organizations evolve through maturity levels. Each level builds on the previous 
 |---|---|---|
 | **L1** | Experimentation | Individual teams building PoCs. No shared infrastructure. Ad-hoc security. |
 | **L2** | Foundation | Shared runtime and gateway deployed. Basic registry. Central observability. |
-| **L3** | Scaling | Self-service onboarding. CI/CD with eval gates. Multi-team adoption. A/B testing. |
+| **L3** | Scaling | Self-service onboarding. CI/CD with eval gates. Multi-team adoption. A/B testing via AgentCore config bundles (configuration-level session variants). |
 | **L4** | Governed & Optimized | Full governance automation. Cost optimization. Continuous evals. Federated ops. |
 
 </div>
+
+:::note Configuration-level vs infrastructure-level routing
+AgentCore A/B testing uses config bundles (`abTests` in `agentcore.json`) to vary agent configuration per session — this is **configuration-level routing**. Config bundles select configuration variants based on session attributes; they do not distribute traffic percentages across infrastructure endpoints.
+
+AgentCore Gateway does not perform weighted traffic distribution between endpoints. For **infrastructure-level traffic splitting** or **infrastructure-level weighted routing** across separate deployment targets, use external mechanisms such as CloudFront, ALB weighted target groups, or Route 53 weighted routing.
+:::
 
 ---
 
@@ -160,7 +171,8 @@ Organizations evolve through maturity levels. Each level builds on the previous 
     <p>• Build self-service onboarding workflows<br/>
     • Implement CI/CD pipelines with evaluation gates<br/>
     • Add cost attribution and per-team budgets<br/>
-    • Enable A/B testing via Gateway traffic splitting<br/>
+    • Enable configuration-level A/B testing via AgentCore config bundles — route different sessions to different agent configurations (model, prompt, tools) to compare performance<br/>
+    • Use infrastructure-level traffic splitting, such as CloudFront, ALB weighted target groups, or Route 53 weighted routing, only when you need network-layer distribution across separate deployment targets<br/>
     • Onboard 3+ domain teams to the platform</p>
     <span className="service-tag tag--gateway">Scaling</span>
   </div>

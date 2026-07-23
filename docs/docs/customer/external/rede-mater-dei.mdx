@@ -1,6 +1,7 @@
 ---
 title: Rede Mater Dei - Healthcare Revenue Cycle
 sidebar_label: Rede Mater Dei
+last_verified: 2026-07-15
 ---
 
 # Rede Mater Dei - AI Agents for Healthcare Revenue Cycle
@@ -9,11 +10,56 @@ sidebar_label: Rede Mater Dei
 
 <span className="tile-icon tile-icon-svg tile-icon--book" aria-hidden="true" /> [Blog Post →](https://aws.amazon.com/blogs/machine-learning/rede-mater-dei-de-saude-monitoring-ai-agents-in-the-revenue-cycle-with-amazon-bedrock-agentcore/)
 
-## Architecture
+**Industry:** Healthcare | **Workload pattern:** Event-driven multi-agent | **Integration type:** EHR system integration
 
-![Rede Mater Dei Architecture](/img/image69.png)
+---
 
-Event-driven multi-agent pipeline for healthcare revenue cycle management.
+## Source
+
+[AWS Machine Learning Blog - Rede Mater Dei de Saúde: Monitoring AI Agents in the Revenue Cycle with Amazon Bedrock AgentCore](https://aws.amazon.com/blogs/machine-learning/rede-mater-dei-de-saude-monitoring-ai-agents-in-the-revenue-cycle-with-amazon-bedrock-agentcore/)
+
+Publication date: See linked source.
+
+---
+
+## Customer context
+
+Rede Mater Dei de Saúde is a major Brazilian hospital network with 45+ years of service and 8+ locations. The organization manages a high volume of healthcare billing operations and is subject to Brazilian healthcare regulatory requirements that demand full auditability of clinical and financial decisions.
+
+---
+
+## Challenge
+
+Claim denials jumped to approximately 16% sector-wide, representing about R$10B in lost revenue across the healthcare sector. Manual, fragmented billing processes at Rede Mater Dei could not keep pace with regulatory complexity and submission volume, creating bottlenecks in authorization, coding, and claim validation.
+
+---
+
+## Solution
+
+Rede Mater Dei chose to deploy 12 specialized AI agents on Amazon Bedrock AgentCore, each focused on a distinct revenue cycle function: claim validation, denial analysis, medical coding checks, authorization requests, and contract verification. Each agent is containerized and runs on AgentCore Runtime, triggered by billing events from hospital EHR systems. Built-in observability captures every execution for audit and continuous improvement.
+
+---
+
+## AgentCore services used
+
+<div className="fancy-table">
+
+| AgentCore Service | How Rede Mater Dei configured it                          | Why it mattered                                                   |
+|-------------------|-----------------------------------------------------------|-------------------------------------------------------------------|
+| Runtime           | 12 containerized agents, event-driven triggers            | Each agent focused on a specific billing task and scaled on demand |
+| Observability     | Full trace capture of every agent execution               | Regulatory compliance and continuous process improvement         |
+
+</div>
+
+---
+
+## Architecture pattern
+
+![Rede Mater Dei Architecture - Event-driven pipeline showing billing events flowing from EHR systems through an event router to 12 specialized agents running on AgentCore Runtime, each processing a specific revenue cycle function before updating claim status and recording to observability](/img/image69.png)
+
+*Architecture interpretation by this site based on the public source.*
+
+The diagram above shows billing events entering from EHR systems, being routed by an event dispatcher to one of 12 specialized agents, each running independently on AgentCore Runtime, with results written back to claim records and execution traces captured for observability.
 
 ```mermaid
 flowchart LR
@@ -26,30 +72,11 @@ flowchart LR
     G --> H[Observability]
 ```
 
-## Customer Story
+**Entry point:** Billing events from hospital EHR systems.
+**Main flow:** Events are routed to the relevant specialized agent, which calls Bedrock models with claim data, then writes the outcome back to the claim record.
+**Key boundary:** Each agent has a single bounded responsibility; none spans multiple revenue cycle functions.
 
-**Customer:** Rede Mater Dei de Saúde, a major Brazilian hospital network with 45+ years of service and 8+ locations
-
-**Challenge:** Claim denials jumped to approximately 16% sector-wide, representing about R$10B in lost revenue. Manual, fragmented billing processes were unable to keep pace with regulatory complexity and volume, creating bottlenecks in authorization, coding, and claim validation.
-
-**Solution:** 12 specialized AI agents deployed on Amazon Bedrock AgentCore, each focused on a distinct revenue cycle function including claim validation, denial analysis, medical coding checks, authorization requests, and contract verification. Each agent is containerized and runs on AgentCore Runtime, triggered by billing events from hospital EHR systems. Built-in observability captures every execution for audit and continuous improvement.
-
-## AgentCore Configuration
-
-<div className="fancy-table">
-
-| AgentCore Service | Configuration for Rede Mater Dei                          | Why It Matters                                                    |
-|-------------------|-----------------------------------------------------------|-------------------------------------------------------------------|
-| Runtime           | 12 containerized agents, event-driven triggers            | Each agent focuses on a specific billing task, scales on demand  |
-| Observability     | Full trace capture of every agent execution               | Regulatory compliance and continuous process improvement         |
-
-</div>
-
-## Key Technical Decisions
-
-- **Multi-agent decomposition by business function** rather than a monolithic agent. Each agent (claim validation, denial analysis, coding checks, authorization) has bounded scope and clear responsibilities.
-- **Custom agents deployed as containers** using the bring-your-own-code pattern. This gave the team full control over agent logic and integration with existing hospital systems.
-- **Event-driven architecture** where billing events from EHR systems trigger the relevant agent on demand, keeping compute costs proportional to workload.
+---
 
 ## Results
 
@@ -60,8 +87,23 @@ flowchart LR
   <span className="result-chip">Full audit trail for regulatory compliance</span>
 </div>
 
-## Lessons Learned
+---
 
-- **Start with narrow, high-impact tasks** like authorization validation before expanding to complex workflows. Early wins build organizational trust.
-- **Observability is not optional in healthcare** where every decision must be traceable for compliance and quality improvement.
-- **Multi-agent beats monolith** when each task has distinct data sources, validation rules, and failure modes.
+## Transferable lessons
+
+- Rede Mater Dei chose to decompose the revenue cycle by business function rather than build a monolithic agent. This gave each agent bounded scope and clear responsibilities, simplifying both development and debugging.
+- The team prioritized observability from day one given healthcare's regulatory requirements. Every agent execution is traced, which supports compliance reviews and continuous improvement.
+- Starting with high-impact, narrowly scoped tasks (authorization validation) before expanding to more complex workflows helped build organizational confidence in the system.
+
+---
+
+## When this is relevant
+
+This pattern fits organizations that need to automate a large family of related but distinct tasks, where each task has its own data sources, validation rules, and failure modes. Healthcare revenue cycle, insurance claims, and financial compliance workflows share this profile. The event-driven trigger model is appropriate when tasks are initiated by external system events rather than user requests.
+
+---
+
+## Source and verification
+
+- [AWS Machine Learning Blog - Rede Mater Dei de Saúde: Monitoring AI Agents in the Revenue Cycle with Amazon Bedrock AgentCore](https://aws.amazon.com/blogs/machine-learning/rede-mater-dei-de-saude-monitoring-ai-agents-in-the-revenue-cycle-with-amazon-bedrock-agentcore/)
+- Last verified: 2026-07-15

@@ -2,11 +2,16 @@
 title: Patterns & Architecture
 sidebar_label: Patterns & Architecture
 sidebar_position: 8
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 
 # Patterns & Architecture for Workflow Agents
+
+:::tip Who this is for
+Builders designing a production-grade event-driven workflow agent or evaluating multi-agent patterns. If you haven't started building yet, the [quickstart](/docs/workloads/workflow/quickstart) is a faster entry point.
+:::
 
 Reference architecture and recommended multi-agent patterns for event-driven automation on AgentCore.
 
@@ -16,14 +21,16 @@ Reference architecture and recommended multi-agent patterns for event-driven aut
 
 A production-ready event-driven workflow automation agent on AgentCore.
 
-![Workflow Automation Agent Reference Architecture](/img/workflow-agent-ref-arch.png)
+![Workflow automation agent reference architecture: event sources (EventBridge, SNS, S3) feed a trigger Lambda that normalizes payloads and invokes the AgentCore runtime; the agent uses memory and a policy engine to decide actions, calls enterprise tools via an MCP gateway, and emits completion events and audit records to EventBridge and CloudWatch](/img/workflow-agent-ref-arch.png)
+
+Events arrive from sources such as EventBridge, SNS, SQS, or S3 and are normalized by a trigger Lambda before being sent to the [AgentCore Runtime](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html). The agent reasons against its memory and a Cedar policy engine, executes actions through the [MCP gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html), and publishes a completion event plus an audit record on exit.
 
 <div className="arch-flow">
   <span className="arch-flow-step">Event Sources (EventBridge/SNS/S3)</span>
   <span className="arch-flow-arrow">→</span>
   <span className="arch-flow-step">Trigger Lambda</span>
   <span className="arch-flow-arrow">→</span>
-  <span className="arch-flow-step">AgentCore runtime</span>
+  <span className="arch-flow-step">AgentCore Runtime</span>
   <span className="arch-flow-arrow">→</span>
   <span className="arch-flow-step">Agent</span>
 </div>
@@ -54,15 +61,15 @@ A production-ready event-driven workflow automation agent on AgentCore.
 
 ## Recommended Patterns
 
-AgentCore supports [a range of multi-agent patterns](/docs/patterns/overview). The ones below are the most common starting points for workflow automation.
+AgentCore supports [a range of multi-agent patterns](/docs/patterns/overview). The ones below are the most common starting points for workflow automation. For agents-as-tools and swarm patterns, also see [Strands multi-agent patterns](https://strandsagents.com/docs/user-guide/concepts/multi-agent/multi-agent-patterns/).
 
 <div className="fancy-table fancy-table--auto-first">
 
 | Pattern                       | When to Use                                               | Example                                                                                                                                                       |
 |-------------------------------|-----------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **Single Agent + Tools**      | One decision domain, clear input → output mapping         | [IT Incident Response](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents)                                     |
-| **Dual-Agent (Decide + Act)** | Separation of reasoning from execution for compliance     | [Claims Processing](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents)                                        |
-| **Agents-as-Tools**           | Multi-domain orchestration with specialized sub-agents    | [Iberdrola IT Ops](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/)                            |
+| **Dual-Agent (Decide + Act)** | Separation of reasoning from execution for compliance     | [Claims Processing](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/event-driven-claims-agent)              |
+| **[Agents-as-Tools](https://strandsagents.com/docs/user-guide/concepts/multi-agent/multi-agent-patterns/)**           | Multi-domain orchestration with specialized sub-agents    | [Iberdrola IT Ops](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/)                            |
 | **Human-in-the-Loop**         | High-stakes actions requiring approval before execution   | [Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/) |
 | **Confidence-Gated**          | Auto-execute above threshold, escalate below              | Triage (auto-route easy, escalate hard)                                                                                                                       |
 | **Fan-Out (parallel tools)**  | Enrich from multiple sources simultaneously before reason | Incident enrichment from 5+ data sources                                                                                                                      |
@@ -70,7 +77,7 @@ AgentCore supports [a range of multi-agent patterns](/docs/patterns/overview). T
 </div>
 
 :::info
-All AgentCore patterns work for workflow agents. For the full catalog including Swarm, Graph, and A2A, see the [Architectural Patterns Reference](/docs/patterns/overview).
+All AgentCore patterns work for workflow agents. For the full catalog including [Swarm and other patterns](https://strandsagents.com/docs/user-guide/concepts/multi-agent/multi-agent-patterns/), see the [Architectural Patterns Reference](/docs/patterns/overview).
 :::
 
 ---
@@ -113,6 +120,18 @@ From event handler to autonomous workflow agent in five stages.
 3. **Implement the Agent** — Write the system prompt, wire tools, and define the reasoning loop with Strands SDK.
 4. **Add Guardrails** — Configure Cedar policies to bound the agent's autonomy. Set up online evaluations.
 5. **Deploy & Monitor** — Push to AgentCore Runtime. Monitor tool selection accuracy and goal success via CloudWatch.
+
+:::warning
+Everything produced by the samples on this page is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::
+
+---
+
+## Further Reading
+
+- [AgentCore Runtime — how it works](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html)
+- [Gateway overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html)
+- [Strands multi-agent patterns](https://strandsagents.com/docs/user-guide/concepts/multi-agent/multi-agent-patterns/)
 
 ---
 

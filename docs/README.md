@@ -1,129 +1,96 @@
 # AgentCore Central — Docusaurus Site
 
-A documentation site for AgentCore Central built with [Docusaurus 3](https://docusaurus.io/) and hosted on GitLab Pages.
+A public documentation site for AgentCore Central built with [Docusaurus 3](https://docusaurus.io/) and deployed via
+GitLab Pages.
 
 ## Prerequisites
 
 - **Node.js** >= 18.0
 - **npm** >= 9.0
 
-## Quick Start (Local Development)
+## Local Development
 
 ```bash
-# Navigate to the docs directory
 cd docs
-
-# Install dependencies
-npm install
-
-# Start development server (hot reload)
+npm ci
 npm start
 ```
 
-The site will be available at `http://localhost:3000/agentcore-central/`.
+The site opens at `http://localhost:3000/` with hot reload enabled (the base URL is env-driven via `SITE_BASE_URL`; it defaults to `/` locally).
 
-## Build for Production
+## Build
 
 ```bash
+cd docs
+npm ci
 npm run build
 ```
 
-The static output is generated in the `build/` directory.
+Static output goes to `docs/build/`. The build runs with `onBrokenLinks: throw`, so any broken link causes a build
+failure. Run this before opening a pull request.
 
-## Preview Production Build Locally
+## Preview a Production Build Locally
 
 ```bash
+cd docs
 npm run build
 npm run serve
 ```
+
+## Available Scripts
+
+| Script | Purpose |
+|---|---|
+| `npm start` | Start dev server with hot reload |
+| `npm run build` | Build static site for production |
+| `npm run serve` | Preview the production build locally |
+| `npm run clear` | Clear the Docusaurus cache |
 
 ## Project Structure
 
 ```
 docs/
-├── .gitlab-ci.yml          # GitLab Pages CI/CD pipeline
-├── docusaurus.config.ts    # Docusaurus configuration
-├── sidebars.ts             # Sidebar navigation structure
-├── package.json            # Dependencies and scripts
-├── tsconfig.json           # TypeScript config
 ├── docs/                   # MDX content pages
-│   ├── index.mdx           # Homepage with tile navigation
-│   ├── reference-architectures.mdx
-│   ├── archetypes/
-│   │   ├── conversational.mdx
-│   │   ├── event-driven.mdx
-│   │   └── coding.mdx
-│   └── patterns/
-│       ├── overview.mdx
-│       └── selection-guide.mdx
-├── src/
-│   └── css/
-│       └── custom.css      # Custom theme styles
-└── static/
-    └── img/                # Images (copied from content/images/)
+│   ├── index.mdx           # Landing page
+│   ├── get-started/        # Onboarding and quickstart
+│   ├── tutorials/          # Step-by-step guides
+│   ├── workloads/          # Agent archetypes (conversational, workflow, coding)
+│   ├── agent-platform/     # Platform architecture and governance
+│   ├── patterns/           # Multi-agent architectural patterns
+│   ├── customer/           # Publicly sourced case studies
+│   ├── operate/            # Production readiness and operations
+│   └── reference/          # agentcore.json, troubleshooting, resources
+├── scripts/                # Utility scripts (validation, content checks)
+├── src/                    # React components, theme overrides, CSS
+├── static/                 # Images, fonts, favicon
+├── sidebars.ts             # Navigation structure
+├── docusaurus.config.ts    # Site configuration
+└── package.json            # Dependencies and npm scripts
 ```
 
-## GitLab Pages Deployment
+## Deployment
 
-The site is configured to deploy automatically via GitLab CI/CD.
+Deployment is automatic. Pushing to the default branch triggers the GitLab CI pipeline (`.gitlab-ci.yml`), which
+runs `npm ci && npm run build` in the `docs/` directory and deploys to GitLab Pages.
 
-### Setup
+The pipeline uses `node:24-alpine`.
 
-1. Push this repository to GitLab
-2. The `.gitlab-ci.yml` at `docs/.gitlab-ci.yml` handles build and deployment
-3. On push to the default branch, the site builds and deploys to GitLab Pages
+## Adding Content
 
-### Configuration
+1. Create a `.mdx` file in the appropriate directory under `docs/docs/`.
+2. Add frontmatter with at minimum `title`, `sidebar_label`, `sidebar_position`, and `last_verified`.
+3. Test locally with `npm start`.
+4. Run `npm run build` to confirm no broken links.
+5. Open a pull request.
 
-Update these values in `docusaurus.config.ts` for your specific GitLab setup:
-
-```typescript
-url: 'https://your-gitlab-namespace.gitlab.io',
-baseUrl: '/agentcore-central/',
-```
-
-Replace:
-- `your-gitlab-namespace` → your GitLab group or username
-- `agentcore-central` → your GitLab project name
-
-### Alternative: Root-level CI Configuration
-
-If you want the CI config at the repository root instead of inside `docs/`, create a root `.gitlab-ci.yml`:
-
-```yaml
-image: node:18-alpine
-
-stages:
-  - deploy
-
-pages:
-  stage: deploy
-  script:
-    - cd docs
-    - npm ci
-    - npm run build
-    - mv build ../public
-  artifacts:
-    paths:
-      - public
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-```
-
-## Features
-
-- **Dark/Light Theme** — Clean professional theme with automatic system preference detection
-- **Full-Text Search** — Local search powered by `@easyops-cn/docusaurus-search-local` (no external services needed)
-- **Tile Navigation** — Card-based navigation for major themes on homepage
-- **MDX Support** — Rich content with React components embedded in Markdown
-- **Responsive** — Mobile-friendly layout
-- **Architecture Diagrams** — Visual flow diagrams for reference architectures
+Read [CONTRIBUTING.md](../CONTRIBUTING.md) for content standards: public-content approval, source requirements,
+version pinning, pattern status labels, and the content-review checklist.
 
 ## Customization
 
 ### Theme Colors
 
-Edit `src/css/custom.css` to change the primary color palette:
+Edit `src/css/custom.css`:
 
 ```css
 :root {
@@ -131,25 +98,11 @@ Edit `src/css/custom.css` to change the primary color palette:
 }
 ```
 
-### Adding New Pages
-
-1. Create a new `.mdx` file in the appropriate directory under `docs/`
-2. Add frontmatter with `title`, `sidebar_label`, and `sidebar_position`
-3. Add the page to `sidebars.ts` if needed
-
 ### Search
 
-The site uses `@easyops-cn/docusaurus-search-local` for offline full-text search. No external Algolia account is needed. Search indexes are built at build time and served statically.
-
-## Updating Content
-
-Content is ported from the original HTML files in the `content/` directory. To update:
-
-1. Edit the corresponding `.mdx` file in `docs/docs/`
-2. Test locally with `npm start`
-3. Push to trigger deployment
-
+The site uses `@easyops-cn/docusaurus-search-local` for offline full-text search. No external search account is
+needed. Search indexes are built at build time and served statically.
 
 ## License
 
-This library is licensed under the MIT-0 License. See the [LICENSE](../LICENSE.txt) file.
+This library is licensed under the MIT-0 License. See the [LICENSE](../LICENSE) file.

@@ -2,13 +2,18 @@
 title: Governance & Security
 sidebar_label: Governance & Security
 sidebar_position: 4
+last_verified: 2026-07-15
 ---
 
 import Link from '@docusaurus/Link';
 
+:::info Architecture Patterns
+These are target-state architecture patterns for agent governance and security at enterprise scale, not required prerequisites for a first prototype. Core identity and guardrails are available today; AgentCore Policy and AWS Agent Registry are in public preview.
+:::
+
 # Governance & Security
 
-Autonomous agents introduce a new class of enterprise risk. Unlike traditional software that executes deterministic logic, agents reason, make decisions, and invoke tools dynamically. Without governance, this autonomy can lead to data exfiltration, cost overruns, compliance violations, and reputational damage.
+Autonomous agents introduce a new class of enterprise risk. Unlike traditional software that executes deterministic logic, agents reason, make decisions, and invoke tools dynamically. Without governance, this autonomy can lead to data exfiltration, cost overruns, compliance violations, and reputational damage. This page covers the two-plane governance architecture, the services that provide each layer, and which capabilities are native, preview, or require customer-built integration.
 
 ---
 
@@ -63,11 +68,12 @@ The governance plane is where policies are authored, agents are registered, iden
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--scroll" aria-hidden="true" /><h3>AgentCore Policy</h3></div>
     <p>Declarative policies (Cedar) that define what agents can access, which tools they can invoke, and under what conditions. Version-controlled and auditable.</p>
     <span className="service-tag tag--identity">Policy Definition</span>
+    <span className="service-tag tag--gateway">Preview</span>
   </div>
 
   <div className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--workflow" aria-hidden="true" /><h3>AWS Agent Registry</h3></div>
-    <p>Public-preview catalog for agents, tools, MCP servers, agent skills, and custom resources. Stores structured metadata (owner, protocol, capabilities, invocation details) and supports an approval workflow before a record is discoverable.</p>
+    <p>Public-preview catalog for agents, tools, MCP servers, agent skills, and custom resources. Stores structured metadata (owner, protocol, capabilities, invocation details) and supports an approval workflow before a record is discoverable. See the <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/">AgentCore docs</a> for current availability.</p>
     <span className="service-tag tag--gateway">Public Preview</span>
   </div>
 
@@ -140,7 +146,7 @@ The enforcement plane applies governance policies at runtime, at every point in 
 | Authentication    | AgentCore Identity | Validate caller identity (JWT, API key, OAuth token) |
 | Cedar Policy Eval | AgentCore Policy   | Evaluate fine-grained access control policies        |
 | FGAC              | IAM + Cedar        | Field-level and resource-level authorization         |
-| Rate Limiting     | AgentCore Gateway  | Throttle requests per tenant, per agent, per user    |
+| Rate Limiting     | AgentCore Gateway  | Throttle requests per tenant, per agent, per user (configured via Gateway policies)    |
 
 </div>
 
@@ -178,7 +184,7 @@ The enforcement plane applies governance policies at runtime, at every point in 
 | Output Filtering        | Bedrock Guardrails | Prevent harmful or non-compliant responses           |
 | PII Redaction           | Bedrock Guardrails | Detect and mask personally identifiable information  |
 | Topic Denial            | Bedrock Guardrails | Prevent agents from discussing restricted topics     |
-| Hallucination Detection | Bedrock Guardrails | Grounded responses with citation requirements        |
+| Hallucination Detection | Bedrock Guardrails | Grounding checks that detect responses not supported by the source context (probabilistic scoring, not a guarantee) |
 
 </div>
 

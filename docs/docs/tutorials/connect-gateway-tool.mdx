@@ -2,362 +2,125 @@
 title: "Tutorial: Connect a Tool via Gateway"
 sidebar_label: Connect Gateway Tool
 sidebar_position: 2
-last_verified: 2026-07-08
+last_verified: 2026-07-20
 ---
 
-:::info Versions
-Examples built with **Strands Agents SDK** `1.46.0` and **bedrock-agentcore** `1.17.0`. APIs may differ in other versions.
+:::caution Prototype, not production
+This tutorial describes a prototype. Before routing real users or data to it, complete the [Production Readiness checklist](/docs/operate/production-readiness).
 :::
 
-# Tutorial: Connect a Tool via Gateway
+# Connect a Tool via Gateway
 
-Connect your agent to external APIs, databases, and services through AgentCore Gateway. In this tutorial, you'll create a Lambda-backed tool, register it with a Gateway, and call it from your agent.
+**AgentCore-native.** AgentCore Gateway presents Lambda, API, and MCP capabilities as tools behind one managed MCP endpoint. Use it when agents need controlled access to shared or external capabilities without embedding every integration in agent code.
 
-**Time:** 20 minutes
+## Why It Matters
 
----
+Gateway-connected tools extend an agent's capabilities beyond its built-in knowledge, enabling real-world actions through external services while maintaining authorization boundaries. A Gateway gives agents a reusable, controlled boundary for shared services while tool owners evolve integrations independently.
 
-## Prerequisites
+## When to Use
 
-- A working agent project (created via `agentcore create`). If you don't have one, follow the [Quickstart](/docs/get-started/quickstart) first.
-- AWS credentials configured
-- AgentCore CLI installed (`npm install -g @aws/agentcore`)
-
----
-
-## What You'll Build
-
-1. A Lambda function that serves as a tool (returns weather data)
-2. An AgentCore Gateway that federates the tool via MCP
-3. An agent that connects to the Gateway and uses the tool
-
----
-
-## Step 1: Create the Gateway
-
-```bash
-agentcore add gateway --name ToolGateway
-```
-
-This updates `agentcore/agentcore.json`:
-
-```json
-{
-  "agentCoreGateways": [
-    {
-      "name": "ToolGateway",
-      "targets": []
-    }
-  ]
-}
-```
-
----
-
-## Step 2: Write the Lambda Tool
-
-Create `lambdas/weather/handler.py`:
-
-```python
-"""Weather tool Lambda that returns weather data for a city.
-
-Gateway Lambda targets return direct objects (no HTTP envelope).
-Errors return {"error": "message"}.
-"""
-
-import json
-
-
-def handler(event, context):
-    """Process tool invocation from AgentCore Gateway."""
-    # Gateway passes the tool input directly
-    city = event.get("city")
-
-    if not city:
-        return {"error": "Missing required parameter: city"}
-
-    # Simulated weather data - replace with real API call
-    weather_data = {
-        "New York": {"temp_c": 22, "condition": "sunny", "humidity": 55},
-        "London": {"temp_c": 15, "condition": "rainy", "humidity": 80},
-        "Tokyo": {"temp_c": 28, "condition": "partly cloudy", "humidity": 70},
-    }
-
-    data = weather_data.get(city)
-    if not data:
-        return {"error": f"No weather data available for '{city}'"}
-
-    return {
-        "city": city,
-        "temperature_celsius": data["temp_c"],
-        "condition": data["condition"],
-        "humidity_percent": data["humidity"],
-    }
-```
-
----
-
-## Step 3: Define the Tool Schema
-
-Create `tool-schemas/weather.json`:
-
-```json
-[
-  {
-    "name": "get_weather",
-    "description": "Get the current weather conditions for a city. Returns temperature, conditions, and humidity.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "city": {
-          "type": "string",
-          "description": "City name (e.g., 'New York', 'London', 'Tokyo')"
-        }
-      },
-      "required": ["city"]
-    }
-  }
-]
-```
-
----
-
-## Step 4: Add the Lambda Target to the Gateway
-
-```bash
-agentcore add gateway-target \
-  --name WeatherService \
-  --type lambda-function-arn \
-  --lambda-arn arn:aws:lambda:us-east-1:YOUR_ACCOUNT:function:weather-tool \
-  --tool-schema-file tool-schemas/weather.json \
-  --gateway ToolGateway
-```
-
-Your `agentcore.json` now shows:
-
-```json
-{
-  "agentCoreGateways": [
-    {
-      "name": "ToolGateway",
-      "targets": [
-        {
-          "name": "WeatherService",
-          "targetType": "lambdaFunctionArn",
-          "lambdaFunctionArn": {
-            "lambdaArn": "arn:aws:lambda:us-east-1:YOUR_ACCOUNT:function:weather-tool",
-            "toolSchemaFile": "tool-schemas/weather.json"
-          }
-        }
-      ]
-    }
-  ]
-}
-```
-
-See the [agentcore.json reference](/docs/reference/agentcore-json#agentcoregateways) for the full target schema.
-
----
-
-## Step 5: Connect Your Agent to the Gateway
-
-Update `app/MyAgent/main.py` to use the Gateway as an MCP tool source:
-
-```python
-"""Agent connected to AgentCore Gateway for tool access."""
-
-import os
-
-from mcp.client.streamable_http import streamablehttp_client
-from strands import Agent
-from strands.tools.mcp.mcp_client import MCPClient
-from bedrock_agentcore.runtime import BedrockAgentCoreApp
-
-app = BedrockAgentCoreApp()
-log = app.logger
-
-# Gateway URL injected by AgentCore Runtime at deploy time
-GATEWAY_URL = os.environ.get("AGENTCORE_GATEWAY_URL")
-
-SYSTEM_PROMPT = """You are a helpful assistant with access to weather tools.
-When users ask about weather in a city, use the get_weather tool.
-Always report temperature in Celsius and include the conditions."""
-
-# The MCPClient itself is passed as a tool; Strands calls tools/list on it
-# lazily and exposes every tool the Gateway serves.
-tools = []
-if GATEWAY_URL:
-    tools.append(MCPClient(lambda: streamablehttp_client(GATEWAY_URL)))
-else:
-    log.warning("No AGENTCORE_GATEWAY_URL configured; running without Gateway tools")
-
-agent = Agent(
-    model="global.anthropic.claude-sonnet-4-5-20250929-v1:0",
-    system_prompt=SYSTEM_PROMPT,
-    tools=tools,
-)
-
-
-@app.entrypoint
-async def invoke(payload, context):
-    """Agent entrypoint with Gateway tool access."""
-    prompt = payload.get("prompt", "Hello!")
-
-    async for event in agent.stream_async(prompt):
-        if "event" in event:
-            yield event
-
-
-if __name__ == "__main__":
-    app.run()
-```
-
-:::info Tool Naming
-Tools exposed through a Gateway are prefixed with the target name: `WeatherService___get_weather`. The agent sees this in the tool list and the LLM selects it based on the description.
-:::
-
----
-
-## Step 6: Deploy and Test
-
-```bash
-# Validate configuration
-agentcore validate
-
-# Deploy (creates Gateway + Lambda + Runtime)
-agentcore deploy -y
-
-# Check Gateway status
-agentcore status --type gateway
-
-# Test the agent with a weather question
-agentcore invoke "What is the weather in Tokyo?"
-```
-
-Expected response:
-
-```
-The weather in Tokyo is currently partly cloudy with a temperature
-of 28°C and humidity at 70%.
-```
-
----
-
-## Step 7: View the Trace
-
-Every tool invocation is traced via OpenTelemetry:
-
-```bash
-# View traces in CloudWatch console
-# Navigate to: CloudWatch > X-Ray traces > Traces
-
-# Stream logs (via AWS CLI)
-aws logs tail /aws/bedrock-agentcore/runtimes/MyAgent --follow
-```
-
-In CloudWatch, you'll see the full trace: Agent → Gateway → Lambda → Response, with latency at each hop.
-
----
-
-## Adding More Tools
-
-Add additional targets to the same Gateway. The agent sees all tools from all targets:
-
-```bash
-# Add another Lambda target
-agentcore add gateway-target \
-  --name TicketService \
-  --type lambda-function-arn \
-  --lambda-arn arn:aws:lambda:us-east-1:YOUR_ACCOUNT:function:ticket-tool \
-  --tool-schema-file tool-schemas/tickets.json \
-  --gateway ToolGateway
-
-# Add a remote MCP server
-agentcore add gateway-target \
-  --name DatabaseTools \
-  --type mcp-server \
-  --endpoint https://mcp.internal.example.com/mcp \
-  --gateway ToolGateway
-
-# Redeploy to pick up new targets
-agentcore deploy -y
-```
-
-The Gateway aggregates all targets into one virtual MCP server. With **semantic tool search** enabled (default), the agent can find the right tool even across hundreds of registered tools.
-
----
-
-## Adding Authentication
-
-For production, add outbound authentication so the Gateway can call secured backends:
-
-```bash
-# Store an API key credential
-agentcore add credential --name ExternalAPI --api-key sk-...
-
-# Add a target that uses the credential
-agentcore add gateway-target \
-  --name SecureAPI \
-  --type open-api-schema \
-  --schema specs/api.json \
-  --gateway ToolGateway \
-  --outbound-auth api-key \
-  --credential-name ExternalAPI
-```
-
-For inbound authentication (JWT validation on the Gateway itself):
-
-```bash
-agentcore add gateway \
-  --name ProdGateway \
-  --authorizer-type CUSTOM_JWT \
-  --discovery-url https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xxxxx/.well-known/openid-configuration \
-  --allowed-clients my-agent-client-id
-```
-
----
-
-## Key Concepts
-
-### Co-Located Tools vs. Gateway Tools
+### Workload Decision Table
 
 <div className="fancy-table">
 
-| Approach              | When to Use                                               | How                      |
-|-----------------------|-----------------------------------------------------------|--------------------------|
-| **Co-located (@tool)** | Simple tools, few dependencies, tight coupling to agent  | `@tool` decorator in agent code |
-| **Gateway (Lambda)**  | Shared tools, complex dependencies, cross-agent reuse     | Lambda + Gateway target  |
-| **Gateway (MCP)**     | External MCP servers, third-party tools                   | Remote MCP endpoint      |
+| Condition | Recommendation | Rationale |
+| --- | --- | --- |
+| Agent needs controlled access to external APIs or shared services | Add Gateway tool | Gateway provides managed authorization boundaries and catalog reuse across agents |
+| Multiple agents or workflows share the same integration | Add Gateway tool | Common authentication, authorization, and lifecycle management reduce duplication |
+| Teams need a reusable tool catalog with Cedar-based authorization | Add Gateway tool | Policy-controlled access lets tool owners evolve independently of agent code |
+| User requests require audited, user-context access to external systems | Add Gateway tool | Gateway enforces per-request authorization with principal context |
+| Tool is local, read-only, and unique to one agent | Prefer co-located tool | No benefit from shared catalog or external authorization boundary |
+| A single workflow owns a small, deterministic helper | Prefer co-located tool | Sharing adds lifecycle and network overhead without value |
+| Sharing and independent lifecycle management add no value | Prefer co-located tool | Co-located tools avoid Gateway latency and configuration for simple cases |
 
 </div>
 
-### Tool Schema Best Practices
+## Official Tutorial
 
-- **One tool = one action**: don't combine "get and update" into one tool
-- **Descriptive names**: the LLM picks tools by name + description
-- **Validate inputs**: return `{"error": "..."}` on bad input, don't raise exceptions
-- **Typed schemas**: define all parameters with JSON Schema types
+For setup, target registration, deployment, and agent connection, follow the [official AWS Gateway quick start](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-quick-start.html).
 
----
+:::caution Prototype path
+The official tutorial above creates prototype resources. Apply the [Production Readiness checklist](/docs/operate/production-readiness) before routing real traffic.
+:::
 
-## Troubleshooting
+## What to Watch Out For
+
+### Workload-Specific Considerations
+
+> **Guidance:** These are workload patterns, not AWS product behavior. Verify platform capabilities in the [AgentCore Gateway documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html).
+
+#### Design idempotent tools for retries
+
+Treat every state-changing call as retryable. Accept a caller-generated idempotency key, record the completed result, and return that result for a repeated key; do not create a second ticket, payment, or update. Read-only tools should clearly state their freshness behavior so an agent can decide whether to retry.
+
+#### Define typed input and output schemas
+
+Require explicit JSON Schema types, required fields, limits, and safe error shapes for every tool. Model outputs as deliberately as inputs: stable, typed responses let an agent distinguish success, retryable failure, and user-correctable validation errors. Keep one action per tool rather than combining lookup and mutation.
+
+#### Cover each authorization boundary with Cedar
+
+Write Cedar policies for the principal, named Gateway action, resource, and relevant context before exposing a tool. Review both direct tool calls and delegated agent paths; a Gateway tool is not safe merely because its backend has IAM permissions. Test policies in a non-production environment before enforcing them.
+
+#### Store credentials outside commands and source files
+
+:::warning Use a secret-backed credential provider
+Inline credentials can leak through shell history, process listings, CI logs, and version control. Register a secret-backed credential by name; never paste a credential value into a command, prompt, or source file. See [AgentCore Identity documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html) for secure credential management.
+:::
+
+```bash
+agentcore add credential \
+  --name <YOUR_CREDENTIAL_NAME> \
+  --secret-arn <YOUR_SECRET_ARN>
+```
+
+Reference `<YOUR_CREDENTIAL_NAME>` from the Gateway target's outbound-authentication configuration. Keep the secret value only in an approved secret store.
+
+## Common Mistakes
 
 <div className="fancy-table">
 
-| Issue                                     | Solution                                                     |
-|-------------------------------------------|--------------------------------------------------------------|
-| Gateway stuck in CREATING                 | Check IAM trust policy on the service role                   |
-| Target stuck in SYNCHRONIZING             | For MCP servers: must support MCP 2025-06-18 or 2025-03-26   |
-| `AccessDeniedException` on tool call      | Verify gateway role has `lambda:InvokeFunction` permission    |
-| Agent doesn't find the tool               | Check target status is READY. Verify tool schema is valid JSON. |
-| Tool returns unexpected format            | Lambda must return direct objects; no `{statusCode, body}` wrapper |
+| Mistake | Better approach |
+| --- | --- |
+| Gateway-wrapping a one-off local helper | Keep small, agent-specific, deterministic helpers co-located. |
+| Retrying a mutation without a key | Require an idempotency key and return the original result. |
+| Using vague or untyped schemas | Declare input, output, validation, and error contracts. |
+| Relying on backend IAM alone | Apply Cedar policies to the Gateway tool boundary. |
+| Passing secrets to a CLI or prompt | Use the credential provider pattern above. |
 
 </div>
 
----
+## Resources Created and Cleanup
+
+The official quick start provisions resources according to your selected targets. A typical Lambda-backed Gateway deployment creates these resources; pricing varies by Region and stored data.
+
+<div className="fancy-table">
+
+| Resource | AWS service | Persists? | Approximate idle cost (USD/month) |
+| --- | --- | --- | --- |
+| Agent runtime | AgentCore Runtime | Until destroyed | $0 without invocations; usage is metered ([pricing](https://aws.amazon.com/bedrock/agentcore/pricing/)) |
+| Gateway | AgentCore Gateway | Until destroyed | $0 without requests; usage is metered ([pricing](https://aws.amazon.com/bedrock/agentcore/pricing/)) |
+| Lambda target | AWS Lambda | If created separately | $0 without invocations, excluding storage ([pricing](https://aws.amazon.com/lambda/pricing/)) |
+| Credential secret | AWS Secrets Manager | Until deleted | About $0.40 per secret ([pricing](https://aws.amazon.com/secrets-manager/pricing/)) |
+| Container image | Amazon ECR | Often after teardown | About $0.10 per GB stored ([pricing](https://aws.amazon.com/ecr/pricing/)) |
+| Logs and traces | Amazon CloudWatch | Often after teardown | About $0.03 per GB stored ([pricing](https://aws.amazon.com/cloudwatch/pricing/)) |
+
+</div>
+
+Destroy AgentCore-managed dependencies first. This removes the runtime and Gateway before their managed targets. Then remove standalone resources in reverse dependency order.
+
+```bash
+agentcore destroy
+
+aws lambda delete-function --function-name <YOUR_LAMBDA_FUNCTION_NAME>
+aws secretsmanager delete-secret --secret-id <YOUR_CREDENTIAL_SECRET_NAME>
+aws ecr delete-repository --repository-name <YOUR_ECR_REPOSITORY_NAME> --force
+aws logs delete-log-group --log-group-name <YOUR_LOG_GROUP_NAME>
+```
+
+Verify AgentCore removal with `agentcore status`; it should list no runtime or Gateway resources. `aws lambda get-function --function-name <YOUR_LAMBDA_FUNCTION_NAME>` should return not found. `aws secretsmanager describe-secret --secret-id <YOUR_CREDENTIAL_SECRET_NAME>` should show a scheduled deletion date, then return not found after the recovery window. Verify ECR and CloudWatch cleanup with `aws ecr describe-repositories --repository-names <YOUR_ECR_REPOSITORY_NAME>` and `aws logs describe-log-groups --log-group-name-prefix <YOUR_LOG_GROUP_NAME>`; they should return a not-found result or no matching groups. If teardown fails, see [Cleanup Failures](/docs/reference/troubleshooting#cleanup-failures).
 
 ## Next Steps
 
-- [Add Memory](/docs/tutorials/add-memory): Give your agent cross-session recall
-- [agentcore.json Reference](/docs/reference/agentcore-json#agentcoregateways): Full gateway configuration
-- [AgentCore Gateway Docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html): Official AWS documentation
+- [Add Memory](/docs/tutorials/add-memory): add cross-session recall.
+- [Gateway troubleshooting](/docs/reference/troubleshooting#gateway): diagnose target, schema, and permission errors.
+- [Production Readiness checklist](/docs/operate/production-readiness): prepare before routing production traffic.

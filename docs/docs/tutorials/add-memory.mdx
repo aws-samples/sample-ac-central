@@ -1,261 +1,117 @@
 ---
-title: "Tutorial: Add Memory to Your Agent"
+title: "Add Memory to Your Agent"
 sidebar_label: Add Memory
 sidebar_position: 1
-last_verified: 2026-07-08
+last_verified: 2026-07-15
 ---
 
-:::info Versions
-Examples built with **Strands Agents SDK** `1.46.0` and **bedrock-agentcore** `1.17.0`. APIs may differ in other versions.
+**AgentCore-native** — AgentCore Memory gives an agent recall across sessions by storing and retrieving facts, summaries, and conversation context. Use it to make a returning user's experience continuous without treating memory as your system of record.
+
+:::caution Prototype, not production
+This tutorial creates a prototype, not a production-ready system. Before routing real users or data to it, work through the [Production Readiness checklist](/docs/operate/production-readiness).
 :::
 
-# Tutorial: Add Memory to Your Agent
+# Add Memory to Your Agent
 
-Give your agent the ability to remember facts across sessions. In this tutorial, you'll add AgentCore Memory to an existing agent so it can recall user preferences, past decisions, and conversation history.
+## Why It Matters
 
-**Time:** 15 minutes
+Properly scoped memory transforms one-shot interactions into continuous relationships. Memory reduces repeated onboarding and lets an agent adapt to prior interactions, while its strategies can turn conversation events into recallable facts or summaries. It is a retrieval layer, not an authoritative database: store transactional, regulated, or audit-critical data in the system of record and give the agent only the context it needs.
 
----
-
-## Prerequisites
-
-- A working agent project (created via `agentcore create`). If you don't have one, follow the [Quickstart](/docs/get-started/quickstart) first.
-- AWS credentials configured
-- AgentCore CLI installed (`npm install -g @aws/agentcore`)
-
----
-
-## What You'll Build
-
-An agent that:
-1. Remembers user preferences across sessions (long-term memory)
-2. Maintains conversation context within a session (short-term memory)
-3. Gracefully degrades when memory is unavailable (local dev)
-
----
-
-## Step 1: Add Memory to Your Project
-
-```bash
-agentcore add memory --name AgentMemory --strategies SEMANTIC,SUMMARIZATION --expiry 90
-```
-
-This updates `agentcore/agentcore.json` with a `memories` section:
-
-```json
-{
-  "memories": [
-    {
-      "name": "AgentMemory",
-      "eventExpiryDuration": 90,
-      "strategies": [
-        {
-          "type": "SEMANTIC",
-          "name": "semantic_strategy"
-        },
-        {
-          "type": "SUMMARIZATION",
-          "name": "summary_strategy"
-        }
-      ]
-    }
-  ]
-}
-```
-
-`agentcore add memory` only creates the memory resource. It does not automatically wire it to a runtime. Memory access is granted to your agent's execution role at deploy time, and your agent code reads the resulting memory ID from an environment variable (see Step 2).
-
-Validate the config:
-
-```bash
-agentcore validate
-```
-
----
-
-## Step 2: Update Your Agent Code
-
-Add memory integration to your `main.py`. The key pattern is:
-1. Read the `BEDROCK_AGENTCORE_MEMORY_ID` environment variable (injected by AgentCore at deploy time)
-2. Create an `AgentCoreMemorySessionManager` for the current session
-3. Pass it to the `Agent` constructor
-4. Wrap everything in try/except so the agent works without memory during local dev
-
-```python
-"""Agent with memory integration."""
-
-import logging
-import os
-
-from strands import Agent, tool
-
-from bedrock_agentcore.runtime import BedrockAgentCoreApp
-
-log = logging.getLogger(__name__)
-app = BedrockAgentCoreApp()
-
-# Environment variables injected by AgentCore Runtime at deploy time
-MEMORY_ID = os.environ.get("BEDROCK_AGENTCORE_MEMORY_ID")
-REGION = os.environ.get("AWS_REGION", "us-east-1")
-
-
-def get_memory_session_manager(session_id: str, actor_id: str):
-    """Create a memory session manager. Returns None if memory is unavailable."""
-    if not MEMORY_ID:
-        log.info("No MEMORY_ID configured - running without memory")
-        return None
-
-    try:
-        from bedrock_agentcore.memory.integrations.strands import (
-            AgentCoreMemorySessionManager,
-        )
-
-        return AgentCoreMemorySessionManager(
-            memory_id=MEMORY_ID,
-            region=REGION,
-            session_id=session_id,
-            actor_id=actor_id,
-        )
-    except Exception as exc:
-        log.warning("Memory unavailable (running without): %s", exc)
-        return None
-
-
-@tool
-def get_user_name() -> dict:
-    """Get the current user's name from memory context.
-
-    Returns:
-        The user's name if known, or a message that it's unknown.
-    """
-    return {
-        "status": "success",
-        "content": [{"text": "User name is not available from this tool. "
-                     "Check your memory for previously stored user information."}],
-    }
-
-
-SYSTEM_PROMPT = """You are a helpful assistant with memory.
-You remember facts about the user across conversations.
-When the user tells you their name or preferences, remember them.
-When they ask if you remember something, check your memory."""
-
-
-@app.entrypoint
-def invoke(payload, context):
-    """Agent entrypoint with memory integration."""
-    prompt = payload.get("prompt", "Hello!")
-
-    # Derive session and actor IDs from runtime context
-    session_id = getattr(context, "session_id", "default-session")
-    actor_id = getattr(context, "actor_id", "default-user")
-
-    # Create memory session manager (graceful degradation)
-    session_manager = get_memory_session_manager(session_id, actor_id)
-
-    agent = Agent(
-        model="global.anthropic.claude-sonnet-4-5-20250929-v1:0",
-        system_prompt=SYSTEM_PROMPT,
-        tools=[get_user_name],
-        session_manager=session_manager,
-    )
-
-    result = agent(prompt)
-    return {"response": result.message}
-
-
-app.run()
-```
-
----
-
-## Step 3: Deploy (Memory Requires Deployment)
-
-Memory resources are provisioned in AWS and aren't available during `agentcore dev` local testing. Deploy first:
-
-```bash
-agentcore deploy -y
-```
-
-The deploy process:
-1. Creates the Memory resource in AgentCore (SEMANTIC + SUMMARIZATION strategies)
-2. Waits for Memory to become ACTIVE (~60–180 seconds)
-3. Deploys the agent runtime with `BEDROCK_AGENTCORE_MEMORY_ID` injected as an environment variable
-
-Check status:
-
-```bash
-agentcore status --type memory
-```
-
----
-
-## Step 4: Test Memory Persistence
-
-```bash
-# First conversation: tell the agent something
-agentcore invoke --session-id session-1 '{"prompt": "My name is Alex and I prefer dark mode."}'
-
-# Same session: it remembers within the session (short-term)
-agentcore invoke --session-id session-1 '{"prompt": "What is my name?"}'
-# Expected: "Your name is Alex."
-
-# NEW session: it still remembers (long-term memory extracted the fact)
-agentcore invoke --session-id session-2 '{"prompt": "Do you remember my name?"}'
-# Expected: "Yes, your name is Alex. You also prefer dark mode."
-```
-
----
-
-## Step 5: Local Development with Memory
-
-During `agentcore dev`, memory isn't available. The agent works without it thanks to graceful degradation:
-
-```bash
-# Terminal 1: start the dev server
-agentcore dev
-
-# Terminal 2: send a prompt
-agentcore dev "Hello, my name is Alex"
-# Agent responds normally, but won't remember across restarts
-```
-
-To test memory locally, deploy first (`agentcore deploy`), then use `agentcore invoke` against the deployed agent.
-
----
-
-## How It Works
-
-### Short-Term Memory (Session)
-
-Every message in the current session is automatically available to the agent. No configuration needed beyond setting `memory: "shortTerm"` or `"longAndShortTerm"`.
-
-### Long-Term Memory (Cross-Session)
-
-When strategies are configured:
-- **SEMANTIC**: Extracts facts and knowledge as semantic vectors. Retrieved by relevance to the current query.
-- **SUMMARIZATION**: Creates conversation summaries that persist across sessions.
-
-After each conversation, AgentCore runs extraction jobs in the background to produce long-term memory records from the session events.
-
-### Namespace Isolation
-
-Memory is scoped by `actor_id`. User A cannot access User B's memories, even if they share the same agent deployment.
-
----
-
-## Troubleshooting
+## When to Use
 
 <div className="fancy-table">
 
-| Issue                                        | Solution                                                                                         |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `ResourceNotFoundException` during local dev | Expected; memory requires deployment. Wrap in try/except.                                        |
-| Memory status stuck in CREATING              | Check IAM permissions on execution role. Use `agentcore status --type memory`.                   |
-| Agent doesn't remember across sessions       | Verify `longAndShortTerm` is set. Check that extraction jobs completed: view in CloudWatch logs. |
-| Different users seeing each other's memories | Ensure `actor_id` is unique per user (not hardcoded to "default-user").                          |
+| Condition | Recommendation | Rationale |
+|-----------|---------------|-----------|
+| Agent needs recall across sessions (returning users, prior context) | Add Memory | Users expect continuity; preferences and decisions carry forward across interactions |
+| Single-turn Q&A only | Prefer session-only context | No persistence overhead; context is discarded after the response |
+| Data must be authoritative (audit trails, regulated records) | Prefer system of record | Memory is a recall layer, not a source of truth; transactional data needs durability guarantees |
+| Multi-tenant agent with verified identity | Add Memory | Stable actor IDs enable safe namespace isolation per tenant and user |
+| Cannot establish tenant or user boundaries | Defer (resolve identity first) | Memory without isolation risks namespace contamination across users |
 
 </div>
+
+## Official AWS Tutorial
+
+For setup, strategy selection, and integration examples, follow the [Amazon Bedrock AgentCore Memory documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html). It is the canonical configuration guide; return here to decide how memory fits your workload.
+
+:::caution Prototype path
+The official tutorial above creates prototype resources. Apply the [Production Readiness checklist](/docs/operate/production-readiness) before routing real traffic.
+:::
+
+## What to Watch Out For
+
+### Make tenant namespaces intentional
+
+Memory isolation depends on the `actor_id` that your application supplies. Derive it from a verified identity claim and include the tenant boundary in the identifier design, such as a tenant-and-user pair. Never use a shared, caller-controlled, or unauthenticated actor ID: it can merge separate users' memory namespaces. Review [multi-tenancy guidance](/docs/agent-platform/multi-tenancy) alongside your identity design.
+
+### Set PII retention boundaries before storing events
+
+Decide which facts may be retained, for how long, and how users can request deletion before enabling long-term recall. Minimize or exclude raw PII, credentials, and regulated data; store the smallest useful fact rather than a full transcript. Keep audit records and contractual data in their authoritative systems, and disclose cross-session retention to users where appropriate.
+
+### Bound retention with `eventExpiryDuration`
+
+Set `eventExpiryDuration` to the shortest time-based retention period that satisfies the user experience. A short expiry is usually appropriate for temporary preferences or case context; use an explicit product policy before choosing longer retention. Test expiry and deletion behavior for each tenant, especially when changing a memory strategy or retention period.
+
+## Common Mistakes
+
+- **Treating memory as a database:** it improves recall but does not replace the durability, reporting, or audit guarantees of a system of record.
+- **Using one actor ID for everyone:** this defeats tenant namespace isolation. Bind actor IDs to verified identities before invoking the runtime.
+- **Keeping data indefinitely:** choose a time limit with `eventExpiryDuration` and include memory in deletion and privacy workflows.
+
+For operational controls beyond these memory-specific decisions, use the [Production Readiness checklist](/docs/operate/production-readiness).
+
+---
+
+## What This Creates and What It Costs
+
+Deploying this tutorial creates the following AWS resources:
+
+<div className="fancy-table">
+
+| Resource | Notes |
+|---|---|
+| AgentCore Runtime | Hosts your agent code in MicroVM isolation |
+| AgentCore Memory | Stores conversation facts and summaries with SEMANTIC and SUMMARIZATION strategies |
+| ECR repository | Stores the packaged agent image |
+| IAM execution role | Least-privilege role for the Runtime |
+| CloudWatch log groups | Receives runtime, invocation, and memory extraction logs |
+
+</div>
+
+**Main cost drivers:**
+- **Model inference tokens** — every invocation calls Claude Sonnet 4.5; memory extraction jobs also use model calls
+- **Memory storage and retrieval** — AgentCore Memory charges for stored events and semantic retrieval calls
+- **Runtime execution seconds** — billed per second of agent execution
+- **Log ingestion** — CloudWatch charges per GB ingested and stored
+
+**Scale-to-zero does not mean zero cost.** Memory records persist (until their `eventExpiryDuration` elapses), and ECR images and CloudWatch log retention continue to accrue charges even with no active traffic.
+
+---
+
+## Cleanup
+
+When you are done with this tutorial, destroy the AWS resources it created:
+
+```bash
+# From your agent project directory
+agentcore destroy
+```
+
+Verify resources are gone:
+
+```bash
+agentcore status
+# Expected: no runtimes or memory resources listed
+```
+
+Some resources may persist after `agentcore destroy`:
+
+- **AgentCore Memory records** — memory events are retained until `eventExpiryDuration` elapses; delete the memory resource explicitly if you need immediate removal
+- **ECR repository** — may remain if images are still tagged; delete manually in the ECR console
+- **CloudWatch log groups** — retained by default; delete manually to stop log storage charges
+
+If `agentcore destroy` reports errors, see [Cleanup Failures](/docs/reference/troubleshooting#cleanup-failures).
 
 ---
 
@@ -264,3 +120,4 @@ Memory is scoped by `actor_id`. User A cannot access User B's memories, even if 
 - [Connect a Tool via Gateway](/docs/tutorials/connect-gateway-tool): Add external API access
 - [agentcore.json Reference](/docs/reference/agentcore-json#memories): Full memory configuration schema
 - [AgentCore Memory Docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html): Official AWS documentation
+- [Production Readiness checklist](/docs/operate/production-readiness): Before routing real users
