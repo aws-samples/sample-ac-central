@@ -13,21 +13,46 @@ A consolidated index of authoritative external links used throughout this site. 
 
 ## AgentCore Developer Guide
 
+<div className="fancy-table">
+
 | Topic | URL | What it covers |
 |---|---|---|
 | Region availability | [agentcore-regions.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-regions.html) | Current list of supported regions for AgentCore services |
 | Service quotas and limits | [bedrock-agentcore-limits.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/bedrock-agentcore-limits.html) | Session durations, idle timeouts, request limits, and configurable values |
 | Runtime permissions (IAM) | [runtime-permissions.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-permissions.html) | IAM policies for deploying and running agents, execution role, CLI permissions |
 | Runtime security best practices | [runtime-security-best-practices.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-security-best-practices.html) | Session isolation, least-privilege, network security, credential management |
+| MicroVM Metadata Service (MMDS) | [security-credentials-management.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/security-credentials-management.html) | How execution-role credentials are exposed inside Runtime microVMs and why least privilege matters |
+| Encryption at rest (CMK) | [data-encryption.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/data-encryption.html) | Encryption at rest and key management, including customer-managed KMS keys |
+| Runtime credential management (MMDS) | [security-credentials-management.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/security-credentials-management.html) | Temporary execution-role credentials available to code in Runtime microVMs |
 | Runtime lifecycle settings | [runtime-lifecycle-settings.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) | Idle timeout, max lifetime, scale-to-zero configuration |
+| How Runtime works | [runtime-how-it-works.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html) | Runtime execution model, key components, and authentication overview |
+| Runtime sessions | [runtime-sessions.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-sessions.html) | Session lifecycle, states, affinity, and `runtimeSessionId` usage |
 | HTTP protocol contract | [runtime-http-protocol-contract.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-http-protocol-contract.html) | Container requirements, `/invocations`, `/ping`, `/ws` endpoint specs |
 | Runtime troubleshooting | [runtime-troubleshooting.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-troubleshooting.html) | Docker container requirements, common deployment issues |
 | VPC networking | [agentcore-vpc.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-vpc.html) | VPC endpoints, NAT gateway, subnet requirements, connectivity |
 | AWS PrivateLink | [vpc-interface-endpoints.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/vpc-interface-endpoints.html) | Interface endpoints for private connectivity |
 
+</div>
+
+---
+
+## Code Interpreter
+
+<div className="fancy-table">
+
+| Topic | URL | What it covers |
+|---|---|---|
+| Code Interpreter overview | [code-interpreter-tool.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-tool.html) | Managed, isolated code execution environment for agents |
+| Session characteristics | [code-interpreter-session-characteristics.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-session-characteristics.html) | Session isolation, lifecycle, and credential boundaries |
+| Network and resource management | [code-interpreter-resource-management.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-resource-management.html) | Sandbox, Public, and VPC network modes and resource settings |
+
+</div>
+
 ---
 
 ## Getting Started Tutorials
+
+<div className="fancy-table">
 
 | Topic | URL | What it covers |
 |---|---|---|
@@ -39,21 +64,30 @@ A consolidated index of authoritative external links used throughout this site. 
 | Use any agent framework | [using-any-agent-framework.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/using-any-agent-framework.html) | `BedrockAgentCoreApp` wrapper with Strands, LangGraph, ADK, OpenAI examples |
 | Harness getting started | [harness-get-started.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html) | Create and invoke a managed harness (CLI, boto3, interactive) |
 
+</div>
+
 ---
 
 ## Identity
+
+<div className="fancy-table">
 
 | Topic | URL | What it covers |
 |---|---|---|
 | AgentCore Identity overview | [identity.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html) | Credential management, workload identity, OAuth integration |
 | Understanding workload identities | [understanding-agent-identities.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/understanding-agent-identities.html) | What workload identities are and how they integrate with the framework |
 | Get workload access token | [get-workload-access-token.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/get-workload-access-token.html) | JWT-based vs. UserId-based patterns with code examples |
+| Identity getting started (Cognito) | [identity-getting-started-cognito.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity-getting-started-cognito.html) | Build an authenticated agent with a Cognito user pool and OAuth 2.0 flow |
 | JWT inbound + OAuth outbound | [runtime-oauth.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-oauth.html) | End-to-end sample: JWT propagation to Runtime + OAuth outbound to tools |
 | On-behalf-of token exchange | [on-behalf-of-token-exchange.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/on-behalf-of-token-exchange.html) | Downstream identity propagation to external services |
+
+</div>
 
 ---
 
 ## Memory
+
+<div className="fancy-table">
 
 | Topic | URL | What it covers |
 |---|---|---|
@@ -61,20 +95,29 @@ A consolidated index of authoritative external links used throughout this site. 
 | Memory types (short-term + long-term) | [memory-types.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html) | What each type stores and when to use it |
 | Memory organization | [memory-organization.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-organization.html) | Namespace hierarchy: strategy/actor/session |
 | Long-term memory namespaces | [specify-long-term-memory-organization.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/specify-long-term-memory-organization.html) | Actor-scoped isolation for cross-session recall |
+| Create a Memory (expiry, encryption) | [memory-create-a-memory-store.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-create-a-memory-store.html) | Memory store creation with `eventExpiryDuration`, encryption, and strategy configuration |
 | Per-user memory scoping (Harness) | [harness-memory.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-memory.html) | Config-driven actor ID scoping for memory isolation |
+
+</div>
 
 ---
 
 ## Gateway
+
+<div className="fancy-table">
 
 | Topic | URL | What it covers |
 |---|---|---|
 | Gateway overview | [gateway.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) | Unified connectivity layer between agents and tools |
 | Gateway quick start | [gateway-quick-start.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-quick-start.html) | Create a gateway, add targets, invoke from an agent |
 
+</div>
+
 ---
 
 ## Harness
+
+<div className="fancy-table">
 
 | Topic | URL | What it covers |
 |---|---|---|
@@ -82,9 +125,13 @@ A consolidated index of authoritative external links used throughout this site. 
 | Harness security and access controls | [harness-security.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-security.html) | Trust boundaries, execution roles, tool permissions, inbound OAuth |
 | Harness vs. Runtime | [harness-vs-runtime.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-vs-runtime.html) | Comparison grid: when to use each |
 
+</div>
+
 ---
 
 ## Policy, Guardrails, and Safety
+
+<div className="fancy-table">
 
 | Topic | URL | What it covers |
 |---|---|---|
@@ -93,18 +140,28 @@ A consolidated index of authoritative external links used throughout this site. 
 | Guardrails in policies | [policy-guardrails-in-policies.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-guardrails-in-policies.html) | Content filtering, PII detection, prompt injection defense |
 | Bedrock Guardrails | [guardrails.html](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) | Bedrock-level content safety controls |
 
+</div>
+
 ---
 
 ## Observability and Evaluations
+
+<div className="fancy-table">
 
 | Topic | URL | What it covers |
 |---|---|---|
 | Configure observability | [observability-configure.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html) | CloudWatch traces, spans, metrics for agents |
 | Evaluations overview | [how-it-works-evaluations.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/how-it-works-evaluations.html) | Offline and online evaluation of agent quality |
+| Evaluators (built-in and custom) | [evaluators.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) | Built-in evaluator catalog (`Builtin.Helpfulness`, `Builtin.GoalSuccessRate`, trajectory match family) and custom evaluators |
+| On-demand evaluation (CLI + SDK) | [getting-started-on-demand.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-on-demand.html) | `agentcore run eval`, the `bedrock_agentcore_starter_toolkit` Evaluation SDK, and the boto3 Evaluate API |
+
+</div>
 
 ---
 
 ## Infrastructure-as-Code
+
+<div className="fancy-table">
 
 | Topic | URL | What it covers |
 |---|---|---|
@@ -115,41 +172,69 @@ A consolidated index of authoritative external links used throughout this site. 
 | CDK — L2 alpha constructs | [aws_bedrock_agentcore_alpha](https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_bedrock_agentcore_alpha/README.html) | Higher-level abstractions (Runtime, Gateway) |
 | Terraform — Runtime | [bedrockagentcore_agent_runtime](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/bedrockagentcore_agent_runtime) | Terraform AWS provider resource |
 
+</div>
+
 ---
 
 ## Bedrock (Model Access and Data Protection)
 
+<div className="fancy-table">
+
 | Topic | URL | What it covers |
 |---|---|---|
 | Request model access | [model-access.html](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) | Enable specific models per account, per region |
+| Single-prompt inference (InvokeModel) | [inference-api.html](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-api.html) | Run one-shot inference with InvokeModel / InvokeModelWithResponseStream — the stateless alternative to a persistent agent |
 | Data protection | [data-protection.html](https://docs.aws.amazon.com/bedrock/latest/userguide/data-protection.html) | Encryption, data residency, shared responsibility |
 | Bedrock Agents Classic migration | [agents-classic-maintenance-mode.html](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html) | Migrating from Classic to AgentCore |
+
+</div>
 
 ---
 
 ## IAM and Security (General)
 
+<div className="fancy-table">
+
 | Topic | URL | What it covers |
 |---|---|---|
 | IAM least-privilege best practice | [best-practices.html#grant-least-privilege](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#grant-least-privilege) | The principle of granting only required permissions |
+| AgentCore identity-based policy examples | [security_iam_id-based-policy-examples.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/security_iam_id-based-policy-examples.html) | Example IAM policies for AgentCore actions and resources |
+| SaaS tenant isolation whitepaper | [full-stack-isolation.html](https://docs.aws.amazon.com/whitepapers/latest/saas-tenant-isolation-strategies/full-stack-isolation.html) | Full-stack tenant isolation strategies, including account-level separation |
+| Prompt injection defense (AWS Security Blog) | [safeguard-your-generative-ai-workloads-from-prompt-injections](https://aws.amazon.com/blogs/security/safeguard-your-generative-ai-workloads-from-prompt-injections/) | Defense patterns for direct and indirect prompt injection |
+| OWASP GenAI Security Project | [genai.owasp.org](https://genai.owasp.org/) | Community vulnerability taxonomy and guidance for generative AI systems |
+
+</div>
 
 ---
 
 ## AWS Well-Architected and Prescriptive Guidance
 
+<div className="fancy-table">
+
 | Topic | URL | What it covers |
 |---|---|---|
 | Agentic AI Lens | [agentic-ai-lens.html](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) | Well-Architected guidance for agentic AI workloads |
+| Cost-efficient initialization and scale-to-zero | [agentcost06-bp03.html](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html) | Runtime lifecycle, session reuse, caching, and scale-to-zero cost guidance |
 | Generative AI Lens — Cost | [cost-optimization.html](https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/cost-optimization.html) | Token budgeting, inference cost management |
+| Agentic AI Lens — Cost-efficient initialization | [agentcost06-bp03.html](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html) | Runtime session lifecycle, scale-to-zero behavior, warm pools, and initialization caching |
 | Agentic AI security best practices | [best-practices.html](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/best-practices.html) | Security patterns for agentic workloads |
+| Red teaming for agentic AI | [agentsec07-bp05.html](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentsec07-bp05.html) | Well-Architected best practice for adversarial testing of agents |
+| Testing and evaluation frameworks | [agentops06.html](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentops06.html) | Well-Architected guidance on testing, evaluation, and validation for agents |
+| Circuit breaker pattern | [circuit-breaker.html](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/circuit-breaker.html) | Fault-tolerance pattern preventing cascading failures from unhealthy dependencies |
+| Data security for generative AI | [strategy-data-considerations-gen-ai/security.html](https://docs.aws.amazon.com/prescriptive-guidance/latest/strategy-data-considerations-gen-ai/security.html) | Prescriptive Guidance on protecting data in generative AI systems |
+| Agentic AI Security Scoping Matrix | [agentic-ai-scoping-matrix](https://aws.amazon.com/ai/security/agentic-ai-scoping-matrix/) | Risk classification framework mapping agent autonomy to security controls |
 | Input validation for agents | [best-practices-input-validation.html](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/best-practices-input-validation.html) | Sanitization and prompt injection defense |
 | Memory-augmented agents | [memory-augmented-agents.html](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/memory-augmented-agents.html) | Architectural patterns for agent memory |
 | Serverless agentic AI — cost | [cost-optimization.html](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-serverless/cost-optimization.html) | Cost optimization for serverless agent deployments |
 | Multi-tenant isolation | [isolation-methods.html](https://docs.aws.amazon.com/prescriptive-guidance/latest/saas-multitenant-api-access-authorization/isolation-methods.html) | Tenant isolation strategies for SaaS |
 
+</div>
+
 ---
 
 ## Strands Agents SDK
+
+<div className="fancy-table">
 
 | Topic | URL | What it covers |
 |---|---|---|
@@ -161,9 +246,13 @@ A consolidated index of authoritative external links used throughout this site. 
 | Deploy to AgentCore | [deploy_to_bedrock_agentcore](https://strandsagents.com/docs/user-guide/deploy/deploy_to_bedrock_agentcore/) | Deploying Strands agents on AgentCore Runtime |
 | Operating agents in production | [operating-agents-in-production](https://strandsagents.com/docs/user-guide/deploy/operating-agents-in-production/) | Production observability, testing, deployment |
 
+</div>
+
 ---
 
 ## AgentCore Samples (GitHub)
+
+<div className="fancy-table">
 
 | Topic | URL | What it covers |
 |---|---|---|
@@ -174,13 +263,46 @@ A consolidated index of authoritative external links used throughout this site. 
 | Market Trends Agent | [market-trends-agent](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/market-trends-agent) | Browser use, evaluations, data gathering |
 | Workflow automation agents | [02-workflow-automation-agents](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents) | Event-driven workflow patterns |
 | Event-driven claims agent | [event-driven-claims-agent](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/event-driven-claims-agent) | Claims processing with bounded autonomy |
+| Enterprise Web Intelligence Agent | [enterprise-web-intelligence-agent](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/enterprise-web-intelligence-agent) | Browser-based web intelligence gathering workflow |
+| B2B Accounts Payable Agent | [visa-b2b-account-payable-agent](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/visa-b2b-account-payable-agent) | Invoice and payment processing workflow automation |
 | Coding assistants catalog | [03-coding-assistants](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/03-coding-assistants) | Code generation, review, migration agents |
 | Text-to-Python IDE | [text-to-python-ide](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/03-coding-assistants/text-to-python-ide) | Code gen + Code Interpreter validation |
 | Framework integrations | [03-integrations/agentic-frameworks](https://github.com/awslabs/amazon-bedrock-agentcore-samples/tree/main/03-integrations/agentic-frameworks) | BedrockAgentCoreApp wrapper examples for all frameworks |
 
+</div>
+
+---
+
+## Event-Driven Integration (AWS Services)
+
+<div className="fancy-table">
+
+| Topic | URL | What it covers |
+|---|---|---|
+| EventBridge pattern best practices | [eb-patterns-best-practices.html](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-patterns-best-practices.html) | Writing and testing event patterns, including `test-event-pattern` |
+| EventBridge rule DLQ | [eb-rule-dlq.html](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rule-dlq.html) | Dead-letter queues for undeliverable EventBridge events |
+| SQS dead-letter queues | [sqs-dead-letter-queues.html](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html) | Capturing failed messages for retry and inspection |
+| SQS FIFO deduplication | [using-messagededuplicationid-property.html](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/using-messagededuplicationid-property.html) | Message deduplication IDs for exactly-once FIFO processing |
+| Step Functions error handling | [concepts-error-handling.html](https://docs.aws.amazon.com/step-functions/latest/dg/concepts-error-handling.html) | Retry, catch, and fallback patterns for workflows |
+| Step Functions human approval | [tutorial-human-approval.html](https://docs.aws.amazon.com/step-functions/latest/dg/tutorial-human-approval.html) | Callback pattern pausing a workflow for human review |
+
+</div>
+
+---
+
+## Customer Stories and Blogs
+
+| Topic | URL | What it covers |
+|---|---|---|
+| BGL — NL-to-SQL self-serve BI | [democratizing-business-intelligence blog](https://aws.amazon.com/blogs/machine-learning/democratizing-business-intelligence-bgls-journey-with-claude-agent-sdk-and-amazon-bedrock-agentcore/) | Slack-based NL-to-SQL agent with Claude Agent SDK on AgentCore |
+| Thomson Reuters — platform engineering hub | [thomson-reuters agentic platform blog](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/) | Central orchestrator routing to specialized agents with human-in-the-loop |
+| Iberdrola — IT operations | [iberdrola-enhances-it-operations blog](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/) | Multi-agent IT operations with LangGraph and VPC-secured runtime |
+
 ---
 
 ## Pricing
+
+<div className="fancy-table">
 
 | Topic | URL | What it covers |
 |---|---|---|
@@ -188,10 +310,16 @@ A consolidated index of authoritative external links used throughout this site. 
 | CloudWatch pricing | [cloudwatch/pricing](https://aws.amazon.com/cloudwatch/pricing/) | Log ingestion, metrics, traces |
 | ECR pricing | [ecr/pricing](https://aws.amazon.com/ecr/pricing/) | Container image storage |
 
+</div>
+
 ---
 
 ## Console
 
+<div className="fancy-table">
+
 | Topic | URL | What it covers |
 |---|---|---|
 | AgentCore console | [bedrock-agentcore/home](https://console.aws.amazon.com/bedrock-agentcore/home#) | Create and manage harnesses, runtimes, gateways |
+
+</div>
