@@ -2,13 +2,17 @@
 title: "Quick Start: Workflow Agent on Harness"
 sidebar_label: Harness Quick Start
 sidebar_position: 3
-last_verified: 2026-07-16
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 import CanonicalRecommendation from '@site/src/components/CanonicalRecommendation';
 
 # Quick Start: Workflow Agent on Harness
+
+:::tip Who this is for
+Config-first builders who want a bounded reasoning step between existing systems without writing an agent loop. If you prefer a code-first path with full Enrich/Act tools in the loop, see the [workflow quickstart](/docs/workloads/workflow/quickstart).
+:::
 
 Use an AgentCore Harness when your event pipeline needs a **bounded reasoning step** declared as configuration rather than code.
 
@@ -66,7 +70,7 @@ Execution limits — a core workflow concern — become config fields instead of
 
 | Concern | Runtime (code) | Harness (config) |
 |---|---|---|
-| Agent loop | You write it in `main.py` | Managed, powered by Strands |
+| Agent loop | You write it in `main.py` | Managed agent loop |
 | Iteration/time caps | You implement them | `maxIterations`, `timeoutSeconds` in `harness.json` |
 | Tools | Local Python functions | Declared config: gateway, MCP, browser, code interpreter |
 
@@ -96,3 +100,7 @@ The Harness path covers bounded reasoning with no local tools. Switch to a [work
 - **Action execution in the agent loop** — calling tools that read services, create tickets, or notify on-call as part of the same reasoning pass.
 
 Workflow samples carry their own documented risk profiles. Review each sample's Action_Risk disclosure and apply [bounded autonomy policies](/docs/workloads/workflow/bounded-autonomy) before connecting to production systems.
+
+:::warning
+Everything produced by the samples on this page is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

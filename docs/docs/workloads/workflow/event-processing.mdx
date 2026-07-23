@@ -2,12 +2,16 @@
 title: Event Processing
 sidebar_label: Event Processing
 sidebar_position: 3
-last_verified: 2026-07-15
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 
 # Event Processing Model
+
+:::tip Who this is for
+Builders wiring event sources (EventBridge, SQS, SNS, S3) to a workflow agent on AgentCore Runtime. If you haven't picked a sample yet, start with the [workflow quickstart](/docs/workloads/workflow/quickstart).
+:::
 
 Workflow agents process events asynchronously. An event source delivers a trigger, a Lambda normalizes the payload and invokes the AgentCore Runtime, and the agent handles reasoning and action.
 
@@ -24,13 +28,13 @@ Workflow agents process events asynchronously. An event source delivers a trigge
 
   <div className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--cost" aria-hidden="true" /><h3>Cost-Efficient by Design</h3></div>
-    <p>Scale-to-zero means no idle compute between events. Route cheaper models (Haiku) for simple triage and premium models (Sonnet) for complex reasoning. Short-lived sessions don't hold microVMs open for hours. Each invocation gets exactly the resources it needs, then terminates.</p>
+    <p><a href="https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html">Scale-to-zero</a> means no idle compute between events. Route cheaper models (Haiku) for simple triage and premium models (Sonnet) for complex reasoning. Short-lived sessions don't hold microVMs open for hours. Each invocation gets exactly the resources it needs, then terminates.</p>
     <span className="service-tag tag--runtime">Runtime</span>
   </div>
 
   <div className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--identity" aria-hidden="true" /><h3>Service Identity (Machine-to-Machine Auth)</h3></div>
-    <p>Workflow agents authenticate as service principals, not end-users. AgentCore Identity supports machine-to-machine flows via client credentials and SigV4, so the agent can call internal APIs with a scoped service identity. No shared secrets, no over-privileged roles.</p>
+    <p>Workflow agents authenticate as service principals, not end-users. <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html">AgentCore Identity</a> supports machine-to-machine flows via client credentials and SigV4, so the agent can call internal APIs with a scoped service identity. No shared secrets, no over-privileged roles.</p>
     <span className="service-tag tag--identity">Identity</span>
   </div>
 </div>
@@ -48,7 +52,7 @@ Workflow agents process events asynchronously. An event source delivers a trigge
 | Idempotency           | Agent can check if event was already processed via DynamoDB or Memory.           |
 | Retry with backoff    | DLQ captures failed invocations for replay. CloudWatch alarms on DLQ depth.     |
 | Concurrent processing | Multiple events processed in parallel. Each gets its own microVM.              |
-| Timeout handling      | Runtime sessions have configurable max duration (default 15 min for workflows).  |
+| Timeout handling      | [Runtime sessions](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) have a default idle timeout of 15 minutes and a maximum lifetime of 8 hours. These are runtime-level limits, not workflow-specific.  |
 
 </div>
 
@@ -56,11 +60,12 @@ Workflow agents process events asynchronously. An event source delivers a trigge
 
 ## Trigger Lambda Pattern
 
-The trigger Lambda is the bridge between your event source and AgentCore Runtime:
+The trigger Lambda is the bridge between your event source and AgentCore Runtime. Note that `runtimeSessionId` must be at least 33 characters — see the [Runtime sessions documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-sessions.html) for the full ID format requirements.
 
 ```python
 import json
 import os
+import uuid
 
 import boto3
 
@@ -80,9 +85,14 @@ def handler(event, context):
         "context": detail.get("context", {}),
     }
 
+    # runtimeSessionId must be at least 33 characters.
+    # Appending a UUID suffix ensures uniqueness and satisfies the minimum length.
+    # See: https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-sessions.html
+    session_id = f"event-{detail['entity_id']}-{uuid.uuid4()}"
+
     response = agent_core_client.invoke_agent_runtime(
         agentRuntimeArn=os.environ["RUNTIME_ARN"],
-        runtimeSessionId=f"event-{detail['entity_id']}",
+        runtimeSessionId=session_id,
         payload=json.dumps(payload).encode(),
     )
 
@@ -133,6 +143,17 @@ Every workflow automation agent follows this execution loop:
 **④ Act** — The agent executes actions via tools: restart a service, update a ticket, send a notification, create a resource.
 
 **⑤ Emit** — The agent publishes a completion event (to EventBridge, SNS, or a downstream system) with the outcome summary. This enables event chaining and audit trails.
+
+---
+
+## Further Reading
+
+- [Runtime sessions](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-sessions.html) — session ID format, lifecycle, and invocation model
+- [Runtime lifecycle settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) — idle timeout, max lifetime, and configuration
+- [Scale-to-zero cost best practice (AgentCost06-BP03)](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html)
+- [Machine-to-machine authentication (AgentCore Identity)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html)
+- [EventBridge pattern best practices](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-patterns-best-practices.html)
+- [SQS dead-letter queues](https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html)
 
 ---
 

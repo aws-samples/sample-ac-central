@@ -2,13 +2,17 @@
 title: "Quick Start: Workflow Agent"
 sidebar_label: Quick Start
 sidebar_position: 2
-last_verified: 2026-07-16
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 import CanonicalRecommendation from '@site/src/components/CanonicalRecommendation';
 
 # Quick Start: Workflow Agent
+
+:::tip Who this is for
+Developers ready to build an event-driven workflow agent from a sample. If you're still deciding whether this pattern is the right fit, see the [workflow overview](/docs/workloads/workflow/overview) first.
+:::
 
 Select the right workflow automation sample for your trigger and action model, understand the safety boundaries, and start building.
 
@@ -77,30 +81,29 @@ Events may be delivered more than once. Protect your workflow with:
 
 ### Policy Gates and Cedar Authorization
 
-Cedar policies control which actions an agent can execute and under what conditions. Use them to enforce boundaries without modifying agent code:
+Cedar policies control which actions an agent can execute and under what conditions. The example below uses the documented Cedar entity types — `AgentCore::OAuthUser` or IAM principal as the principal, `AgentCore::Action::"Gateway___tool_name"` for actions, and `AgentCore::Gateway::"arn:..."` for the resource. This is illustrative; adapt entity types and ARNs to your deployment.
 
 ```cedar
 // Allow the triage agent to create escalation tickets
 // only when the incident severity warrants escalation
 permit(
-  principal == AgentCore::Principal::"incident-triage-agent",
-  action == AgentCore::Action::"InvokeTool",
-  resource == AgentCore::Tool::"create_escalation_ticket"
+  principal is AgentCore::OAuthUser,
+  action == AgentCore::Action::"Gateway___create_escalation_ticket",
+  resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-east-1:123456789012:gateway/incident-gateway"
 ) when {
-  context.incident_severity == "HIGH" &&
-  context.has_enrichment_data == true
+  context.input.incident_severity == "HIGH" &&
+  context.input.has_enrichment_data == true
 };
 ```
 
 ```cedar
-// Allow notification delivery for any severity,
-// but restrict the notification channel based on severity
+// Allow notification delivery for MEDIUM or HIGH severity
 permit(
-  principal == AgentCore::Principal::"incident-triage-agent",
-  action == AgentCore::Action::"InvokeTool",
-  resource == AgentCore::Tool::"notify_oncall"
+  principal is AgentCore::OAuthUser,
+  action == AgentCore::Action::"Gateway___notify_oncall",
+  resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-east-1:123456789012:gateway/incident-gateway"
 ) when {
-  context.incident_severity in ["MEDIUM", "HIGH"]
+  context.input.incident_severity in ["MEDIUM", "HIGH"]
 };
 ```
 
@@ -126,11 +129,15 @@ For actions that cross a risk threshold, require explicit human confirmation bef
 
 Every tool in a workflow agent has a risk profile. Classify tools into tiers:
 
+<div className="fancy-table">
+
 | Tier | Examples | Policy Requirement |
 |------|----------|-------------------|
 | **Read-only** | `get_service_health`, `lookup_account`, `fetch_document` | Minimal — log access for audit |
 | **Non-destructive write** | `create_ticket`, `send_notification`, `add_comment` | Standard Cedar policy gate |
 | **State-mutating** | `scale_fleet`, `update_config`, `modify_permissions` | Cedar policy + human approval + maintenance window |
+
+</div>
 
 Default workflows should operate at the **non-destructive write** tier. Escalate to state-mutating actions only with explicit policy authorization and human-in-the-loop confirmation.
 
@@ -141,7 +148,7 @@ Workflow agents consume resources proportional to event volume and reasoning com
 - **Token consumption** — Each event triggers an LLM invocation. Batch low-priority events or implement severity-based routing to control costs.
 - **Tool call chains** — Complex reasoning may chain multiple tool calls per event. Set `maxIterations` to bound reasoning depth.
 - **Concurrent execution** — High event volumes trigger parallel agent executions. Monitor concurrent invocation counts and set concurrency limits appropriate to your downstream tool APIs.
-- **Scale-to-zero billing** — AgentCore Runtimes scale to zero between events, but log retention and staged assets continue to accrue charges.
+- **Scale-to-zero billing** — AgentCore Runtimes [scale to zero](https://aws.amazon.com/bedrock/agentcore/pricing/) between events, but log retention and staged assets continue to accrue charges.
 
 ---
 
@@ -153,3 +160,7 @@ Workflow agents consume resources proportional to event volume and reasoning com
 - <Link to="/docs/workloads/workflow/tools-and-gateway">Design tools and connect via Gateway →</Link>
 - <Link to="/docs/workloads/workflow/evaluations">Set up continuous evaluations →</Link>
 - <Link to="/docs/operate/production-readiness">Production Readiness checklist →</Link>
+
+:::warning
+Everything produced by the samples on this page is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

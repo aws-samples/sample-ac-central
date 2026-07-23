@@ -2,12 +2,16 @@
 title: Tools & Gateway
 sidebar_label: Tools & Gateway
 sidebar_position: 5
-last_verified: 2026-07-15
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 
 # Tool Design & Gateway for Workflow Agents
+
+:::tip Who this is for
+Builders designing tools and connecting them via the AgentCore Gateway for a workflow agent. If you haven't wired up event sources yet, see [Event Processing](/docs/workloads/workflow/event-processing) first.
+:::
 
 Tools are the hands of the agent. Well-designed tools make the difference between an agent that works and one that hallucinates actions.
 
@@ -21,7 +25,7 @@ Tools are the hands of the agent. Well-designed tools make the difference betwee
 |----------------------------------|---------------------------------------------------------------------------|
 | One tool = one action            | Compound tools confuse the LLM. Split "get and update" into two tools.    |
 | Descriptive names and docstrings | The LLM decides tool selection based on name + description. Be specific.  |
-| Validate all inputs              | The LLM sends arbitrary values. Check types, formats, and bounds.         |
+| [Validate all inputs](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/best-practices-input-validation.html)              | The LLM sends arbitrary values. Check types, formats, and bounds.         |
 | Return errors as values          | Don't raise exceptions. Return `{"error": "..."}` so the agent can adapt. |
 | Typed schemas                    | Every tool gets a JSON schema defining inputs. No "catch-all" parameters. |
 | Idempotent where possible        | Agent might retry on failure. Make tools safe to call multiple times.      |
@@ -72,7 +76,7 @@ def get_incident_details(incident_id: str) -> str:
 
 ## MCP Gateway
 
-The Gateway aggregates all MCP targets into a single virtual MCP server, exposing one consolidated `tools/list` to the agent. **Semantic tool search** lets the agent select the right tool even when hundreds are registered. This is important for autonomous workflows that span many enterprise systems.
+The [Gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) aggregates all MCP targets into a single virtual MCP server, exposing one consolidated `tools/list` to the agent. **Semantic tool search** lets the agent select the right tool even when hundreds are registered. This is important for autonomous workflows that span many enterprise systems. See the [Gateway quick start](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-quick-start.html) for step-by-step setup.
 
 <div className="fancy-table fancy-table--auto-first">
 
@@ -86,18 +90,18 @@ The Gateway aggregates all MCP targets into a single virtual MCP server, exposin
 
 </div>
 
+:::info Beyond tools
+The [Gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) supports three target categories. **MCP targets** (listed above) are aggregated into the virtual MCP server. **HTTP targets** proxy directly to other agents or A2A services, which is useful when a workflow agent orchestrates specialized sub-agents. **Inference targets** route LLM traffic to multiple model providers through one endpoint. The main table above covers MCP targets; consult the Gateway documentation for HTTP and Inference target configuration.
+:::
+
 ---
 
 ## Authentication Model
 
-The Gateway separates the two directions of authentication, which matters for autonomous agents that run without a human in the loop:
+The Gateway separates the two directions of [authentication](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html), which matters for autonomous agents that run without a human in the loop:
 
 - **Inbound (agent → gateway):** use **IAM (SigV4)** so the agent calls as a service identity. OAuth (JWT) is also supported; `authenticate-only` validates the token but defers authorization to the target.
 - **Outbound (gateway → backend):** Lambda and Smithy targets use the gateway's execution role; OpenAPI and MCP-server targets use an **AgentCore credential provider** (API key, OAuth, or SigV4), so credentials for Jira, ServiceNow, or internal APIs stay in the gateway rather than the agent.
-
-:::info Beyond tools
-Gateway targets come in three categories. **MCP targets** (the tools above) are aggregated into the virtual MCP server. **HTTP targets** proxy directly to other agents or A2A services, which is useful when a workflow agent orchestrates specialized sub-agents. **Inference targets** route LLM traffic to multiple model providers through one endpoint.
-:::
 
 ---
 
@@ -106,10 +110,20 @@ Gateway targets come in three categories. **MCP targets** (the tools above) are 
 <div className="tile-grid">
   <div className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--gateway" aria-hidden="true" /><h3>Managed Tool Access via MCP Gateway</h3></div>
-    <p>Connect agents to internal APIs, databases, ticketing systems, and cloud infrastructure through a managed MCP gateway. Targets can be Lambda functions, OpenAPI or Smithy APIs, or remote MCP servers. The gateway aggregates them into one virtual MCP server with semantic tool search, so the agent finds the right tool even across hundreds. Inbound access is secured with IAM (SigV4) or OAuth; outbound calls to each backend use a managed credential provider so secrets never live in the agent.</p>
+    <p>Connect agents to internal APIs, databases, ticketing systems, and cloud infrastructure through a managed MCP gateway. Targets can be Lambda functions, OpenAPI or Smithy APIs, or remote MCP servers. The <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html">gateway</a> aggregates them into one virtual MCP server with semantic tool search, so the agent finds the right tool even across hundreds. Inbound access is secured with IAM (SigV4) or OAuth; outbound calls to each backend use a managed credential provider so secrets never live in the agent.</p>
     <span className="service-tag tag--gateway">Gateway</span>
   </div>
 </div>
+
+---
+
+## Further Reading
+
+- [Gateway overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) — target types, virtual MCP server, semantic search
+- [Gateway quick start](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-quick-start.html)
+- [AgentCore Identity — inbound/outbound auth](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html)
+- [Strands tools](https://strandsagents.com/docs/user-guide/concepts/tools/) — tool design patterns for Strands agents
+- [Input validation best practices](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/best-practices-input-validation.html)
 
 ---
 

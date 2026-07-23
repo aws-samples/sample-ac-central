@@ -2,12 +2,16 @@
 title: Production Challenges
 sidebar_label: Production Challenges
 sidebar_position: 9
-last_verified: 2026-07-20
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 
 # Production Challenges for Workflow Agents
+
+:::tip Who this is for
+Teams with a working workflow prototype that are heading toward production. If you're still in the build phase, finish the [quickstart](/docs/workloads/workflow/quickstart) first.
+:::
 
 Workflow agents are harder to operate than conversational agents. When something goes wrong in a chat session, a user notices and complains. When something goes wrong in an event-driven automation, it can silently compound for hours — or fan out across dozens of downstream systems before anyone realizes there's a problem.
 
@@ -163,11 +167,15 @@ High-risk actions require human approval, but "add a human approval step" is not
 
 **Three HITL modes:**
 
+<div className="fancy-table">
+
 | Mode | Description | Implementation |
 |------|-------------|----------------|
 | **Blocking HITL** | Agent pauses and waits for human approval | [Step Functions callback + SNS notification](https://docs.aws.amazon.com/step-functions/latest/dg/tutorial-human-approval.html) |
 | **Monitoring HOTL** | Agent acts; human monitors and can override | Dashboard with real-time alerts and manual override API |
 | **Confidence-gated** | Auto-execute above threshold; escalate below | Risk scoring → conditional routing in Step Functions |
+
+</div>
 
 **Must-dos:**
 - Define which actions require blocking HITL vs. monitoring HOTL vs. autonomous execution before writing any code, using the [Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) for human oversight tiering.
@@ -207,14 +215,18 @@ Traditional accuracy metrics — does the response look correct? — are insuffi
 
 **Key metrics:**
 
+<div className="fancy-table">
+
 | Metric | What It Measures |
 |--------|-----------------|
-| **GoalSuccessRate** | Did the agent achieve the stated objective? |
-| **TrajectoryMatch** | Did actual tool calls match the expected pattern? |
+| **[`Builtin.GoalSuccessRate`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html)** | Did the agent achieve the stated objective? |
+| **[`Builtin.TrajectoryInOrderMatch`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) / [`Builtin.TrajectoryAnyOrderMatch`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) / [`Builtin.TrajectoryExactOrderMatch`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html)** | Did actual tool calls match the expected pattern? |
 | **Tool call success rate** | What fraction of tool invocations succeeded? |
 | **Escalation rate** | How often did the agent need human intervention? |
 | **DLQ volume** | How many events ended up in dead-letter queues? |
 | **Side effect correctness** | Did tool actions produce the intended outcomes? |
+
+</div>
 
 **Must-dos:**
 - Define success criteria before deploying, not after. What does "completed correctly" look like for each event type?

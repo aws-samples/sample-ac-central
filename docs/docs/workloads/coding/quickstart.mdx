@@ -2,13 +2,17 @@
 title: "Quick Start: Coding Agent"
 sidebar_label: Quick Start
 sidebar_position: 2
-last_verified: 2026-07-16
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 import CanonicalRecommendation from '@site/src/components/CanonicalRecommendation';
 
 # Quick Start: Coding Agent
+
+:::tip Who this is for
+Developers ready to build a coding agent that generates, executes, or validates code from a maintained sample. Still deciding whether coding is the right workload? Start with the [Coding overview](/docs/workloads/coding/overview).
+:::
 
 Find the right coding agent sample for your use case, understand the isolation models, and get to working code fast.
 
@@ -25,7 +29,7 @@ Find the right coding agent sample for your use case, understand the isolation m
     "You need isolated execution of agent-generated or user-supplied code",
     "The agent's output must be validated (run tests, check syntax, evaluate results) before delivery",
     "You want managed sandboxing without building your own container isolation",
-    "Code execution should not access the agent's own filesystem, network, or credentials"
+    "Code execution should be isolated from the agent's own filesystem and credentials"
   ]}
   fitRationale="The text-to-python-ide sample demonstrates the Plan → Generate → Validate loop with Code Interpreter providing fully managed isolation. Start here when your agent needs to execute code safely without building custom sandboxing infrastructure."
   alternatives={[
@@ -37,7 +41,7 @@ Find the right coding agent sample for your use case, understand the isolation m
   ]}
   actionRisk={{
     summary: "Executes agent-generated code in a managed sandbox",
-    details: "The default sample executes code inside AgentCore Code Interpreter — a fully managed, isolated execution environment. Code runs in its own sandbox with no access to the agent's filesystem, network, or credentials. Samples in the coding catalog that use subprocess execution instead of Code Interpreter do NOT provide this isolation — review each sample's README for its specific execution model."
+    details: "The default sample executes code inside AgentCore Code Interpreter — a fully managed, isolated execution environment. Code runs in its own sandbox, isolated from the agent's filesystem and credentials. Network access depends on the configured network mode: Sandbox (default) restricts external access to AWS services like S3, Public mode enables internet access, and VPC mode connects to private resources. Samples in the coding catalog that use subprocess execution instead of Code Interpreter do NOT provide this isolation — review each sample's README for its specific execution model."
   }}
   productionReadinessLink="/docs/operate/production-readiness"
   nextSteps={[
@@ -53,14 +57,18 @@ Find the right coding agent sample for your use case, understand the isolation m
 
 Coding agents that execute code must choose between two fundamentally different isolation models. Conflating them creates security risks:
 
-| | Code Interpreter (Managed Isolation) | subprocess.run() (Generic Subprocess) |
+<div className="fancy-table">
+
+| | **`Code Interpreter`** (Managed Isolation) | **`subprocess.run()`** (Generic Subprocess) |
 |---|---|---|
-| **Execution environment** | Fully managed, isolated sandbox provided by AgentCore | Same container, same filesystem, same network as the agent |
+| **Execution environment** | Fully managed, isolated sandbox provided by [AgentCore Code Interpreter](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-tool.html) | Same container, same filesystem, same network as the agent |
 | **Filesystem access** | Isolated — cannot read or write the agent's files | Shared — can read/write anything the agent process can |
-| **Network access** | Restricted by sandbox policy | Same network as the agent (VPC, internet access, internal APIs) |
-| **Credential exposure** | None — sandbox has no access to agent credentials | Full — inherits the agent's IAM role and environment variables |
+| **Network access** | Governed by the configured [network mode](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-resource-management.html): Sandbox (default, AWS services only), Public, or VPC | Same network as the agent (VPC, internet access, internal APIs) |
+| **Credential exposure** | [None by default](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-session-characteristics.html) — the sandbox has no access to the agent's IAM role or environment variables; VPC-mode configurations may grant explicit, scoped access | Full — inherits the agent's IAM role and environment variables |
 | **Use case** | Untrusted or user-supplied code, agent-generated code that needs validation | Trusted, deterministic operations where isolation is unnecessary (e.g., running a known linter) |
 | **Blast radius** | Contained to the sandbox session | Entire agent container and anything it can reach |
+
+</div>
 
 :::danger Choose the right model for your risk level
 - **Use Code Interpreter** when executing agent-generated code, user-supplied code, or any code whose behavior you cannot fully predict. This is the default recommendation.
@@ -83,16 +91,33 @@ Before a coding agent's output reaches production systems, enforce approval gate
 
 - **Human-in-the-loop for write actions** — Agent-generated code should create draft PRs or staged changes that require human review before merging.
 - **Policy-gated execution** — Use Cedar policies to restrict which code execution tools can be invoked, by which principals, and under what conditions (repository scope, file type restrictions, time windows).
-- **Execution budget limits** — Set `maxIterations` and `timeoutSeconds` to bound how many execution cycles the agent can attempt. This prevents runaway validation loops from consuming resources.
+- **Execution budget limits** — Bound session lifetime with the Runtime [`idleRuntimeSessionTimeout` and `maxLifetime` settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html), and cap agent reasoning loops with your framework's or harness's iteration limits (for example, `maxIterations` in a harness configuration). This prevents runaway validation loops from consuming resources.
 - **Audit trail** — Log every code execution request, its inputs, outputs, and the policy decision that allowed it. This is required for compliance and incident investigation.
 
 ### Resource and Cost Awareness
 
+<div className="fancy-table">
+
 | Cost Driver | What Generates It | How to Manage |
 |---|---|---|
 | Model inference tokens | Plan and Generate phases call the LLM; multi-turn validation loops multiply token usage | Choose model size for your task; set iteration limits |
-| Code Interpreter sessions | Each execution creates an isolated sandbox session | Set session timeouts; reuse sessions within a single invocation when possible |
-| Runtime execution seconds | Agent processing time billed per second | Scale-to-zero; bound validation loops with `maxIterations` |
+| Code Interpreter sessions | Each [session](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-session-characteristics.html) provides an isolated sandbox billed at $0.0895/vCPU-hour + $0.00945/GB-hour of active consumption; multiple code executions can share one session | Set session timeouts; reuse sessions within a single agent invocation when possible |
+| Runtime execution (CPU + memory) | Agent processing billed per second of active consumption ($0.0895/vCPU-hour + $0.00945/GB-hour) | [Scale-to-zero](https://aws.amazon.com/bedrock/agentcore/pricing/); bound validation loops with framework iteration limits |
 | Log ingestion | CloudWatch charges per GB for execution logs and outputs | Set retention policies; filter verbose execution output |
 
-Scale-to-zero does not mean zero cost. Code Interpreter session storage and CloudWatch log retention continue to accrue charges even with no active traffic. Remove prototype resources when done experimenting.
+</div>
+
+Scale-to-zero does not mean zero cost. CloudWatch log retention and any S3 artifacts written during execution continue to accrue charges even with no active traffic. Remove prototype resources when done experimenting. See [AgentCore pricing](https://aws.amazon.com/bedrock/agentcore/pricing/) for current rates.
+
+---
+
+## Further Reading
+
+- [AgentCore Code Interpreter](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-tool.html) — the managed sandbox capability in depth
+- [Code Interpreter network and resource management](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-resource-management.html) — Sandbox, Public, and VPC network modes
+- [Cost-efficient initialization and scale-to-zero](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html) — Well-Architected cost guidance for session reuse
+- [Agentic AI security best practices](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/best-practices.html) — tool safety and input validation guidance
+
+:::warning
+Everything produced by these samples is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::
