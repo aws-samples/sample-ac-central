@@ -9,6 +9,10 @@ import Link from '@docusaurus/Link';
 
 # Choose the right agent workload
 
+:::tip Who this is for
+Builders deciding which agent architecture fits their use case before writing code. If you already know your workload type, jump straight to its overview: [Conversational](/docs/workloads/conversational/overview), [Workflow](/docs/workloads/workflow/overview), or [Coding](/docs/workloads/coding/overview). If you haven't deployed anything on AgentCore yet, start with [Get Started](/docs/get-started/overview) first.
+:::
+
 :::note Reference categorization — not AgentCore product types
 The **Conversational**, **Workflow**, and **Coding** categories on this site are reference patterns created to organize architecture guidance. They are not AgentCore product types, named tiers, or mandatory configurations. AgentCore capabilities (Runtime, Memory, Gateway, Identity, Guardrails, Evaluations, Observability) are modular — you combine them based on your use case. These categories help you reason about which combination typically fits a given problem.
 :::
@@ -96,19 +100,23 @@ Use this table to map your requirements to a reference category. Multiple "best 
 |------------------------|----------------------------------------|---------------------------------------------------|------------------------------------------|
 | **Trigger**            | User message (human-initiated)         | System event (machine-initiated)                  | Ticket/PR/schedule (machine-initiated)   |
 | **Session duration**   | Minutes to hours (multi-turn)          | Seconds to minutes (single invocation)            | Minutes to hours (long-running task)     |
-| **Identity model**     | End-user OAuth bearer tokens (acts as user) | Service identity (acts as system)                 | Developer identity (acts as developer)   |
+| **Identity model**     | [End-user OAuth bearer tokens](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-oauth.html) (acts as user) | Service identity (acts as system)                 | Developer identity (acts as developer)   |
 | **Memory**             | Session + long-term per user           | Cross-invocation context per entity               | Project-scoped context                   |
 | **Streaming**          | Token-by-token to UI                   | Optional (results go to downstream systems)       | Optional (progress updates to IDE/CI)    |
 | **Primary output**     | Natural language response to human     | Actions taken + structured events emitted         | Code artifacts + PR/review comments      |
 | **Scaling pattern**    | Concurrent sessions (many users)       | Event throughput (many events per second)         | Concurrent tasks (many repos/PRs)        |
-| **Key metrics**        | Helpfulness, Correctness               | GoalSuccessRate, TrajectoryMatch                  | Code quality, test pass rate             |
-| **Idle cost**          | Scale-to-zero between sessions         | Scale-to-zero between events                      | Scale-to-zero between tasks              |
-| **Compute lifecycle**  | Up to 8 hours (session affinity) ¹    | Up to 15 minutes (short-lived) ¹                  | Up to 8 hours (long-running) ¹          |
-| **Guardrails focus**   | Content filters, PII, prompt injection | Tool-level policies (Cedar), bounded autonomy     | Code quality gates, security scanning    |
+| **Key metrics** ²      | `Builtin.Helpfulness`, `Builtin.Correctness` | `Builtin.GoalSuccessRate`, trajectory match evaluators | Code quality, test pass rate (no code-specific built-in evaluator) |
+| **Idle cost** ³        | Scale-to-zero between sessions         | Scale-to-zero between events                      | Scale-to-zero between tasks              |
+| **Compute lifecycle**  | Up to 8 hours (session affinity) ¹    | Short-lived by design; sessions stop at the default 15-minute idle timeout ¹ | Up to 8 hours (long-running) ¹          |
+| **Guardrails focus**   | [Content filters, PII, prompt injection](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-guardrails-in-policies.html) | [Tool-level policies (Cedar)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html), bounded autonomy | Code quality gates, security scanning    |
 
 </div>
 
-> ¹ Session duration and scaling behaviors are architecture guidance based on typical AgentCore usage patterns. Verify current limits in the [AgentCore service quotas](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/bedrock-agentcore-limits.html).
+> ¹ Session duration and scaling behaviors are architecture guidance based on typical AgentCore usage patterns, not per-workload limits — the maximum compute lifetime is the same for every runtime. Verify current limits in the [AgentCore service quotas](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/bedrock-agentcore-limits.html).
+>
+> ² `Builtin.*` names are [AgentCore Evaluations built-in evaluators](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html). Trajectory matching is a family: `Builtin.TrajectoryInOrderMatch`, `Builtin.TrajectoryAnyOrderMatch`, and `Builtin.TrajectoryExactOrderMatch`.
+>
+> ³ Runtime uses [active-resource consumption pricing](https://aws.amazon.com/bedrock/agentcore/pricing/); idle agents [scale to zero after their sessions stop](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html).
 
 ---
 
@@ -164,6 +172,8 @@ Replace `WorkflowAgent` and `workflowagent` with your agent and project names. A
 
 The options in this example mean:
 
+<div className="fancy-table">
+
 | Option | Purpose |
 |--------|---------|
 | `--name` | Names the agent resource. |
@@ -175,6 +185,8 @@ The options in this example mean:
 | `--language Python` | Generates a Python agent project. |
 | `--protocol HTTP` | Uses HTTP for Runtime invocation. |
 | `--network-mode PUBLIC` | Uses public network access; use VPC mode when private connectivity is required. |
+
+</div>
 
 ### Adjust the memory and network settings
 
@@ -240,3 +252,7 @@ For conversational and coding agents, reuse the same command structure but selec
     <p>Long-running code agents with sandbox execution and review gates.</p>
   </Link>
 </div>
+
+:::warning
+Any agent created with the commands on this page is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::
