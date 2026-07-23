@@ -21,6 +21,8 @@ Gateway-connected tools extend an agent's capabilities beyond its built-in knowl
 
 ### Workload Decision Table
 
+<div className="fancy-table">
+
 | Condition | Recommendation | Rationale |
 | --- | --- | --- |
 | Agent needs controlled access to external APIs or shared services | Add Gateway tool | Gateway provides managed authorization boundaries and catalog reuse across agents |
@@ -30,6 +32,8 @@ Gateway-connected tools extend an agent's capabilities beyond its built-in knowl
 | Tool is local, read-only, and unique to one agent | Prefer co-located tool | No benefit from shared catalog or external authorization boundary |
 | A single workflow owns a small, deterministic helper | Prefer co-located tool | Sharing adds lifecycle and network overhead without value |
 | Sharing and independent lifecycle management add no value | Prefer co-located tool | Co-located tools avoid Gateway latency and configuration for simple cases |
+
+</div>
 
 ## Official Tutorial
 
@@ -73,6 +77,8 @@ Reference `<YOUR_CREDENTIAL_NAME>` from the Gateway target's outbound-authentica
 
 ## Common Mistakes
 
+<div className="fancy-table">
+
 | Mistake | Better approach |
 | --- | --- |
 | Gateway-wrapping a one-off local helper | Keep small, agent-specific, deterministic helpers co-located. |
@@ -81,9 +87,13 @@ Reference `<YOUR_CREDENTIAL_NAME>` from the Gateway target's outbound-authentica
 | Relying on backend IAM alone | Apply Cedar policies to the Gateway tool boundary. |
 | Passing secrets to a CLI or prompt | Use the credential provider pattern above. |
 
+</div>
+
 ## Resources Created and Cleanup
 
 The official quick start provisions resources according to your selected targets. A typical Lambda-backed Gateway deployment creates these resources; pricing varies by Region and stored data.
+
+<div className="fancy-table">
 
 | Resource | AWS service | Persists? | Approximate idle cost (USD/month) |
 | --- | --- | --- | --- |
@@ -93,6 +103,8 @@ The official quick start provisions resources according to your selected targets
 | Credential secret | AWS Secrets Manager | Until deleted | About $0.40 per secret ([pricing](https://aws.amazon.com/secrets-manager/pricing/)) |
 | Container image | Amazon ECR | Often after teardown | About $0.10 per GB stored ([pricing](https://aws.amazon.com/ecr/pricing/)) |
 | Logs and traces | Amazon CloudWatch | Often after teardown | About $0.03 per GB stored ([pricing](https://aws.amazon.com/cloudwatch/pricing/)) |
+
+</div>
 
 Destroy AgentCore-managed dependencies first. This removes the runtime and Gateway before their managed targets. Then remove standalone resources in reverse dependency order.
 

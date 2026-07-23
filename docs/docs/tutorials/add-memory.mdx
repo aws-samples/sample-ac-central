@@ -19,6 +19,8 @@ Properly scoped memory transforms one-shot interactions into continuous relation
 
 ## When to Use
 
+<div className="fancy-table">
+
 | Condition | Recommendation | Rationale |
 |-----------|---------------|-----------|
 | Agent needs recall across sessions (returning users, prior context) | Add Memory | Users expect continuity; preferences and decisions carry forward across interactions |
@@ -26,6 +28,8 @@ Properly scoped memory transforms one-shot interactions into continuous relation
 | Data must be authoritative (audit trails, regulated records) | Prefer system of record | Memory is a recall layer, not a source of truth; transactional data needs durability guarantees |
 | Multi-tenant agent with verified identity | Add Memory | Stable actor IDs enable safe namespace isolation per tenant and user |
 | Cannot establish tenant or user boundaries | Defer (resolve identity first) | Memory without isolation risks namespace contamination across users |
+
+</div>
 
 ## Official AWS Tutorial
 
@@ -63,6 +67,8 @@ For operational controls beyond these memory-specific decisions, use the [Produc
 
 Deploying this tutorial creates the following AWS resources:
 
+<div className="fancy-table">
+
 | Resource | Notes |
 |---|---|
 | AgentCore Runtime | Hosts your agent code in MicroVM isolation |
@@ -70,6 +76,8 @@ Deploying this tutorial creates the following AWS resources:
 | ECR repository | Stores the packaged agent image |
 | IAM execution role | Least-privilege role for the Runtime |
 | CloudWatch log groups | Receives runtime, invocation, and memory extraction logs |
+
+</div>
 
 **Main cost drivers:**
 - **Model inference tokens** — every invocation calls Claude Sonnet 4.5; memory extraction jobs also use model calls

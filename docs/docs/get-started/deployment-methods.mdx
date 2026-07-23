@@ -19,12 +19,16 @@ AgentCore supports four deployment methods. This page helps you choose the one t
 
 ## Comparison
 
+<div className="fancy-table">
+
 | Method | Local vs. CI/CD tooling | Container control | Declarative lifecycle | Canonical source |
 |---|---|---|---|---|
 | CLI | Local dev loop with hot-reload; single-command deploy | Managed by CLI scaffolding | CLI-generated CDK stack; ejectable | [CLI Python tutorial](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html) |
 | Console | No local tooling required; browser-based | Managed by the service | Console-driven; no template files | [AgentCore console](https://console.aws.amazon.com/bedrock-agentcore/home#) |
 | Direct code | Full CI/CD integration; bring your own build | Full container ownership; custom base image | Programmatic via API or SDK | [Direct code deployment](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-custom.html) |
 | Infrastructure-as-Code | CI/CD pipeline with change review; GitOps-compatible | Defined in template; reproducible | Full declarative lifecycle via CloudFormation, CDK, or Terraform | See [IaC references](#infrastructure-as-code-references) below |
+
+</div>
 
 ---
 
