@@ -2,22 +2,26 @@
 title: Security and Identity
 sidebar_label: Security and Identity
 sidebar_position: 2
-last_verified: 2026-07-15
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 
 # Security and Identity
 
-Agents present a different security surface than traditional services. They make authorization decisions dynamically, call external tools with real credentials, and often act on behalf of end users through chains of sub-agents. This page covers the controls that address that surface: IAM scoping, AgentCore Identity, tenant isolation, prompt injection and tool abuse, secret handling, and audit logging.
+:::tip Who this is for
+This page is for security engineers and architects implementing identity, authorization, and data protection for production agents. If you are still setting up your first agent, the [Production Readiness](./production-readiness) checklist has the minimum controls you need before going live.
+:::
 
-For the official AgentCore documentation, see the [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
+Agents present a different security surface than traditional services. They make authorization decisions dynamically, call external tools with real credentials, and often act on behalf of end users through chains of sub-agents. This page covers the controls that address that surface: IAM scoping, [AgentCore Identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html), tenant isolation, prompt injection and tool abuse, secret handling, and audit logging.
 
 ---
 
 ## Least-Privilege IAM for Agents
 
 Every agent that runs on AgentCore gets an IAM execution role. That role is the boundary between what the agent is technically capable of doing and what it is allowed to do at the infrastructure level. A broad role is a standing misconfiguration: if the agent is ever manipulated or compromised, a narrow role limits the blast radius.
+
+Follow [IAM least-privilege best practices](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#grant-least-privilege) and the [AgentCore runtime security best practices](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-security-best-practices.html).
 
 ### Principles
 
@@ -83,17 +87,17 @@ Add explicit `Deny` statements for destructive actions the agent should never ta
 
 ### Tool Permissions vs. Agent Permissions
 
-The agent's IAM execution role covers what the agent can do in AWS directly. For calls that pass through AgentCore Gateway to external tools and MCP servers, Cedar policies (in AgentCore Policy) are the authorization layer, not IAM. Both layers need to be scoped: IAM for AWS API calls, Cedar for tool invocations through Gateway.
+The agent's IAM execution role covers what the agent can do in AWS directly. For calls that pass through AgentCore Gateway to external tools and MCP servers, [Cedar policies](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) (in AgentCore Policy) are the authorization layer, not IAM. Both layers need to be scoped: IAM for AWS API calls, Cedar for tool invocations through Gateway.
 
 ---
 
 ## AgentCore Identity
 
-AgentCore Identity provides workload identities for agents. A workload identity is a verifiable, platform-managed credential that is not tied to a human user and is not a shared service account. It lets downstream systems authenticate the specific agent making a call and supports propagating the acting end user's identity through agent hops.
+[AgentCore Identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html) provides [workload identities](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/understanding-agent-identities.html) for agents. A workload identity is a verifiable, platform-managed credential that is not tied to a human user and is not a shared service account. It lets downstream systems authenticate the specific agent making a call and supports propagating the acting end user's identity through agent hops.
 
 ### Inbound Authentication
 
-When a client calls an agent endpoint, AgentCore Identity validates the caller's token before the request reaches the agent runtime. Supported authentication methods include OAuth 2.0 bearer tokens and AWS SigV4 signatures. The configuration of which method is required for a given endpoint is part of the agent's identity configuration.
+When a client calls an agent endpoint, AgentCore Identity validates the caller's token before the request reaches the agent runtime. Supported authentication methods include [OAuth 2.0 JWT bearer tokens and AWS SigV4 signatures](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-oauth.html). The configuration of which method is required for a given endpoint is part of the agent's identity configuration.
 
 For customer-facing conversational agents, OAuth 2.0 with a JWT signed by your identity provider is the common pattern. For machine-to-machine workflow agents, SigV4 with service credentials is typical.
 
@@ -101,13 +105,13 @@ For customer-facing conversational agents, OAuth 2.0 with a JWT signed by your i
 
 When the agent calls an external API or tool through Gateway, AgentCore Identity brokers the outbound credential. The agent never sees the raw credentials; it requests a token for a named credential provider, and Gateway presents that token to the downstream service.
 
-This is the mechanism that keeps credentials out of agent code, system prompts, and tool definitions.
+This is the mechanism that keeps credentials out of agent code, system prompts, and tool definitions. See the [AgentCore runtime OAuth documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-oauth.html) for configuration details.
 
 ### User Identity Propagation
 
 In a multi-agent or multi-hop architecture, the original end user's identity must follow the request all the way through. If Agent A calls Agent B on behalf of user Alice, and Agent B only sees Agent A's identity, then every authorization decision Agent B makes is checked against Agent A, not Alice.
 
-AgentCore Identity's `GetWorkloadAccessTokenForUserId` API produces a token scoped to both the agent workload and the acting user. Passing that token to every downstream hop preserves the user identity through the chain.
+The [`GetWorkloadAccessToken` API](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/get-workload-access-token.html) produces a token scoped to both the agent workload and the acting user. Passing that token to every downstream hop preserves the user identity through the chain. For [on-behalf-of flows](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/on-behalf-of-token-exchange.html) where a delegated token must be exchanged for a narrower-scoped one, use the on-behalf-of token exchange endpoint.
 
 ```python
 from bedrock_agentcore.services.identity import IdentityClient
@@ -124,8 +128,8 @@ def call_downstream_tool(user_id: str, workload_name: str, tool_payload: dict) -
     return invoke_tool(tool_payload, auth_token=workload_token)
 ```
 
-:::tip
-Prefer passing a verified JWT as `user_token` over a plain `user_id` string when your identity provider issues one. AgentCore Identity validates the JWT's signature, issuer, and expiry. A plain `user_id` string is passed through without cryptographic verification.
+:::tip JWT validation in production
+The example above passes a `user_id` string, which the platform forwards without cryptographic verification. In production, prefer passing a verified JWT as the `user_token` parameter instead. When you pass a JWT, AgentCore Identity validates the token's signature, issuer, and expiry against your configured identity provider before issuing the workload token. This prevents spoofed user identifiers from propagating through the agent chain. See [`GetWorkloadAccessToken`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/get-workload-access-token.html) for the full parameter reference.
 :::
 
 ---
@@ -160,13 +164,13 @@ These tests should be part of the CI/CD pipeline, not a one-time manual check.
 
 ### Cedar Policies for Tenant-Scoped Tool Access
 
-AgentCore Policy Cedar rules can enforce tenant-scoped tool access. A policy that checks `context.tenant_id` against the resource's tenant attribute ensures that a compromised session for Tenant A cannot escalate to Tenant B's resources.
+[AgentCore Policy Cedar rules](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) can enforce tenant-scoped tool access. A policy that checks `context.tenant_id` against the resource's tenant attribute ensures that a compromised session for Tenant A cannot escalate to Tenant B's resources.
 
 ---
 
 ## Prompt Injection and Tool Abuse
 
-Prompt injection is an attack where malicious content in the agent's input (user message, retrieved document, tool output) instructs the agent to take actions outside its intended scope. Tool abuse is when the agent is manipulated into calling tools in unintended ways: calling a write tool when it should only read, or calling a tool with attacker-supplied arguments.
+Prompt injection is an attack where malicious content in the agent's input (user message, retrieved document, tool output) instructs the agent to take actions outside its intended scope. Tool abuse is when the agent is manipulated into calling tools in unintended ways: calling a write tool when it should only read, or calling a tool with attacker-supplied arguments. See [harness security](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-security.html) for additional platform-level mitigations.
 
 ### System Prompt Hardening
 
@@ -189,7 +193,7 @@ Bedrock Guardrails can be applied to agent inputs to block known injection patte
 
 ### Cedar Policies as a Tool-Abuse Backstop
 
-Cedar policies enforced at Gateway provide a deterministic backstop against tool abuse. Even if the agent is manipulated into attempting an unauthorized tool call, the Gateway will deny it if the Cedar policy does not permit that principal-action-resource combination.
+[Cedar policies enforced at Gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) provide a deterministic backstop against tool abuse. Even if the agent is manipulated into attempting an unauthorized tool call, the Gateway will deny it if the Cedar policy does not permit that principal-action-resource combination.
 
 This is why Cedar policies and Guardrails both need to be in place: Guardrails catch bad content before it influences the model's reasoning; Cedar policies catch unauthorized actions that a manipulated model tries to execute.
 
@@ -206,6 +210,8 @@ Define tools with the narrowest possible interface:
 ## Secret Handling
 
 Agents routinely need credentials to call external APIs, databases, and services. Mishandling those credentials is one of the highest-risk failure modes in agent deployments.
+
+For runtime credential management within the AgentCore execution environment, see [security credentials management (MMDS)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/security-credentials-management.html).
 
 ### What Not to Do
 
@@ -238,6 +244,8 @@ def get_api_credential(secret_name: str) -> str:
 
 An audit log answers: who did what, to what resource, when, and with what outcome. For agents, this requires capturing decisions the model makes, not just the API calls the agent runtime makes.
 
+See [data encryption and storage](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/data-encryption.html) for encryption-at-rest and encryption-in-transit requirements for audit log data.
+
 ### What to Log
 
 <div className="fancy-table">
@@ -263,6 +271,16 @@ Restrict access to audit logs. Audit logs for agents that process sensitive data
 ### CloudWatch Integration
 
 AgentCore Observability publishes traces and logs to CloudWatch. Enable CloudWatch Logs Insights for ad-hoc investigation and set up metric filters on error rate, policy deny rate, and unexpected tool call patterns. These metric filters form the basis of the anomaly alarms described in the production-readiness checklist.
+
+---
+
+## Further Reading
+
+- [AgentCore Identity Overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html)
+- [AgentCore Runtime Security Best Practices](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-security-best-practices.html)
+- [Cedar Policy Authorization Flow](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html)
+- [AgentCore Harness Security](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-security.html)
+- [Agentic AI Lens — AWS Well-Architected Framework](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html)
 
 ---
 
