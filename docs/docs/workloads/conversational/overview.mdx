@@ -55,7 +55,7 @@ For a side-by-side comparison with Workflow and Coding patterns, see the [Worklo
 | Strengths                                            | Design Considerations                                                        |
 |------------------------------------------------------|--------------------------------------------------------------------|
 | Real-time streaming for responsive UX                | Plan for per-session cost; use [scale-to-zero](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) and session timeouts to manage spend |
-| Multi-turn memory with session + long-term recall    | Long conversations need [context window strategies](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html) (summarization, truncation) |
+| Multi-turn memory with session + long-term recall    | Long conversations need [context window strategies](/docs/workloads/conversational/session-management) (summarization, truncation) |
 | End-user identity propagation (zero-trust)           | Requires IdP integration (Entra ID, Okta, Cognito) — plan this early         |
 | Natural fit for human-facing applications            | Human-facing surface needs [input guardrails](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-guardrails-in-policies.html) (content filters, prompt boundaries) |
 | Rich UI feedback (typing indicators, tool activity)  | [Session affinity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-sessions.html) means scaling per user; size infrastructure accordingly      |
@@ -74,7 +74,7 @@ For a side-by-side comparison with Workflow and Coding patterns, see the [Worklo
 | **Conversation context** | Session memory + long-term recall, namespaced per user for multi-turn continuity and cross-session personalization | [Memory](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html) |
 | **Execution environment** | Streaming-enabled runtime with session affinity and up to 8h lifecycle ¹ for real-time, stateful conversations | [Runtime](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html) |
 | **Input safety** | Content filters, topic boundaries, and PII redaction to protect against adversarial or off-topic inputs | [Guardrails](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-guardrails-in-policies.html) |
-| **Quality measurement** | `GoalSuccessRate`, `Helpfulness`, and `Correctness` evaluations to catch regressions before users feel them | [Evaluations](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/how-it-works-evaluations.html) |
+| **Quality measurement** | [`Builtin.GoalSuccessRate`, `Builtin.Helpfulness`, and `Builtin.Correctness`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) evaluations to catch regressions before users feel them | [Evaluations](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/how-it-works-evaluations.html) |
 | **Debugging and tracing** | Per-conversation traces with user context to diagnose "the agent gave me wrong info" | [Observability](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html) |
 | **Tool access** | User-scoped API access with [auth propagation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/on-behalf-of-token-exchange.html) so the agent calls external services as the user | [Gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) |
 
@@ -101,6 +101,10 @@ The [Conversational Agent Catalog](https://github.com/awslabs/agentcore-samples/
 
 Scaffold a conversational project from your terminal:
 
+:::info Verified CLI version
+The commands below were checked with AgentCore CLI `0.24.1` on July 22, 2026. Run `agentcore create --help` and `agentcore add memory --help` when using a different CLI version.
+:::
+
 ```bash
 # Create a harness with memory for multi-turn conversations
 agentcore create --name mychatagent --model-provider bedrock
@@ -112,6 +116,8 @@ agentcore dev
 
 Or choose a sample that matches your use case:
 
+<div className="fancy-table">
+
 | Use Case | Sample | Key Capability |
 |----------|--------|----------------|
 | General conversational AI | [Catalog default](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents) | Identity + Memory + Streaming |
@@ -119,9 +125,7 @@ Or choose a sample that matches your use case:
 | Operations collaboration (A2A) | [SRE/A2A Incident Response](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/A2A-multi-agent-incident-response) | Multi-agent, operations triage |
 | Browser/Evaluations/Optimization | [Market Trends Agent](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/market-trends-agent) | Browser use, data gathering, evaluation loops |
 
-:::caution Prototype, not production
-These samples create working prototypes. Before routing real users or production data, complete the [Production Readiness checklist](/docs/operate/production-readiness).
-:::
+</div>
 
 ---
 
@@ -176,3 +180,7 @@ These samples create working prototypes. Before routing real users or production
     <p>Reference architecture and recommended multi-agent patterns.</p>
   </Link>
 </div>
+
+:::warning
+Everything produced by the samples and commands on this page is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

@@ -51,7 +51,7 @@ Memory must be scoped so one user's recall never leaks to another:
 
 Define how long state persists and how it is removed:
 
-- Set `eventExpiryDuration` to enforce time-based retention. Events older than the boundary are automatically pruned, limiting storage growth and compliance exposure. See [Memory types](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html).
+- Set `eventExpiryDuration` to enforce time-based retention. Events older than the boundary are automatically pruned, limiting storage growth and compliance exposure. See [Create an AgentCore Memory](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-create-a-memory-store.html) for the expiry configuration.
 - Provide a user-initiated deletion path so users (or compliance processes) can remove stored context on demand.
 - Document which data is session-scoped (discarded on expiry) versus persistent (retained until explicit deletion) so operators can reason about storage growth and regulatory obligations.
 
@@ -69,11 +69,15 @@ Send partial results and status tokens to the client as the agent works. AgentCo
 
 Set explicit timeout limits on each tool invocation. A single slow or unresponsive tool should not block the entire conversation. Use tiered timeouts:
 
+<div className="fancy-table">
+
 | Tier | Tool type | Suggested timeout |
 |---|---|---|
 | Fast | Read-only lookups, key-value gets | 2–5 seconds |
 | Moderate | API writes, database queries | 10–15 seconds |
 | Hard ceiling | Any tool | Triggers graceful degradation rather than an unresponsive session |
+
+</div>
 
 ### Idempotent retries
 
@@ -89,11 +93,15 @@ Timeouts, policy denials, and tool failures are inevitable in production. Any us
 
 ### Error categories and suggested responses
 
+<div className="fancy-table">
+
 | Error Category | Typical Cause | User-Facing Response | Recovery Action |
 |---|---|---|---|
 | Timeout | Tool or model call exceeds deadline | "This is taking longer than expected. I'll keep trying — or you can ask again in a moment." | Apply idempotent retry with exponential backoff; surface progress if streaming is available |
 | Policy denial | Cedar policy rejects the requested action | "I'm not able to perform that action with your current permissions." | Log the denied principal/action/resource tuple for audit; suggest an alternative action or escalation path |
 | Tool failure | Gateway tool returns an error or is unavailable | "I wasn't able to complete that step. Let me try a different approach." | Fall back to an alternative tool or degrade gracefully; never expose raw error payloads to the user |
+
+</div>
 
 ### Design principles
 

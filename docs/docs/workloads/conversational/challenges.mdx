@@ -2,12 +2,16 @@
 title: Production Challenges
 sidebar_label: Production Challenges
 sidebar_position: 6
-last_verified: 2026-07-20
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 
 # Production Challenges for Conversational Agents
+
+:::tip Who this is for
+Teams with a working conversational prototype preparing to serve real users. If you're still choosing an architecture, start with the [Conversational overview](/docs/workloads/conversational/overview) or [Patterns & Architecture](/docs/workloads/conversational/patterns-and-architecture).
+:::
 
 Conversational agents are harder to run in production than they look. The combination of long-lived sessions, real user identity, tool-calling capability, persistent memory, and multi-tenant infrastructure creates a distinct class of failure modes that don't appear in simple LLM API wrappers.
 
@@ -19,7 +23,7 @@ This page covers the eight challenges that most commonly catch teams off guard. 
 
 Multi-turn sessions accumulate history. Each turn appends the user message, the agent's response, tool calls, and injected memory — and naively replaying the full transcript eventually exceeds the model's context window; the [Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) frames this as cognitive pipeline optimization.
 
-**Why it matters here:** Unlike single-turn agents, conversational agents are designed to accumulate context. A support session that lasts an hour can easily hit context limits. The dangerous part is *how* the overflow is handled: most inference stacks silently truncate the oldest tokens first, which means your system prompt and safety instructions disappear before any conversation history does.
+**Why it matters here:** Unlike single-turn agents, conversational agents are designed to accumulate context. A support session that lasts an hour can easily hit context limits. The dangerous part is *how* the overflow is handled: if your serving stack truncates the oldest tokens first and your system prompt isn't pinned outside the sliding window, your safety instructions disappear before any conversation history does. Verify your stack's truncation behavior rather than assuming the system prompt is protected.
 
 **What breaks:**
 - Safety instructions get truncated → agent behaves as if they don't exist
@@ -185,7 +189,7 @@ Conversational agents that work well at launch can degrade silently. Model updat
 
 **What to do:**
 - **Pre-deployment:** Run adversarial test suites (prompt injection, role confusion, context manipulation) as part of CI. Benchmark on labeled multi-turn scenarios. Use LLM-as-judge evaluation for response quality where ground truth is unavailable.
-- **Post-deployment:** Log all prompts, tool calls, and responses (with PII controls applied); monitor guardrail metrics (blocking and masking rates) for trend changes; track GoalSuccessRate, Helpfulness, and Correctness; collect explicit user feedback
+- **Post-deployment:** Log all prompts, tool calls, and responses (with PII controls applied); monitor guardrail metrics (blocking and masking rates) for trend changes; track [`Builtin.GoalSuccessRate`, `Builtin.Helpfulness`, and `Builtin.Correctness`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html); collect explicit user feedback
 - Set up alerts on anomalies: unusual tool invocation patterns, spikes in error rates, sudden changes in guardrail blocking rates
 - Schedule periodic red-teaming by humans with domain expertise — automated tests don't find everything
 - See the [Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) for testing frameworks and [AWS Prescriptive Guidance: Input Validation Best Practices for Agentic AI](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/best-practices-input-validation.html) for validation guidance
