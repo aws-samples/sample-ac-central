@@ -2,7 +2,7 @@
 title: Observability & Evaluations
 sidebar_label: Observability & Evaluations
 sidebar_position: 5
-last_verified: 2026-07-15
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
@@ -12,6 +12,10 @@ These are target-state architecture patterns for agent observability and evaluat
 :::
 
 # Observability & Evaluations
+
+:::tip Who this is for
+Teams instrumenting observability and evaluation pipelines for production agents — the observe-evaluate-optimize loop, built-in evaluator IDs, evaluation modes, and how to close the feedback loop with CI/CD and alerting.
+:::
 
 Agents are non-deterministic. The same input can produce different outputs, take different reasoning paths, and invoke different tools. Traditional monitoring (CPU, memory, error rates) is necessary but insufficient. Agent platforms need an **observe → evaluate → optimize** loop that continuously measures quality, safety, and performance. This page covers what AgentCore Observability and Evaluations provide natively, how to close the loop with adjacent AWS services, and which actions (such as rollback) remain customer-built patterns.
 
@@ -61,9 +65,9 @@ Automatically assess agent behavior against defined quality, safety, and perform
 
 | Dimension       | What's Measured                                          | Example Metrics                                          |
 | --------------- | -------------------------------------------------------- | -------------------------------------------------------- |
-| **Quality**     | Response accuracy, relevance, completeness, groundedness | Faithfulness score, answer relevance, hallucination rate |
-| **Safety**      | Guardrail compliance, content policy adherence           | PII leak rate, topic violation count, toxicity score     |
-| **Performance** | Latency, throughput, token efficiency                    | P95 latency, tokens per task, tool call efficiency       |
+| **Quality**     | Response accuracy, relevance, completeness, groundedness | [`Builtin.Faithfulness`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html), `Builtin.ResponseRelevance`, `Builtin.Correctness`, `Builtin.GoalSuccessRate` |
+| **Safety**      | Guardrail compliance, content policy adherence           | `Builtin.Harmfulness`, PII leak rate, topic violation count |
+| **Performance** | Latency, throughput, token efficiency                    | P95 latency, tokens per task, `Builtin.ToolSelectionAccuracy`, tool call efficiency |
 | **Cost**        | Token consumption, compute cost, tool invocation cost    | Cost per conversation, cost per task completion          |
 | **Drift**       | Behavior change over time, model degradation             | Quality score trend, response distribution shift         |
 
@@ -137,8 +141,8 @@ A full evaluation framework measures agents across five dimensions:
 
 | Dimension       | Offline                | On-Demand             | Online             | Example Evaluators                       |
 | --------------- | ---------------------- | --------------------- | ------------------ | ---------------------------------------- |
-| **Quality**     | ✅ Regression test      | ✅ A/B comparison      | ✅ Sampling         | Faithfulness, relevance, completeness    |
-| **Safety**      | ✅ Adversarial inputs   | ✅ Red team results    | ✅ Guardrail events | Toxicity, PII, topic violations          |
+| **Quality**     | ✅ Regression test      | ✅ A/B comparison      | ✅ Sampling         | [`Builtin.Faithfulness`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html), `Builtin.ResponseRelevance`, `Builtin.Correctness` |
+| **Safety**      | ✅ Adversarial inputs   | ✅ Red team results    | ✅ Guardrail events | `Builtin.Harmfulness`, PII detection, topic violations |
 | **Performance** | ✅ Latency benchmarks   | ✅ Load testing        | ✅ P95/P99 tracking | End-to-end latency, token efficiency     |
 | **Cost**        | ✅ Cost projection      | ✅ Budget analysis     | ✅ Spend tracking   | Cost per task, cost vs. quality tradeoff |
 | **Operational** | ✅ Error rate baselines | ✅ Incident postmortem | ✅ Availability     | Success rate, retry rate, timeout rate   |
@@ -148,3 +152,12 @@ A full evaluation framework measures agents across five dimensions:
 :::info
 Start with **Quality** and **Safety** evaluations. Add Performance, Cost, and Operational dimensions as your agent fleet matures and you need optimization signals.
 :::
+
+---
+
+## Further Reading
+
+- [AgentCore Evaluators](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) — complete list of `Builtin.*` evaluator IDs with descriptions
+- [How Evaluations Work](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/how-it-works-evaluations.html) — offline, on-demand, and online evaluation modes
+- [Configure Observability](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html) — setting up OTLP traces, metrics, and logs
+- [Well-Architected Agentic AI Lens — AgentOps pillar](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentops06.html) — operational excellence guidance for agentic workloads

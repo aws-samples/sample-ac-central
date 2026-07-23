@@ -2,7 +2,7 @@
 title: Platform Powered by Bedrock AgentCore
 sidebar_label: Powered by AgentCore
 sidebar_position: 3
-last_verified: 2026-07-15
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
@@ -12,6 +12,10 @@ These mappings describe target-state architecture patterns for scaling agent pla
 :::
 
 # Platform Powered by Bedrock AgentCore
+
+:::tip Who this is for
+Builders exploring which AgentCore capabilities apply to their agent design — understanding which platform layer maps to which managed service before committing to an architecture.
+:::
 
 Every layer of the agent platform stack maps to managed services in Amazon Bedrock AgentCore and the broader AWS ecosystem. This eliminates undifferentiated heavy lifting and lets platform teams focus on governance, developer experience, and business value.
 
@@ -31,10 +35,10 @@ Labels used throughout this page:
 |---|---|---|---|
 | **AI Gateway** | AgentCore Gateway | Unified entry point, MCP tool federation, JWT auth, per-tenant throttling, routing | AgentCore-native |
 | **Registry & Discovery** | AWS Agent Registry + Bedrock Model Catalog | Agent catalog, versioning, capability discovery, model selection | Preview |
-| **Agent Runtime** | AgentCore Runtime | Sandboxed containers, micro-VM isolation, long-running tasks, auto-scaling | AgentCore-native |
+| **Agent Runtime** | AgentCore Runtime | Sandboxed containers, micro-VM isolation, long-running tasks, auto-scaling ([how it works](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html)) | AgentCore-native |
 | **Memory & Context** | AgentCore Memory + OpenSearch + S3 Vectors + Knowledge Bases | Short/long-term memory, vector search, RAG, session context | AgentCore-native + Adjacent AWS |
 | **Observability** | AgentCore Observability | OTLP traces, metrics, logs, online evaluation, guardrail events | AgentCore-native |
-| **AgentOps** | AgentCore Evaluations + CI/CD tools | Offline/online evals, quality gates, drift detection; A/B routing is a customer-built pattern (see [Agent Ops](./agent-ops)) | AgentCore-native + Customer-built |
+| **AgentOps** | AgentCore Evaluations + AgentCore A/B Testing + CI/CD tools | Offline/online evals, quality gates, drift detection; native A/B testing with Gateway-driven weighted traffic splitting (see [A/B testing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing.html) and [Agent Ops](./agent-ops)) | AgentCore-native + Adjacent AWS |
 
 </div>
 
@@ -46,9 +50,9 @@ Labels used throughout this page:
 
 | Platform Pillar | AgentCore / AWS Service | What It Provides | Label |
 |---|---|---|---|
-| **Security - Identity** | AgentCore Identity + IAM | Agent identity, OAuth/OIDC brokering, token management | AgentCore-native |
+| **Security - Identity** | AgentCore Identity + IAM | Agent identity, OAuth/OIDC brokering, token management ([identity docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html)) | AgentCore-native |
 | **Security - Guardrails** | Bedrock Guardrails | Input/output filtering, PII redaction, topic denial, grounded-response enforcement (probabilistic scoring) | Adjacent AWS |
-| **Security - Policy** | AgentCore Policy + Cedar | Fine-grained access control, declarative authorization policies | Preview |
+| **Security - Policy** | AgentCore Policy + Cedar | Fine-grained access control, declarative authorization policies ([gateway docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html)) | Preview |
 | **Security - Access** | IAM + AWS Organizations SCPs | Role-based access, service control policies, permission boundaries | Adjacent AWS |
 | **Governance - Registry** | AWS Agent Registry | Lifecycle management, approval workflows, version history | Preview |
 | **Governance - Audit** | CloudWatch + CloudTrail | Immutable audit logs, API activity recording, compliance evidence | Adjacent AWS |
@@ -137,3 +141,13 @@ AgentCore Runtime is framework-agnostic. Bring your preferred orchestration fram
 :::tip
 Strands Agents SDK offers the deepest AgentCore integration with zero-config deployment to AgentCore Runtime. Other frameworks require a container image but benefit from the same platform services (Gateway, Memory, Observability, Identity).
 :::
+
+---
+
+## Further Reading
+
+- [AgentCore Runtime — How It Works](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html) — sandboxed containers, versioning, and scaling
+- [AgentCore Identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html) — OAuth/OIDC brokering and workload identity
+- [AgentCore Memory](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html) — short and long-term memory, session context
+- [AgentCore Gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) — MCP tool federation, JWT auth, per-tenant throttling
+- [A/B Testing Overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing.html) — native Gateway-driven weighted traffic splitting

@@ -136,6 +136,8 @@ A consolidated index of authoritative external links used throughout this site. 
 | Topic | URL | What it covers |
 |---|---|---|
 | Policy authorization flow | [policy-authorization-flow.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) | How Cedar policies authorize agent actions |
+| Policy enforcement modes | [policy-enforcement-modes.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-enforcement-modes.html) | LOG_ONLY vs ENFORCE at engine and per-policy level |
+| Testing a policy | [policy-test-a-policy.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-test-a-policy.html) | Shadow-test policies in LOG_ONLY mode before enforcing |
 | Policy getting started | [policy-getting-started.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-getting-started.html) | Deploy a gateway with Cedar policy enforcement |
 | Guardrails in policies | [policy-guardrails-in-policies.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-guardrails-in-policies.html) | Content filtering, PII detection, prompt injection defense |
 | Bedrock Guardrails | [guardrails.html](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) | Bedrock-level content safety controls |
@@ -154,6 +156,23 @@ A consolidated index of authoritative external links used throughout this site. 
 | Evaluations overview | [how-it-works-evaluations.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/how-it-works-evaluations.html) | Offline and online evaluation of agent quality |
 | Evaluators (built-in and custom) | [evaluators.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) | Built-in evaluator catalog (`Builtin.Helpfulness`, `Builtin.GoalSuccessRate`, trajectory match family) and custom evaluators |
 | On-demand evaluation (CLI + SDK) | [getting-started-on-demand.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-on-demand.html) | `agentcore run eval`, the `bedrock_agentcore_starter_toolkit` Evaluation SDK, and the boto3 Evaluate API |
+
+</div>
+
+---
+
+## A/B Testing
+
+<div className="fancy-table">
+
+| Topic | URL | What it covers |
+|---|---|---|
+| A/B testing overview | [ab-testing.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing.html) | Native Gateway-driven weighted traffic splitting between agent variants |
+| Config-bundle A/B testing | [ab-testing-config-bundle.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-config-bundle.html) | Prompt, tool, and model configuration variant testing on the same runtime |
+| Target-based A/B testing | [ab-testing-target-based.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-target-based.html) | Cross-endpoint traffic splitting between different runtime deployments |
+| A/B testing prerequisites | [ab-testing-prereqs.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-prereqs.html) | SDK version, online evaluation, and Gateway requirements |
+| Agent Runtime versioning | [agent-runtime-versioning.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agent-runtime-versioning.html) | Immutable versions, endpoint promotion, and blue-green deployments |
+| Gateway rules (weighted routing) | [gateway-rules-examples.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-rules-examples.html) | Create gateway rules for weighted config-bundle or target-based splits |
 
 </div>
 
