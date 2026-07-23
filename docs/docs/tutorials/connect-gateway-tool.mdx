@@ -13,23 +13,31 @@ This tutorial describes a prototype. Before routing real users or data to it, co
 
 **AgentCore-native.** AgentCore Gateway presents Lambda, API, and MCP capabilities as tools behind one managed MCP endpoint. Use it when agents need controlled access to shared or external capabilities without embedding every integration in agent code.
 
-## When to Use
-
-### When to Add Gateway Tools
-
-| Workload | Add Gateway tools when | Prefer a co-located tool when |
-| --- | --- | --- |
-| Conversational | User requests need approved, user-context access to external systems. | The action is local, read-only, and unique to one agent. |
-| Workflow | Several workflows need the same audited integration or API boundary. | A single workflow owns a small, deterministic helper. |
-| Multi-agent | Teams need a reusable catalog with common authentication and authorization. | Sharing and independent lifecycle management add no value. |
-
 ## Why It Matters
 
-A Gateway gives agents a reusable, controlled boundary for shared services while tool owners evolve integrations independently.
+Gateway-connected tools extend an agent's capabilities beyond its built-in knowledge, enabling real-world actions through external services while maintaining authorization boundaries. A Gateway gives agents a reusable, controlled boundary for shared services while tool owners evolve integrations independently.
+
+## When to Use
+
+### Workload Decision Table
+
+| Condition | Recommendation | Rationale |
+| --- | --- | --- |
+| Agent needs controlled access to external APIs or shared services | Add Gateway tool | Gateway provides managed authorization boundaries and catalog reuse across agents |
+| Multiple agents or workflows share the same integration | Add Gateway tool | Common authentication, authorization, and lifecycle management reduce duplication |
+| Teams need a reusable tool catalog with Cedar-based authorization | Add Gateway tool | Policy-controlled access lets tool owners evolve independently of agent code |
+| User requests require audited, user-context access to external systems | Add Gateway tool | Gateway enforces per-request authorization with principal context |
+| Tool is local, read-only, and unique to one agent | Prefer co-located tool | No benefit from shared catalog or external authorization boundary |
+| A single workflow owns a small, deterministic helper | Prefer co-located tool | Sharing adds lifecycle and network overhead without value |
+| Sharing and independent lifecycle management add no value | Prefer co-located tool | Co-located tools avoid Gateway latency and configuration for simple cases |
 
 ## Official Tutorial
 
 For setup, target registration, deployment, and agent connection, follow the [official AWS Gateway quick start](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-quick-start.html).
+
+:::caution Prototype path
+The official tutorial above creates prototype resources. Apply the [Production Readiness checklist](/docs/operate/production-readiness) before routing real traffic.
+:::
 
 ## What to Watch Out For
 

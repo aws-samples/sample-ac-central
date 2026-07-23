@@ -13,21 +13,27 @@ This tutorial creates a prototype, not a production-ready system. Before routing
 
 # Add Memory to Your Agent
 
-## When to Use
-
-| Workload | Add memory when | Prefer another state mechanism when |
-|---|---|---|
-| Conversational assistant | The same authenticated user returns and benefits from recalled preferences, decisions, or prior context. | The context is only needed during one session. |
-| Case-management or workflow agent | A later interaction must understand a user's prior case history or agent-generated summary. | A durable, auditable business record drives the decision. Keep that record in its source system. |
-| Shared or multi-tenant agent | You can derive a stable, verified tenant-and-user identity for every request. | You cannot reliably establish tenant and user boundaries. Resolve identity first. |
-
 ## Why It Matters
 
-Memory reduces repeated onboarding and lets an agent adapt to prior interactions, while its strategies can turn conversation events into recallable facts or summaries. It is a retrieval layer, not an authoritative database: store transactional, regulated, or audit-critical data in the system of record and give the agent only the context it needs.
+Properly scoped memory transforms one-shot interactions into continuous relationships. Memory reduces repeated onboarding and lets an agent adapt to prior interactions, while its strategies can turn conversation events into recallable facts or summaries. It is a retrieval layer, not an authoritative database: store transactional, regulated, or audit-critical data in the system of record and give the agent only the context it needs.
+
+## When to Use
+
+| Condition | Recommendation | Rationale |
+|-----------|---------------|-----------|
+| Agent needs recall across sessions (returning users, prior context) | Add Memory | Users expect continuity; preferences and decisions carry forward across interactions |
+| Single-turn Q&A only | Prefer session-only context | No persistence overhead; context is discarded after the response |
+| Data must be authoritative (audit trails, regulated records) | Prefer system of record | Memory is a recall layer, not a source of truth; transactional data needs durability guarantees |
+| Multi-tenant agent with verified identity | Add Memory | Stable actor IDs enable safe namespace isolation per tenant and user |
+| Cannot establish tenant or user boundaries | Defer (resolve identity first) | Memory without isolation risks namespace contamination across users |
 
 ## Official AWS Tutorial
 
 For setup, strategy selection, and integration examples, follow the [Amazon Bedrock AgentCore Memory documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html). It is the canonical configuration guide; return here to decide how memory fits your workload.
+
+:::caution Prototype path
+The official tutorial above creates prototype resources. Apply the [Production Readiness checklist](/docs/operate/production-readiness) before routing real traffic.
+:::
 
 ## What to Watch Out For
 
