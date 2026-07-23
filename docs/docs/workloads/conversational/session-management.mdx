@@ -28,7 +28,7 @@ Conversational agents need stateful, long-lived sessions, not the request/respon
 </div>
 
 :::note Architecture guidance
-Session duration, idle timeout defaults, and reconnect behavior are architectural properties that may vary by configuration and SDK version. Consult the [AgentCore developer guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/) for current limits and configurable values before designing against specific numbers.
+Session duration, idle timeout defaults, and reconnect behavior are architectural properties that may vary by configuration and SDK version. Consult the [AgentCore service quotas](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/bedrock-agentcore-limits.html) for current limits and configurable values before designing against specific numbers.
 :::
 
 ---
@@ -49,7 +49,7 @@ Real users close laptops, switch devices, and come back hours later. AgentCore i
 
 1. **Durable state in AgentCore Memory** — facts and summaries stored in memory survive client disconnects and cold restarts because they are persisted in the memory service, not only in the microVM.
 2. **Resume with the same session ID** — passing the same `runtimeSessionId` on a new invoke allows the agent to retrieve prior context from memory and continue the conversation.
-3. **Timeout behavior** — after the idle timeout (configurable, consult the [AgentCore developer guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/) for current defaults and limits), the microVM terminates. State held only in the microVM process is not recoverable; state committed to AgentCore Memory is.
+3. **Timeout behavior** — after the idle timeout (configurable, consult the [AgentCore service quotas](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/bedrock-agentcore-limits.html) for current defaults and limits), the microVM terminates. State held only in the microVM process is not recoverable; state committed to AgentCore Memory is.
 
 ---
 
@@ -97,7 +97,7 @@ Conversational agents live or die on perceived responsiveness. AgentCore streams
 | Token-by-token streaming | SSE from the `/invocations` endpoint for progressive response delivery.             |
 | Tool-activity feedback   | During tool calls, emit status events so the UI shows "Looking up account…"         |
 | Partial response display | Stream the answer while tools run in parallel behind the scenes.                    |
-| WebSocket support        | Bidirectional streaming via WebSocket for real-time UX — verify endpoint availability and configuration in the [AgentCore developer guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/). |
+| WebSocket support        | Bidirectional streaming via WebSocket for real-time UX — verify endpoint availability and configuration in the [AgentCore WebSocket protocol contract](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-http-protocol-contract.html). |
 
 </div>
 
@@ -137,7 +137,7 @@ Design checklist before enabling long-term memory in a multi-user deployment:
 
 1. `actor_id` is derived from a validated identity claim — not a client-supplied header, not a default fallback, not a constant.
 2. `session_id` is unique per conversation — not reused across users or shared across channels without intent.
-3. If you use [AgentCore Identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/), the validated token claim is the source of truth for both values.
+3. If you use [AgentCore Identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html), the validated token claim is the source of truth for both values.
 4. Test isolation explicitly: create two users, store a fact as User A, query as User B, and confirm User B cannot retrieve User A's fact.
 
 ---
@@ -149,7 +149,7 @@ Conversational memory stores information about users across sessions. Before ena
 :::note Data governance checklist
 - **Tenant boundaries** — verify that your `actor_id` and namespace design prevent cross-tenant access (see above).
 - **Retention** — configure `eventExpiryDuration` to the shortest period your product requires. Retaining data longer than necessary increases privacy risk.
-- **Deletion and forgetting** — plan for user deletion requests (e.g., GDPR right to erasure). Confirm your deletion workflow against the [AgentCore Memory documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
+- **Deletion and forgetting** — plan for user deletion requests (e.g., GDPR right to erasure). Confirm your deletion workflow against the [AgentCore Memory documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html).
 - **Sensitive data minimization** — avoid storing raw PII, credentials, or regulated data (PHI, PCI) as memory events. Extract only the facts the agent needs to function.
 - **User consent** — if your deployment is user-facing, disclose that the agent retains information across sessions and give users a way to clear their memory.
 :::

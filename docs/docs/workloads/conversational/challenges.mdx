@@ -99,7 +99,7 @@ Conversational agents act on behalf of a specific user. If the agent's permissio
 - Use AgentCore's [policy authorization flow](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) — Cedar evaluates the user's `OAuthUser` principal, not the agent's service identity
 - Never use fallback or default identities in production; require verified identity before accessing durable state
 - Audit system prompt claims against actual permissions — if the model is told it has admin authority, ensure the underlying permissions actually restrict it
-- See [IAM Identity-Based Policy Examples for Bedrock Agents](https://docs.aws.amazon.com/bedrock/latest/userguide/security_iam_id-based-policy-examples-agent.html)
+- See [IAM Identity-Based Policy Examples for AgentCore](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/security_iam_id-based-policy-examples.html)
 
 ---
 
@@ -204,7 +204,7 @@ The mitigation strategy is layered: enforce at the infrastructure and policy lev
 
 <div className="tile-grid">
   <Link to="/docs/workloads/conversational/enterprise-features" className="tile-card">
-    <div className="tile-heading"><h3>Enterprise Features →</h3></div>
+    <div className="tile-heading"><h3>Architecture Guidance →</h3></div>
     <p>Identity, memory, guardrails, and gateway configuration in depth.</p>
   </Link>
 

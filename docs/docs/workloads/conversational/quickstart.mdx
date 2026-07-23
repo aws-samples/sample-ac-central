@@ -5,423 +5,93 @@ sidebar_position: 2
 last_verified: 2026-07-16
 ---
 
-:::info Versions
-Examples built and verified end to end with **AgentCore CLI** `@aws/agentcore@0.24.1`. Commands or APIs may differ in other versions.
-:::
-
-:::caution Prototype, not production
-This tutorial creates a prototype, not a production-ready system. Before routing real users or data to it, work through the [Production Readiness checklist](/docs/operate/production-readiness).
-:::
-
 import Link from '@docusaurus/Link';
+import CanonicalRecommendation from '@site/src/components/CanonicalRecommendation';
 
 # Quick Start: Conversational Agent
 
-Deploy a working chat agent with memory in under 10 minutes.
-
-| | |
-|---|---|
-| **Who this is for** | Developers building conversational or customer-facing agents |
-| **Time** | ~10 minutes |
-| **What you'll build** | A chat agent with account lookup and optional cross-session memory |
-| **Safety level** | Creates real AWS resources; uses simulated account data; no external write actions |
+Find the right conversational sample for your use case, understand the risks, and get to working code fast.
 
 ---
 
-## 5 Steps to Deploy
-
-<div className="fancy-table fancy-table--auto-first">
-
-| Step | Action          | Command                                             |
-|------|-----------------|-----------------------------------------------------|
-| 1    | Install CLI     | `npm install -g @aws/agentcore@0.24.1`              |
-| 2    | Create project  | `agentcore create` with the options below           |
-| 3    | Install deps    | `cd app/ChatAgent && uv venv && uv sync && cd ../..` |
-| 4    | Develop Locally | `agentcore dev --no-browser`                        |
-| 5    | Deploy          | `agentcore deploy`                                  |
-
-</div>
-
-### Create the project and agent
-
-Run this command from the directory where you want the project folder to be created. The explicit names ensure that the generated paths match the rest of this quickstart: `chatagent/app/ChatAgent/main.py` and `chatagent/app/ChatAgent/pyproject.toml`.
-
-```bash
-npm install -g @aws/agentcore@0.24.1
-agentcore --version
-agentcore create \
-  --name ChatAgent \
-  --project-name chatagent \
-  --framework Strands \
-  --model-provider Bedrock \
-  --memory longAndShortTerm \
-  --build CodeZip \
-  --language Python \
-  --protocol HTTP \
-  --network-mode PUBLIC
-cd chatagent
-```
-
-The `--name ChatAgent` value controls the generated agent directory under `app/`, while `--project-name chatagent` controls the project directory. The project name must start with a letter, contain only alphanumeric characters, and be no more than 23 characters long. The `longAndShortTerm` memory option matches the `ChatAgentMemory` configuration shown below.
-
-See the [official AgentCore CLI project creation guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-get-started-cli.html) for the interactive wizard and current command options.
-
-### Install Python dependencies
-
-The generated project already declares `strands-agents` and `bedrock-agentcore` as dependencies in `app/ChatAgent/pyproject.toml`. Create the environment and install them:
-
-```bash
-cd app/ChatAgent
-uv venv && uv sync
-cd ../..
-```
-
----
-
-## Complete Working Example
-
-A conversational agent with memory that remembers user preferences across sessions. Copy this into `app/ChatAgent/main.py`:
-
-```python
-"""Conversational agent with memory and a lookup tool."""
-
-import logging
-import os
-
-from strands import Agent, tool
-
-from bedrock_agentcore.memory.integrations.strands.config import AgentCoreMemoryConfig
-from bedrock_agentcore.memory.integrations.strands.session_manager import (
-    AgentCoreMemorySessionManager,
-)
-from bedrock_agentcore.runtime import BedrockAgentCoreApp
-
-log = logging.getLogger(__name__)
-app = BedrockAgentCoreApp()
-
-
-@tool
-def lookup_account(account_id: str) -> dict:
-    """Look up account details by ID.
-
-    Args:
-        account_id: The customer account identifier.
-
-    Returns:
-        Account information including name, plan, and status.
-    """
-    # Replace with real API call in production
-    accounts = {
-        "ACC-001": {"name": "Acme Corp", "plan": "Enterprise", "status": "active"},
-        "ACC-002": {"name": "Startup Inc", "plan": "Growth", "status": "active"},
-    }
-    account = accounts.get(account_id)
-    if not account:
-        return {"error": f"Account {account_id} not found"}
-    return {
-        "status": "success",
-        "content": [{"text": str(account)}],
-    }
-
-
-SYSTEM_PROMPT = """You are a helpful customer support assistant.
-You can look up account information when users provide an account ID.
-Be concise, friendly, and accurate. If you don't know something, say so."""
-
-
-RUNTIME_ACTOR_ID_HEADER = "x-amzn-bedrock-agentcore-runtime-custom-actor-id"
-
-
-def get_actor_id(context) -> str | None:
-    """Get the actor ID from an allowlisted Runtime header or local config."""
-    headers = getattr(context, "request_headers", None) or {}
-    normalized_headers = {str(name).lower(): value for name, value in headers.items()}
-    return normalized_headers.get(RUNTIME_ACTOR_ID_HEADER) or os.environ.get(
-        "AGENTCORE_ACTOR_ID"
-    )
-
-
-@app.entrypoint
-def invoke(payload, context):
-    """Agent entrypoint - called by AgentCore Runtime on each request."""
-    prompt = payload.get("prompt", "Hello!")
-
-    # RequestContext provides session_id and allowlisted request_headers. Deployed
-    # callers pass a stable actor ID in the custom header; local dev falls back
-    # to the explicitly configured actor ID. Validate identity in production.
-    session_id = context.session_id or os.environ.get("AGENTCORE_SESSION_ID")
-    actor_id = get_actor_id(context)
-
-    session_manager = None
-    try:
-        memory_id = os.environ.get("BEDROCK_AGENTCORE_MEMORY_ID") or os.environ.get(
-            "MEMORY_CHATAGENTMEMORY_ID"
-        )
-        region = os.environ.get("AWS_REGION")
-        if memory_id and region and session_id and actor_id:
-            memory_config = AgentCoreMemoryConfig(
-                memory_id=memory_id,
-                session_id=session_id,
-                actor_id=actor_id,
-            )
-            session_manager = AgentCoreMemorySessionManager(
-                memory_config,
-                region_name=region,
-            )
-        elif memory_id:
-            log.warning(
-                "Memory configured but identity is incomplete; pass "
-                "X-Amzn-Bedrock-AgentCore-Runtime-Custom-Actor-Id when deployed "
-                "or set AGENTCORE_ACTOR_ID and AGENTCORE_SESSION_ID for local dev"
-            )
-    except Exception:
-        log.exception("Memory unavailable (running without it)")
-
-    agent = Agent(
-        model="global.anthropic.claude-sonnet-4-5-20250929-v1:0",
-        system_prompt=SYSTEM_PROMPT,
-        tools=[lookup_account],
-        session_manager=session_manager,
-    )
-
-    result = agent(prompt)
-    return {"response": result.message}
-
-
-if __name__ == "__main__":
-    app.run()
-```
-
-:::warning Identity in multi-user deployments
-`RequestContext` exposes `session_id` and the allowlisted `request_headers`. The deployed test passes the Memory actor ID in the `X-Amzn-Bedrock-AgentCore-Runtime-Custom-Actor-Id` header, which must be listed in the runtime's `requestHeaderAllowlist` (see Configuration below). The CLI's `--user-id` option maps to `runtimeUserId`, which AgentCore Identity consumes for OAuth token flows — it is never forwarded to your agent code. The quickstart falls back to `AGENTCORE_ACTOR_ID` for local testing. Because the header value is caller-supplied, validate it against a verified identity source before production use — for example, validated JWT claims from [AgentCore Identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/) or your own auth layer. Never use one shared actor ID for multiple users; Memory is namespaced by `actor_id`, so a shared value would allow users to share memory.
-:::
-
----
-
-## Configuration
-
-### `agentcore/agentcore.json`
-
-The following configuration matches the `agentcore create` output for project `chatagent` and agent `ChatAgent`, with one addition: `requestHeaderAllowlist` forwards the custom actor header to your agent code for the deployed Memory test. Add that field to your generated file and run `agentcore deploy` to apply it:
-
-```json
-{
-  "$schema": "https://schema.agentcore.aws.dev/v1/agentcore.json",
-  "name": "chatagent",
-  "version": 1,
-  "managedBy": "CDK",
-  "tags": {
-    "agentcore:created-by": "agentcore-cli",
-    "agentcore:project-name": "chatagent"
-  },
-  "runtimes": [
+<CanonicalRecommendation
+  defaultSource={{
+    url: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents",
+    title: "Conversational Agent Catalog",
+    description: "Browse maintained conversational agent samples with identity, memory, and streaming built in. Each sample includes deployment instructions, configuration, and test scripts maintained by the AgentCore team."
+  }}
+  selectionCriteria={[
+    "A human is the primary trigger — they type a message and expect a real-time response",
+    "Multi-turn conversation state matters — the agent should remember what was said",
+    "You need identity-scoped memory so each user has their own conversation context",
+    "The agent acts on behalf of a specific user with their permissions (OAuth bearer tokens)",
+    "The primary output is natural language directed at a human, optionally with tool results"
+  ]}
+  fitRationale="The conversational catalog provides ready-to-deploy samples that handle the hardest parts of conversational AI: identity propagation, session memory, streaming responses, and tool orchestration. Start here and customize rather than building from scratch."
+  alternatives={[
     {
-      "name": "ChatAgent",
-      "build": "CodeZip",
-      "entrypoint": "main.py",
-      "codeLocation": "app/ChatAgent/",
-      "runtimeVersion": "PYTHON_3_14",
-      "networkMode": "PUBLIC",
-      "protocol": "HTTP",
-      "requestHeaderAllowlist": [
-        "X-Amzn-Bedrock-AgentCore-Runtime-Custom-Actor-Id"
-      ]
-    }
-  ],
-  "memories": [
+      condition: "You need an auth-scoped helpdesk with customer identity propagation and support-specific tooling",
+      destination: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/customer-support-assistant-vpc",
+      label: "Customer Support Assistant (VPC)"
+    },
     {
-      "name": "ChatAgentMemory",
-      "eventExpiryDuration": 30,
-      "strategies": [
-        {
-          "type": "SEMANTIC",
-          "namespaceTemplates": [
-            "/users/{actorId}/facts"
-          ]
-        },
-        {
-          "type": "USER_PREFERENCE",
-          "namespaceTemplates": [
-            "/users/{actorId}/preferences"
-          ]
-        },
-        {
-          "type": "SUMMARIZATION",
-          "namespaceTemplates": [
-            "/summaries/{actorId}/{sessionId}"
-          ]
-        },
-        {
-          "type": "EPISODIC",
-          "namespaceTemplates": [
-            "/episodes/{actorId}/{sessionId}"
-          ],
-          "reflectionNamespaceTemplates": [
-            "/episodes/{actorId}"
-          ]
-        }
-      ]
+      condition: "You need operations collaboration between agents for incident triage and resolution (A2A pattern)",
+      destination: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/A2A-multi-agent-incident-response",
+      label: "SRE/A2A Incident Response"
+    },
+    {
+      condition: "You need Browser use, Evaluations, or Optimization capabilities for research and data gathering",
+      destination: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/market-trends-agent",
+      label: "Market Trends Agent"
     }
-  ],
-  "knowledgeBases": [],
-  "credentials": [],
-  "evaluators": [],
-  "onlineEvalConfigs": [],
-  "agentCoreGateways": [],
-  "policyEngines": [],
-  "configBundles": [],
-  "abTests": [],
-  "harnesses": [],
-  "datasets": [],
-  "payments": []
-}
-```
-
-:::warning Runtime version emitted by the CLI
-AgentCore CLI `0.24.1` generates `PYTHON_3_14`. If you need a specific Python version for compatibility, change `runtimeVersion` to `PYTHON_3_13` in `agentcore.json` before deploying.
-:::
-
-The generated names align with the project layout: `name` and `agentcore:project-name` identify the `chatagent` project, `runtimes[0].name` identifies the `ChatAgent` runtime, and `codeLocation` points to `app/ChatAgent/`.
+  ]}
+  actionRisk={{
+    summary: "Read-only by default",
+    details: "The default catalog samples read data and return responses without mutating external state. Tool-calling alternatives (Customer Support, Incident Response, Market Trends) may invoke external APIs, execute lookups against live systems, or perform browser actions — review each sample's README for its specific action scope and any policy guards."
+  }}
+  productionReadinessLink="/docs/operate/production-readiness"
+  nextSteps={[
+    { label: "Production Readiness checklist", url: "/docs/operate/production-readiness" },
+    { label: "Architecture Guidance — Identity, Memory, Gateway deep dive", url: "/docs/workloads/conversational/enterprise-features" },
+    { label: "Session Management and Streaming", url: "/docs/workloads/conversational/session-management" },
+    { label: "Patterns and Architecture", url: "/docs/workloads/conversational/patterns-and-architecture" },
+    { label: "Prefer config over code? Try the Harness Quick Start", url: "/docs/workloads/conversational/harness-quickstart" }
+  ]}
+/>
 
 ---
 
-## Test It
+### Identity Management
 
-Run these commands from the generated `chatagent/` project directory. The `--no-browser` option opens an interactive terminal session; you do not need a second terminal to send prompts.
+- Every conversational agent must propagate end-user identity. Use OAuth bearer tokens from your IdP (Entra ID, Okta, Cognito) so the agent acts **as the user**, not as a shared service account. See [Understanding workload identities](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/understanding-agent-identities.html) for how this fits AgentCore's identity model.
+- Memory is namespaced by `actor_id` — never share one actor ID across multiple users, or their conversations will bleed together. See [Per-user memory scoping with actor ID](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-memory.html).
+- Validate caller-supplied identity headers against a verified source (JWT claims from AgentCore Identity or your own auth layer) before production use. The [JWT-based identification pattern](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/get-workload-access-token.html) is recommended for production; the [JWT inbound + OAuth outbound sample](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-oauth.html) shows the full end-to-end flow.
 
-### Test the agent locally without deployed memory
+### Session Continuity
 
-```bash
-agentcore dev --no-browser
-```
+- Configure both short-term (in-session) and long-term (cross-session) [memory strategies](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html) so the agent remembers context within a conversation and user preferences across sessions.
+- Use unique session IDs per conversation. Reuse a session ID only when you want to resume the same conversation thread. See [Memory organization](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-organization.html) for how strategy/actor/session namespaces work.
+- Plan context window strategies (summarization, truncation) for long conversations that approach model limits. AgentCore Memory supports [namespace-scoped long-term storage](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/specify-long-term-memory-organization.html) to retain summaries across sessions without exhausting the context window.
 
-Wait for the `>` prompt, then enter each message and press **Enter**:
+### Safe First-Deployment Patterns
 
-```text
-Look up account ACC-001
-What plan are they on?
-```
+- Deploy with scale-to-zero to avoid charges when idle, but remember that Memory records and CloudWatch logs still accrue cost. Review the [Runtime lifecycle settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) for idle timeout defaults and configurable values.
+- Start with the default model and tools; add capabilities incrementally after validating each works correctly.
+- Use [`agentcore dev`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html) for local iteration before deploying to AWS — local testing verifies agent logic without incurring cloud costs.
+- Review the [Production Readiness checklist](/docs/operate/production-readiness) before routing real users. Note that [CLI-generated IAM policies are not suitable for production](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-security-best-practices.html) — create scoped custom policies before serving real traffic.
 
-The first prompt should return the simulated Acme Corp account details. Before `ChatAgentMemory` is deployed, the local server displays this warning:
+### Resource and Cost Awareness
 
-```text
-AgentCore memory must be deployed before it can be used.
-```
+| Cost Driver | What Generates It | How to Manage |
+|---|---|---|
+| Model inference tokens | Every invocation calls the configured LLM; multi-turn conversations multiply token usage | Choose model size for your task; monitor token usage; use summarization strategies to avoid replaying full history |
+| Memory — short-term | $0.25 per 1,000 new events ingested | Set `eventExpiryDuration`; clean up test data |
+| Memory — long-term storage | $0.75 per 1,000 records stored/month (built-in strategies) | Scope retention policies; delete prototype memory resources |
+| Memory — long-term retrieval | $0.50 per 1,000 retrievals | Retrieve only when needed; avoid unnecessary recall on every turn |
+| Gateway invocations | Each tool call via Gateway is $0.005 per 1,000 invocations | Batch tool calls where possible; cache results for repeated lookups |
+| Policy authorization | $0.000025 per request + $0.13 per 1,000 input tokens processed | Negligible at tutorial volume; monitor at scale |
+| Runtime execution (CPU + memory) | $0.0895/vCPU-hour + $0.00945/GB-hour while the session is active | Scale-to-zero; set idle session timeouts; avoid long-lived idle sessions |
+| Identity token requests | $0.010 per 1,000 token requests (free when used through Runtime or Gateway) | Typically no cost for standard conversational flows |
+| Log ingestion | CloudWatch charges per GB for spans, logs, and metrics | Set retention policies; filter verbose output |
 
-The second prompt can therefore ask for the account ID again instead of remembering `ACC-001`. This local test verifies the agent and lookup tool, but it does not verify memory persistence.
-
-:::warning Memory requires deployment
-The quickstart configures `ChatAgentMemory`, but `agentcore dev` does not create that AWS resource. Do not expect memory-backed multi-turn behavior until you deploy the project and restart the dev server.
-:::
-
-### Test with deployed memory
-
-Deploy the project from the `chatagent/` directory. Deployment can take up to **8 minutes** while AgentCore provisions and updates the Runtime infrastructure:
-
-```bash
-agentcore deploy
-```
-
-After deployment, retrieve the deployed Memory ID and target region:
-
-```bash
-agentcore status --type memory --json
-```
-
-In the JSON output, use the value at `deployedState.targets.<target>.resources.memories.ChatAgentMemory.memoryId`. Use the Memory **ID**, not the ARN in `resources[].identifier`. Then create or edit `agentcore/.env.local` — this is the environment file loaded by the AgentCore CLI:
-
-```dotenv
-BEDROCK_AGENTCORE_MEMORY_ID=<memory-id-from-agentcore-status>
-AWS_REGION=<targetRegion-from-agentcore-status>
-AGENTCORE_ACTOR_ID=local-developer
-AGENTCORE_SESSION_ID=chat-demo-session
-```
-
-`BEDROCK_AGENTCORE_MEMORY_ID` is the local-development variable. For the deployed CodeZip Runtime, the AgentCore CLI injects the generated resource variable `MEMORY_CHATAGENTMEMORY_ID`; the example code reads either variable. `AGENTCORE_ACTOR_ID` identifies the local test user and `AGENTCORE_SESSION_ID` keeps both interactive prompts in one Memory session. Use a new session ID when you want to start a fresh conversation. For production traffic, replace these local values with IDs from a verified identity source rather than sharing them across users. Keep `.env.local` out of source control and restart the local dev server after changing it:
-
-```bash
-agentcore dev --no-browser
-```
-
-Deployment creates AWS resources and may incur charges. In the interactive terminal, enter:
-
-```text
-Look up account ACC-001
-What plan are they on?
-```
-
-With the deployed Memory ID configured, the second prompt should be able to use the account ID from the first prompt and return the Enterprise plan. Keep both prompts in the same interactive session when testing multi-turn memory.
-
----
-
----
-
-## Placeholders in This File
-
-The example code uses these values that you must supply for your own deployment:
-
-- `ACC-001`, `ACC-002` — sample account IDs for the simulated lookup; replace with real data sources in your implementation
-- `BEDROCK_AGENTCORE_MEMORY_ID` — local `agentcore dev` variable; set this to the deployed `ChatAgentMemory` `memoryId` returned by `agentcore status --type memory --json`
-- `MEMORY_CHATAGENTMEMORY_ID` — injected automatically into the deployed CodeZip Runtime by the AgentCore CLI for the `ChatAgentMemory` resource
-- `AWS_REGION` — set this to the `targetRegion` returned by `agentcore status --type memory --json`; it must match the Memory's deployment region
-- `AGENTCORE_ACTOR_ID` — stable local test-user ID; use verified per-user identity values in production
-- `AGENTCORE_SESSION_ID` — stable local session ID for multi-turn testing; use a new value to start a fresh conversation
-
----
-
-## What This Creates and What It Costs
-
-Deploying this quickstart creates the following AWS resources:
-
-| Resource | Notes |
-|---|---|
-| AgentCore Runtime | Hosts your agent code in MicroVM isolation |
-| AgentCore Memory | Stores conversation facts and summaries (if configured) |
-| IAM execution role | Least-privilege role for the Runtime |
-| CloudWatch log groups | Receives runtime and invocation logs |
-
-**Main cost drivers:**
-- **Model inference tokens** — every invocation calls Claude Sonnet 4.5 on Amazon Bedrock; you pay per input/output token
-- **Memory storage and retrieval** — AgentCore Memory charges for events stored and semantic retrievals performed
-- **Runtime execution seconds** — billed per second of agent execution; scale-to-zero means no charges between invocations
-- **Log ingestion** — CloudWatch charges per GB ingested and stored
-
-**Scale-to-zero does not mean zero cost.** Memory records and CloudWatch log retention continue to accrue charges even with no active traffic. Remove resources when you're done experimenting.
-
----
-
-## Cleanup
-
-When you are done with this prototype, remove the resources managed by the project configuration. `agentcore remove all` resets the local AgentCore resource configuration, and the following `agentcore deploy` applies the empty state to AWS:
-
-```bash
-# From your agent project directory; review the confirmation prompt before continuing
-agentcore remove all
-agentcore deploy
-```
-
-Verify resources are gone:
-
-```bash
-agentcore status
-# Expected: no runtimes or memory resources listed
-```
-
-Some resources may persist after cleanup:
-
-- **AgentCore Memory** — memory records are retained by default until their `eventExpiryDuration` elapses; delete the memory resource explicitly if needed
-- **CloudWatch log groups** — retained by default; delete manually to stop log storage charges
-
-If cleanup reports errors, see [Cleanup Failures](/docs/reference/troubleshooting#cleanup-failures).
-
----
-
-## What's Next?
-
-You have a working agent. Now add enterprise capabilities:
-
-- <Link to="/docs/workloads/conversational/harness-quickstart">Prefer config over code? Try the Harness Quick Start →</Link> — managed agent loop with built-in `--actor-id` memory scoping
-- <Link to="/docs/workloads/conversational/enterprise-features">Add Identity, Memory, and Gateway →</Link>
-- <Link to="/docs/workloads/conversational/session-management">Configure session management and streaming →</Link>
-- <Link to="/docs/workloads/conversational/patterns-and-architecture">Explore multi-agent patterns →</Link>
-- <Link to="/docs/operate/production-readiness">Production Readiness checklist →</Link>
+Scale-to-zero does not mean zero cost. Memory records and log retention continue to accrue charges even with no active traffic. Remove prototype resources when done experimenting. See [AgentCore pricing](https://aws.amazon.com/bedrock/agentcore/pricing/) for current rates.

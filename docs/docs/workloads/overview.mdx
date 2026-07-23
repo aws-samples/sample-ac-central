@@ -40,25 +40,28 @@ AgentCore supports many agent archetypes including the following three. Each is 
 
 ## When to Use Each Workload
 
-<div className="fancy-table">
+<div className="fancy-table fancy-table--auto-first">
 
-| Use Case                                    | Workload         | Why This Fits                                                |
-|---------------------------------------------|------------------|--------------------------------------------------------------|
-| Customer support / helpdesk agent           | Conversational   | Human-initiated, multi-turn, needs memory of prior exchanges |
-| Internal knowledge assistant (HR, IT, etc.) | Conversational   | Q&A with employees, auth-scoped answers per user             |
-| Sales co-pilot / deal desk assistant        | Conversational   | Real-time advice during live user interactions               |
-| NL-to-SQL / self-serve analytics            | Conversational   | User asks a question, agent queries data and responds        |
-| Claims processing / adjudication            | Workflow          | Event-triggered, rules-based, needs bounded autonomy         |
-| IT incident response / auto-remediation     | Workflow          | Alert fires, agent triages and acts without a human          |
-| Document intake and routing                 | Workflow          | Document uploaded → classify → route → notify                |
-| Compliance monitoring / drift detection     | Workflow          | Scheduled scan → detect → remediate or escalate              |
-| Order fulfillment exception handling        | Workflow          | System event (stuck order) triggers investigation            |
-| Email / ticket triage and auto-response     | Workflow          | Inbound message → classify → auto-reply or route             |
-| Feature implementation from Jira tickets    | Coding           | Ticket created → agent generates code → PR for review        |
-| Automated code review / security scanning   | Coding           | PR opened → agent reviews → comments inline                  |
-| Codebase migration / refactoring            | Coding           | Batch task: transform patterns across many files             |
-| Test generation from specifications         | Coding           | Spec updated → agent writes/updates test suites              |
-| Documentation generation from code          | Coding           | Code merged → agent generates/updates docs                   |
+| Use Case | Why This Fits |
+|---|---|
+| **Conversational** | |
+| Customer support / helpdesk agent | Human-initiated, multi-turn, needs memory of prior exchanges |
+| Internal knowledge assistant (HR, IT, etc.) | Q&A with employees, auth-scoped answers per user |
+| Sales co-pilot / deal desk assistant | Real-time advice during live user interactions |
+| NL-to-SQL / self-serve analytics | User asks a question, agent queries data and responds |
+| **Workflow** | |
+| Claims processing / adjudication | Event-triggered, rules-based, needs bounded autonomy |
+| IT incident response / auto-remediation | Alert fires, agent triages and acts without a human |
+| Document intake and routing | Document uploaded → classify → route → notify |
+| Compliance monitoring / drift detection | Scheduled scan → detect → remediate or escalate |
+| Order fulfillment exception handling | System event (stuck order) triggers investigation |
+| Email / ticket triage and auto-response | Inbound message → classify → auto-reply or route |
+| **Coding** | |
+| Feature implementation from Jira tickets | Ticket created → agent generates code → PR for review |
+| Automated code review / security scanning | PR opened → agent reviews → comments inline |
+| Codebase migration / refactoring | Batch task: transform patterns across many files |
+| Test generation from specifications | Spec updated → agent writes/updates test suites |
+| Documentation generation from code | Code merged → agent generates/updates docs |
 
 </div>
 
@@ -105,23 +108,23 @@ Use this table to map your requirements to a reference category. Multiple "best 
 
 </div>
 
-> ¹ Session duration and scaling behaviors are architecture guidance based on typical AgentCore usage patterns. Verify current limits in the [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
+> ¹ Session duration and scaling behaviors are architecture guidance based on typical AgentCore usage patterns. Verify current limits in the [AgentCore service quotas](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/bedrock-agentcore-limits.html).
 
 ---
 
 ## Decision Guide
 
-**Choose Conversational when:**
+**Choose `Conversational` when:**
 - A human is typing messages and expecting real-time responses
 - You need multi-turn memory and session continuity
 - The agent acts on behalf of the end-user (their identity, their permissions)
 
-**Choose Workflow when:**
+**Choose `Workflow` when:**
 - A system event triggers the agent (alert, webhook, schedule, file upload)
 - The agent needs to make decisions and take actions autonomously
 - You need bounded autonomy: the agent should act within defined guardrails, not freely
 
-**Choose Coding when:**
+**Choose `Coding` when:**
 - The output is code, tests, documentation, or PR comments
 - Tasks are long-running and involve file system or repository operations
 - You need sandbox isolation for code execution and validation
