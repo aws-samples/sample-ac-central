@@ -7,39 +7,61 @@ last_verified: 2026-07-16
 
 import Link from '@docusaurus/Link';
 
-## Choose this path when
+# Build Your Agent from the CLI
 
-You are a developer who wants the fastest code-first prototype. You prefer working in a terminal, iterating locally, and managing configuration in version control.
+:::tip Who this is for
+Developers who prefer working in a terminal, iterating locally, and managing configuration in version control. If you'd rather use a UI without local tooling, see [First Agent (Console)](/docs/get-started/firstagent).
+:::
 
-## What it produces
+The fastest code-first path to a running agent. You'll scaffold a project, iterate locally with hot-reload, and deploy with a single command — all from your terminal.
 
-You will have a local Python agent running in minutes, tested against a live model, and ready for deployment validation.
+---
 
-## Start with the canonical tutorial
+## Canonical tutorial
 
-Follow the CLI Python tutorial to scaffold, test, and deploy your first agent from the terminal:
+Follow the CLI Python tutorial to scaffold, test, and deploy your first agent:
 
 - [Build and deploy a Python agent with the AgentCore CLI](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html)
 
-**Choose an alternative when:**
-
-Use CLI TypeScript if your agent codebase is TypeScript:
+If your agent codebase is TypeScript:
 
 - [Build and deploy a TypeScript agent with the AgentCore CLI](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli-typescript.html)
 
-## What Central adds
+## Quick CLI flow
 
-- **Why CLI is fastest code-first:** The CLI path gives you a local dev loop with hot-reload, version-controlled declarative configuration, and a single command to move from prototype to deployed endpoint.
-- **Post-tutorial readiness:** After the canonical tutorial succeeds, confirm your endpoint is not publicly exposed and consult the production readiness checklist before serving real traffic.
+```bash
+# Scaffold a project using the interactive wizard
+agentcore create
 
-## Prototype and readiness boundary
+# Run locally with hot-reload
+agentcore dev
 
-:::caution
-**Prototype boundary:** This path is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
-:::
+# Deploy when ready
+agentcore deploy
+```
 
-## Central next steps
+The wizard prompts for your language, framework, model provider, and build method. See the canonical tutorials above for non-interactive options and complete configuration details.
+
+---
+
+## Why CLI is the fastest code-first path
+
+The CLI gives you a local dev loop with hot-reload, version-controlled declarative configuration, and a single command (`agentcore deploy`) to move from prototype to deployed endpoint. You own the code, control the dependencies, and can test against a live model locally before deploying.
+
+---
+
+## What happens after deployment
+
+The deployed endpoint uses [IAM authorization with SigV4-signed requests](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-permissions.html) by default — it cannot be invoked without valid AWS credentials. For production, follow the [Runtime security best practices](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-security-best-practices.html) and scope [`bedrock-agentcore:InvokeAgentRuntime`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-permissions.html) to specific principals. Consider [AWS PrivateLink](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/vpc-interface-endpoints.html) if you need private API access from your VPC to AgentCore without traversing the public internet. Configure Runtime VPC connectivity and egress controls separately for the agent's outbound traffic.
+
+---
+
+## Next steps
 
 - [Prepare your agent for production traffic](/docs/operate/production-readiness)
 - [Add memory and identity for a conversational agent](/docs/workloads/conversational/quickstart)
 - [Explore multi-agent patterns](/docs/patterns/overview)
+
+:::warning
+Everything produced by this tutorial is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

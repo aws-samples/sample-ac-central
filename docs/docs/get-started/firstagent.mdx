@@ -7,36 +7,47 @@ last_verified: 2026-07-16
 
 # Your First Agent (Console)
 
-## Choose this path when
-
-You are a first-time agent builder who prefers a UI-led experience. You want to deploy an agent through the AWS console without installing local tooling or writing orchestration code.
-
-## What it produces
-
-Deploys a first agent via the console. You will have a working agent with a reachable endpoint that you can test interactively before considering production readiness.
-
-## Start with the canonical tutorial
-
-Follow the official AWS guide to create and deploy your first agent entirely through the console:
-
-- [Create and deploy an agent in the AgentCore console](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/create-deploy-agent.html)
-
-No alternative — this path has one recommended starting point.
-
-## What Central adds
-
-- **Reader profile:** This path suits builders who prefer a UI-led workflow and do not need local CLI tooling or a code-first development loop.
-- **What the console path produces:** A deployed agent with a reachable endpoint, provisioned through the AgentCore console. The console handles resource creation, IAM role setup, and initial configuration on your behalf.
-- **Central next step:** After you have tested your agent in the console, move to [Preparing for production](/docs/operate/production-readiness) to apply security, observability, and operational controls before serving real user traffic.
-
-## Prototype and readiness boundary
-
-:::caution Prototype boundary
-**Prototype boundary:** This path is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::tip Who this is for
+First-time builders who prefer a UI-led experience without local tooling. If you want a code-first dev loop with version control and hot-reload, see [Build from CLI](/docs/get-started/quickstart).
 :::
 
-## Central next steps
+Deploy an agent through the AWS console without installing local tooling or writing orchestration code — the console handles resource creation, IAM role setup, and initial configuration on your behalf.
+
+---
+
+## Canonical tutorial
+
+AWS does not yet publish a dedicated console walkthrough. The console UI is self-guided — start here:
+
+- [Amazon Bedrock AgentCore console](https://console.aws.amazon.com/bedrock-agentcore/home#) — the UI walks you through creating a harness with a model, system prompt, and tools
+
+For the documented procedural path (CLI and boto3):
+
+- [Get started with the harness (CLI / boto3)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html)
+
+Prefer the terminal? Create the same agent in three commands:
+
+```bash
+agentcore create --name myfirstagent --model-provider bedrock
+agentcore dev
+```
+
+This scaffolds a harness project and opens the browser test page where you can chat with your agent immediately.
+
+---
+
+## What you'll have at the end
+
+A deployed agent with a reachable endpoint you can invoke and test interactively. The harness manages the agent loop, model configuration, and system prompt — see [Harness operations](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-operations.html) for what you can configure after creation.
+
+---
+
+## Next steps
 
 - [Prepare your agent for production traffic](/docs/operate/production-readiness)
 - [Explore deployment methods to choose your long-term workflow](/docs/get-started/deployment-methods)
 - [Add memory and tools with the Harness quickstart](/docs/workloads/conversational/harness-quickstart)
+
+:::warning
+Everything produced by this tutorial is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

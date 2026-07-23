@@ -7,83 +7,92 @@ last_verified: 2026-07-15
 
 # Preflight Checklist
 
-## Choose this path when
+Complete this checklist before starting any Get Started tutorial. It ensures your AWS account, model access, and environment are ready so you don't hit permission failures, region mismatches, or missing model access mid-tutorial.
 
-You have chosen a Get Started path and need to prepare your AWS account and local environment before running the tutorial.
+For the full procedural setup, follow the [Runtime getting started prerequisites](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html#prerequisites). The sections below cover the planning and awareness context that applies across all paths on this site.
 
-## What it produces
+---
 
-Your account and environment are ready to run the chosen tutorial without mid-tutorial permission failures, region mismatches, or missing model access.
-
-## Start with the canonical tutorial
-
-Follow the [Runtime getting started prerequisites](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html#prerequisites) for the complete upstream prerequisite procedure.
-
-**Choose an alternative when:** Link to a service-specific prerequisites section only when the chosen path requires a service-specific requirement not covered here.
-
-## What Central adds
-
-The following readiness areas apply to every Get Started path on this site. The canonical tutorial covers procedural setup; this section covers the planning and awareness context Central owns.
-
-### Region
+## Region
 
 AgentCore services are not available in every AWS region. Before choosing a region:
 
-- Check the [AgentCore Developer Guide region availability](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-regions.html) for the current list of supported regions.
+- Check the [AgentCore region availability page](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-regions.html) for the current list of supported regions.
 - Tutorials on this site default to `us-east-1`. Substitute a supported region closer to your location if needed.
 - If you deploy to a region where a required AgentCore service is not yet available, errors will resemble permission failures rather than region availability issues.
 
-### Least-privilege IAM permissions
+---
+
+## Least-privilege IAM permissions
 
 AgentCore tutorials involve two IAM roles:
 
-- **Deployment role** — the identity you use to create AgentCore resources. Scope it to `bedrock-agentcore:*` on tutorial resources, `iam:PassRole` for runtime role association, and any CloudFormation or ECR permissions required by your chosen path.
-- **Runtime execution role** — the identity AgentCore assumes when running your agent. Scope it to `bedrock:InvokeModel` for the specific model your agent uses, plus permissions for any AgentCore services (Memory, Gateway, Observability) and external resources your agent's tools access.
+- **`Deployment role`** — the identity you use to create AgentCore resources. Scope it to `bedrock-agentcore:*` on tutorial resources, `iam:PassRole` for runtime role association, and any CloudFormation or ECR permissions required by your chosen path.
+- **`Runtime execution role`** — the identity AgentCore assumes when running your agent. Scope it to `bedrock:InvokeModel` for the specific model your agent uses, plus permissions for any AgentCore services (Memory, Gateway, Observability) and external resources your agent's tools access.
 
-Follow least-privilege from the start. Broad policies like `AdministratorAccess` on the runtime execution role give the agent unnecessary access to your account. The [AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/) documents the required permissions per service.
+Follow [least-privilege](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#grant-least-privilege) from the start. Broad policies like `AdministratorAccess` on the runtime execution role give the agent unnecessary access to your account. See [IAM Permissions for AgentCore Runtime](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-permissions.html) for the permissions required to deploy and run agents.
 
-### Bedrock model access
+---
 
-Not all Bedrock model access is enabled by default. You may need to request it per model, per account, per region [Request access to models](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html).
+## Bedrock model access
 
-- Enable the specific model IDs referenced in the tutorial you are following (for example, Anthropic Claude Sonnet).
-- Model access requests usually take under two minutes but can take longer on first request.
-- Without model access, agent invocations fail with an `AccessDeniedException` referencing the model ID.
+Access to Amazon Bedrock foundation models is enabled by default in commercial AWS regions when your IAM role has the correct [AWS Marketplace permissions](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html). However, there are cases where additional steps are needed:
 
-### Cost drivers
+- **Anthropic models** require a one-time First Time Use (FTU) form submission per account (or per organization management account). Submit use case details through the Bedrock console or the `PutUseCaseForModelAccess` API. Access is granted immediately after submission.
+- **First invocation delay** — when you invoke a third-party model for the first time, Bedrock automatically initiates a subscription process that can take up to 15 minutes. During this window, calls may return `AccessDeniedException` until the subscription completes.
+- **Marketplace permissions required** — your IAM role needs `aws-marketplace:Subscribe`, `aws-marketplace:Unsubscribe`, and `aws-marketplace:ViewSubscriptions`. Without these, the automatic subscription fails silently.
+
+If you encounter an `AccessDeniedException` referencing a model ID, verify Marketplace permissions and (for Anthropic models) FTU form completion. See [Request access to models](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) for the full prerequisites.
+
+---
+
+## Cost awareness
 
 Tutorial workloads typically cost a few dollars or less at development volume. The main cost drivers are:
+
+<div className="fancy-table fancy-table--auto-first">
 
 | Resource | Cost driver | Notes |
 |---|---|---|
 | Bedrock model invocations | Per-token pricing for input and output tokens | Cost varies by model; larger models are priced higher |
-| AgentCore Runtime | Per execution-second and per invocation request | Scale-to-zero means no cost when idle |
-| AgentCore Memory | Storage and retrieval operations (reads/writes) | Minimal at tutorial volume |
-| CloudWatch logs and traces | Ingestion and retention | Usually negligible at tutorial volume |
+| AgentCore Runtime | $0.0895/vCPU-hour + $0.00945/GB-hour | Scale-to-zero means no cost when idle |
+| AgentCore Memory | $0.25 per 1,000 events (short-term); $0.75 per 1,000 records stored/month (long-term) | Minimal at tutorial volume |
+| ECR (container images) | Storage per GB/month | Created automatically by `agentcore deploy` for container-based agents |
+| S3 (build artifacts) | Storage and requests | The CLI creates `bedrock-agentcore-*` buckets for deployment artifacts; negligible at tutorial volume |
+| CodeBuild (image builds) | Per build-minute | Used by the CLI to build container images during deployment |
+| CloudWatch logs and traces | Ingestion and retention per GB | Usually negligible at tutorial volume |
 
-Resources left running accumulate cost over time. Each tutorial includes a cleanup section — run cleanup before you leave a tutorial behind.
+</div>
 
-### Data residency
+Resources left running accumulate cost over time. Each tutorial includes a cleanup section — run it before you leave a tutorial behind. See [AgentCore pricing](https://aws.amazon.com/bedrock/agentcore/pricing/) for current rates.
+
+---
+
+## Data residency
 
 - Requests to Bedrock models are processed within AWS infrastructure in the region you select. Review the [Bedrock data protection page](https://docs.aws.amazon.com/bedrock/latest/userguide/data-protection.html) and your organization's data classification policy before processing regulated data.
 - If you enable Memory, session context is stored in AgentCore Memory in the deployment region. Understand retention settings before storing anything sensitive.
 - Observability traces include prompt content and tool call parameters by default. If a trace contains sensitive data, scope log retention and access accordingly.
 
-### Security constraints
+---
 
-- Use synthetic or sample data in tutorials. Prototype environments typically lack the access controls required for sensitive data, PII, or proprietary information.
-- Do not substitute production customer data while following tutorials.
-- If your organization requires it, complete a Service Control Policy (SCP) review before creating new Bedrock resources.
-- Confirm that your deployment region's compliance posture meets your organization's requirements before handling regulated workloads.
+## Security
 
-## Prototype and readiness boundary
+Use synthetic or sample data in tutorials — prototype environments lack the access controls required for sensitive data, PII, or proprietary information. Do not substitute production customer data while following tutorials.
 
-:::warning
-**Prototype boundary:** This path is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
-:::
+For full security guidance:
 
-## Central next steps
+- [Security best practices for AgentCore Runtime](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-security-best-practices.html) — IAM, network, encryption, and session isolation recommendations
+- [Preparing for production](/docs/operate/production-readiness) — this site's checklist covering data classification, policy enforcement, and compliance controls
+
+---
+
+## Next steps
 
 - [Choose your first agent path](/docs/get-started/overview) if you have not yet selected a tutorial
 - [Run a code-first prototype with the CLI](/docs/get-started/quickstart) once your environment is ready
 - [Prepare for production traffic](/docs/operate/production-readiness) after completing any tutorial
+
+:::warning
+Everything produced by a Get Started tutorial is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::
