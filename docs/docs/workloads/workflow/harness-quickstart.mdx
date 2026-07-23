@@ -2,50 +2,75 @@
 title: "Quick Start: Workflow Agent on Harness"
 sidebar_label: Harness Quick Start
 sidebar_position: 3
-last_verified: 2026-07-16
+last_verified: 2026-07-22
 ---
 
-:::info Versions
-Examples built and verified end to end with **AgentCore CLI** `0.24.1`. Harness is a newer AgentCore capability; command options and defaults may differ in other versions.
-:::
-
-:::caution Prototype, not production
-This tutorial creates a prototype, not a production-ready system. Before routing real events to it, work through the [Production Readiness checklist](/docs/operate/production-readiness).
-:::
-
 import Link from '@docusaurus/Link';
+import CanonicalRecommendation from '@site/src/components/CanonicalRecommendation';
 
 # Quick Start: Workflow Agent on Harness
 
-Deploy the reasoning step of an event pipeline using configuration only — no agent code.
+:::tip Who this is for
+Config-first builders who want a bounded reasoning step between existing systems without writing an agent loop. If you prefer a code-first path with full Enrich/Act tools in the loop, see the [workflow quickstart](/docs/workloads/workflow/quickstart).
+:::
 
-| | |
-|---|---|
-| **Who this is for** | Developers adding an LLM triage/decision step to event-driven automation |
-| **Time** | ~10 minutes |
-| **What you'll build** | An incident triage step that classifies events and emits structured JSON |
-| **Safety level** | Creates real AWS resources; the agent only classifies — it takes no actions |
+Use an AgentCore Harness when your event pipeline needs a **bounded reasoning step** declared as configuration rather than code.
+
+<CanonicalRecommendation
+  defaultSource={{
+    url: "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html",
+    title: "Harness Getting Started",
+    description: "Deploy a managed agent loop using configuration only — no agent code. Covers project creation, harness configuration, deployment, and invocation."
+  }}
+  selectionCriteria={[
+    "Your event pipeline needs an LLM triage or classification step between existing systems",
+    "The reasoning step is declarative — no custom local tool code in the agent loop",
+    "You want execution caps (iterations, timeout) as configuration rather than code",
+    "Actions run downstream of the harness verdict, not inside the agent loop"
+  ]}
+  fitRationale="Harness fits when the reasoning step is bounded and declarative. The upstream event source triggers the harness, the harness classifies or triages the event, and downstream automation (Step Functions, Lambda) acts on the verdict. Execution limits — a core workflow concern — become config fields (maxIterations, timeoutSeconds) instead of code you maintain."
+  alternatives={[
+    {
+      condition: "You need event sources, durable state, or action execution beyond Harness scope",
+      destination: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents",
+      label: "Workflow automation samples"
+    }
+  ]}
+  actionRisk={{
+    summary: "Harness is sandbox-scoped; workflow samples carry their documented risk",
+    details: "A Harness deployment classifies and emits structured verdicts — it does not execute actions itself. Workflow automation samples that include tool-calling may read data, invoke APIs, or mutate state depending on their configuration. Review each sample's Action_Risk disclosure before connecting to production event sources or systems."
+  }}
+  productionReadinessLink="/docs/operate/production-readiness"
+  nextSteps={[
+    { label: "Runtime Quick Start — code-first path with Enrich/Act tools in the loop", url: "/docs/workloads/workflow/quickstart" },
+    { label: "Wire up event sources (EventBridge, SNS, SQS)", url: "/docs/workloads/workflow/event-processing" },
+    { label: "Add Cedar policies for bounded autonomy", url: "/docs/workloads/workflow/bounded-autonomy" },
+    { label: "Production Readiness checklist", url: "/docs/operate/production-readiness" },
+    { label: "AWS Harness documentation — versioning, endpoints, export to code", url: "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness.html" }
+  ]}
+/>
 
 ---
 
-## Harness vs. Runtime for Workflow Agents
+## Harness vs. Runtime for workflow agents
 
 The [Runtime quickstart](/docs/workloads/workflow/quickstart) implements the full Trigger → Enrich → Reason → Act → Emit loop in code, with Python tool functions for the Enrich and Act phases. An **AgentCore Harness** is a managed agent loop declared as configuration — a natural fit when your pipeline needs a *bounded reasoning step* between systems that already exist:
 
 ```
-① TRIGGER  → EventBridge/SQS delivers the incident event
-② REASON   → Harness classifies severity and recommends action   ← this page
-③ EMIT     → Structured JSON verdict returned to the pipeline
-④ ACT      → Downstream automation (Step Functions, Lambda) executes the verdict
+① TRIGGER  → EventBridge/SQS delivers the event
+② REASON   → Harness classifies and emits a structured verdict   ← this page
+③ ACT      → Downstream automation executes the verdict
 ```
 
-Execution limits — a core workflow concern — become config fields instead of code:
+### When execution limits are config, not code
+
+Execution limits — a core workflow concern — become config fields instead of hand-written guards:
 
 <div className="fancy-table fancy-table--auto-first">
 
 | Concern | Runtime (code) | Harness (config) |
 |---|---|---|
-| Agent loop | You write it in `main.py` | Managed, powered by Strands |
+| Agent loop | You write it in `main.py` | Managed agent loop |
 | Iteration/time caps | You implement them | `maxIterations`, `timeoutSeconds` in `harness.json` |
 | Tools | Local Python functions | Declared config: gateway, MCP, browser, code interpreter |
 
@@ -55,179 +80,27 @@ Choose the harness when the reasoning step is declarative and actions run downst
 
 ---
 
-## Step 1: Create the Project and Harness
+## Workflow-specific context
 
-Run this from the directory where you want the project folder created. The system prompt defines the triage contract, and the flags cap execution — no memory is configured because event processing is stateless:
+The [Harness Getting Started](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html) tutorial covers project creation, configuration, deployment, and invocation. The sections below cover what matters specifically for **workflow workloads**:
 
-```bash
-npm install -g @aws/agentcore@0.24.1
-agentcore create --project-name incidenttriage --no-agent
-cd incidenttriage
-agentcore add harness \
-  --name IncidentTriage \
-  --model-provider bedrock \
-  --max-iterations 6 \
-  --timeout 120 \
-  --system-prompt "You are an automated incident triage step in an event pipeline. You receive one incident event as JSON. Analyze it and respond with ONLY a JSON object, no prose, matching this shape: {\"service\": string, \"severity\": \"low\"|\"medium\"|\"high\", \"probable_cause\": string, \"recommended_action\": string, \"page_oncall\": boolean}. Set page_oncall to true only for high severity. Base severity on the event's error rate and impact."
-```
+- **Decision criteria** — when a config-only reasoning step is enough vs. when you need the full Runtime with local tools.
+- **Execution-limit mapping** — how `maxIterations` and `timeoutSeconds` replace the runaway-loop and timeout guards you would otherwise code by hand.
+- **Event-pipeline positioning** — a harness sits at the Reason step; it does not own Trigger or Act. Downstream systems (Step Functions, Lambda) execute the verdict.
+- **Production boundary** — Harness creates a working prototype. Real event-driven pipelines need dead-letter handling, schema validation, and policy enforcement before acting on verdicts. See the [Production Readiness checklist](/docs/operate/production-readiness).
 
 ---
 
-## Step 2: Review the Configuration
+## When to switch to the workflow samples
 
-The command wrote everything to `app/IncidentTriage/harness.json`:
+The Harness path covers bounded reasoning with no local tools. Switch to a [workflow automation sample](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents) when you need:
 
-```json
-{
-  "name": "IncidentTriage",
-  "model": {
-    "provider": "bedrock",
-    "modelId": "global.anthropic.claude-sonnet-4-6"
-  },
-  "systemPrompt": "You are an automated incident triage step in an event pipeline. ...",
-  "tools": [],
-  "skills": [],
-  "memory": {
-    "mode": "disabled"
-  },
-  "maxIterations": 6,
-  "timeoutSeconds": 120
-}
-```
+- **Event sources** — wiring EventBridge rules, SQS queues, or SNS subscriptions to trigger the agent directly.
+- **Durable state** — maintaining context across multiple events or long-running workflows.
+- **Action execution in the agent loop** — calling tools that read services, create tickets, or notify on-call as part of the same reasoning pass.
 
-`maxIterations` caps the agent loop and `timeoutSeconds` bounds total execution — the harness equivalents of the retry and runaway-loop guards you would otherwise code by hand. Memory stays `disabled`: each event is an independent invocation.
+Workflow samples carry their own documented risk profiles. Review each sample's Action_Risk disclosure and apply [bounded autonomy policies](/docs/workloads/workflow/bounded-autonomy) before connecting to production systems.
 
-Validate the configuration:
-
-```bash
-agentcore validate
-```
-
----
-
-## Step 3: Deploy
-
-Install the CDK project dependencies, then deploy:
-
-```bash
-cd agentcore/cdk && npm install && cd ../..
-agentcore deploy
-```
-
-Deployment creates AWS resources and may incur charges. Check status:
-
-```bash
-agentcore status
-```
-
----
-
-## Step 4: Send Test Events
-
-Simulate the Trigger step by invoking the harness with incident events. AgentCore requires session IDs of at least 33 characters; event pipelines typically use a fresh session per event:
-
-```bash
-# High-severity event
-agentcore invoke --harness IncidentTriage --session-id "$(uuidgen)" \
-  '{"service_name": "checkout-api", "event_type": "high_error_rate", "error_rate_percent": 12.5, "healthy_instances": 2, "total_instances": 4, "description": "Error rate exceeded 10% threshold"}'
-# Expected: JSON verdict with "severity": "high" and "page_oncall": true
-
-# Low-severity event
-agentcore invoke --harness IncidentTriage --session-id "$(uuidgen)" \
-  '{"service_name": "search-api", "event_type": "elevated_latency", "error_rate_percent": 0.4, "healthy_instances": 6, "total_instances": 6, "description": "P99 latency increased 15% over baseline"}'
-# Expected: JSON verdict with "severity": "low" and "page_oncall": false
-```
-
-A verified high-severity response:
-
-```json
-{
-  "service": "checkout-api",
-  "severity": "high",
-  "probable_cause": "50% of instances (2 of 4) are unhealthy, causing elevated error rates above the 10% threshold at 12.5%. ...",
-  "recommended_action": "1) Immediately inspect logs and health checks on the 2 unhealthy instances. ...",
-  "page_oncall": true
-}
-```
-
-:::note Parse defensively downstream
-The model may wrap the JSON in a Markdown code fence. Downstream consumers (Lambda, Step Functions) should strip fences before parsing, and treat unparseable output as a triage failure to route to a dead-letter queue. For production pipelines, validate the verdict against a schema before acting on it.
+:::warning
+Everything produced by the samples on this page is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
 :::
-
----
-
-## Wiring Real Event Sources
-
-`agentcore invoke` stands in for the Trigger step. In production, event sources call the harness through the `InvokeHarness` API — for example, an EventBridge rule targeting a small Lambda that forwards the event:
-
-```python
-import boto3, json, uuid
-
-client = boto3.client("bedrock-agentcore")
-
-def handler(event, _context):
-    response = client.invoke_harness(
-        harnessArn=HARNESS_ARN,
-        runtimeSessionId=str(uuid.uuid4()),
-        messages=[{"role": "user", "content": [{"text": json.dumps(event["detail"])}]}],
-    )
-    # Collect the streamed verdict, then hand it to the Act step
-```
-
-See [Event Processing](/docs/workloads/workflow/event-processing) for source-by-source guidance and [Bounded Autonomy](/docs/workloads/workflow/bounded-autonomy) for policy enforcement before any Act step runs.
-
----
-
-## Placeholders in This File
-
-- `incidenttriage`, `IncidentTriage` — example project and harness names; both become part of generated AWS resource names
-- `checkout-api`, `search-api` — sample service names in the test events; replace with your real services
-- `$(uuidgen)` — generates a valid session ID (33+ characters required); use a fresh one per event
-- `global.anthropic.claude-sonnet-4-6` — default model written by the CLI in `0.24.1`; substitute your preferred Bedrock model ID
-- `HARNESS_ARN` — your deployed harness ARN, printed by `agentcore deploy` and `agentcore status`
-
----
-
-## What This Creates and What It Costs
-
-| Resource | Notes |
-|---|---|
-| AgentCore harness | Managed agent-loop configuration; runs inside Runtime microVMs |
-| IAM execution role | Role the harness uses to call the model |
-| CloudWatch log groups | Receives invocation logs and traces |
-
-**Main cost drivers:**
-- **Model inference tokens** — every event calls the configured Bedrock model
-- **Runtime execution seconds** — the harness executes inside Runtime; billed per second
-- **Log ingestion** — CloudWatch charges per GB ingested and stored
-
-**Scale-to-zero does not mean zero cost.** CloudWatch log retention accrues charges with no traffic. Remove resources when you're done experimenting.
-
----
-
-## Cleanup
-
-```bash
-# From your project directory; review the confirmation prompt before continuing
-agentcore remove all
-agentcore deploy
-```
-
-Verify resources are gone:
-
-```bash
-agentcore status
-# Expected: no harnesses listed
-```
-
-CloudWatch log groups are retained; delete them manually to stop log storage charges. If cleanup reports errors, see [Cleanup Failures](/docs/reference/troubleshooting#cleanup-failures).
-
----
-
-## What's Next?
-
-- <Link to="/docs/workloads/workflow/quickstart">Runtime Quick Start →</Link> — the code-first path with Enrich/Act tools in the loop
-- <Link to="/docs/workloads/workflow/event-processing">Wire up event sources (EventBridge, SNS, SQS) →</Link>
-- <Link to="/docs/workloads/workflow/bounded-autonomy">Add Cedar policies for bounded autonomy →</Link>
-- <Link to="/docs/operate/production-readiness">Production Readiness checklist →</Link>
-- [AWS Harness documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness.html) — versioning, endpoints, export to code

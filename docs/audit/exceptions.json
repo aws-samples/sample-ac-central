@@ -1,0 +1,50 @@
+[
+  {
+    "targetOrPage": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/customer-support",
+    "owner": "agentcore-samples-team",
+    "reason": "GitHub sample path not yet published; repository structure planned for post-GA launch",
+    "approvalReference": "unit-01-audit-review",
+    "expiryDate": "2026-10-21",
+    "publishBlocking": false
+  },
+  {
+    "targetOrPage": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/market-trends",
+    "owner": "agentcore-samples-team",
+    "reason": "GitHub sample path not yet published; repository structure planned for post-GA launch",
+    "approvalReference": "unit-01-audit-review",
+    "expiryDate": "2026-10-21",
+    "publishBlocking": false
+  },
+  {
+    "targetOrPage": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/sre-a2a-incident-response",
+    "owner": "agentcore-samples-team",
+    "reason": "GitHub sample path not yet published; repository structure planned for post-GA launch",
+    "approvalReference": "unit-01-audit-review",
+    "expiryDate": "2026-10-21",
+    "publishBlocking": false
+  },
+  {
+    "targetOrPage": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/b2b-accounts-payable",
+    "owner": "agentcore-samples-team",
+    "reason": "GitHub sample path not yet published; repository structure planned for post-GA launch",
+    "approvalReference": "unit-01-audit-review",
+    "expiryDate": "2026-10-21",
+    "publishBlocking": false
+  },
+  {
+    "targetOrPage": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/enterprise-web-intelligence",
+    "owner": "agentcore-samples-team",
+    "reason": "GitHub sample path not yet published; repository structure planned for post-GA launch",
+    "approvalReference": "unit-01-audit-review",
+    "expiryDate": "2026-10-21",
+    "publishBlocking": false
+  },
+  {
+    "targetOrPage": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/event-driven-claims",
+    "owner": "agentcore-samples-team",
+    "reason": "GitHub sample path not yet published; repository structure planned for post-GA launch",
+    "approvalReference": "unit-01-audit-review",
+    "expiryDate": "2026-10-21",
+    "publishBlocking": false
+  }
+]

@@ -9,80 +9,41 @@ import Link from '@docusaurus/Link';
 
 # Get Started with AgentCore
 
-There are three ways to put an agent on AgentCore. They suit different situations, so pick the one that matches where you are today.
+This page helps you pick the right getting-started path. Whether you're a first-time agent builder evaluating managed vs. code-first approaches, or an experienced developer migrating an existing agent onto AgentCore Runtime, the decision tree below will route you to the right tutorial.
 
 ---
 
-## Which path is right for you?
+## Pick your path
 
 <div className="fancy-table fancy-table--auto-first">
 
-| Your situation | Recommended path |
+| If you want to… | Start here |
 |---|---|
-| You want a fully managed, production-ready agent without writing agent code | [Managed Harness](#managed-harness-path) |
-| You are building a new custom agent and want full control from day one | [Code-First Runtime](#code-first-runtime-path) |
-| You already have an agent running and want to adopt AgentCore services incrementally | [Existing Agent Adoption](#existing-agent-adoption-path) |
+| Deploy an agent through the console without writing orchestration code | [Your First Agent (Console)](/docs/get-started/firstagent) |
+| Build a code-first prototype from your terminal | [Build from CLI](/docs/get-started/quickstart) |
+| Migrate an existing agent (Strands, LangGraph, CrewAI, custom) onto AgentCore | [Existing Agent](/docs/get-started/existing-agent) |
+| Compare all deployment methods before deciding | [Deployment Methods](/docs/get-started/deployment-methods) |
 
 </div>
 
-Before starting any path, complete the [Preflight Checklist](/docs/get-started/preflight) to verify your AWS account, permissions, and local tools are ready.
+:::tip Not sure where to start?
+Start with the [Harness getting-started guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html) for the fastest route to a running agent. Switch to the [CLI Python tutorial](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html) if you prefer writing agent logic in code.
+:::
 
 ---
 
-## Managed Harness path
+## Before you begin
 
-The Harness is a fully managed, configuration-driven layer that wires together AgentCore Runtime, Memory, Gateway, Browser Tool, Identity, and Observability for you. You define your agent through the AgentCore CLI, the console, or the `CreateHarness` API. No orchestration code required.
-
-**Choose this path when:**
-- You want a fully managed, production-grade agent loop where AWS operates the orchestration, memory wiring, and scaling for you
-- You prefer a configuration-first workflow over writing Python or TypeScript
-- You want to go from idea to a working agent quickly, without maintaining orchestration code
-
-**What you can do from Harness:**
-- Pick a model, write a system prompt, and attach tools via AgentCore Gateway (MCP)
-- Enable session memory and user memory with a toggle
-- Add identity (OAuth) and observability from the same interface; enforce content filters and PII detection on tool traffic with AgentCore Policy on a Gateway
-- Export the agent definition to code when you need custom logic
-
-**When to choose Runtime instead:** Harness runs production workloads. Choose the Runtime path when your agent needs custom tool logic, complex orchestration, or a framework other than Strands — capabilities that require code rather than configuration.
-
-**Next:** [Your First Agent (Managed Harness)](/docs/get-started/firstagent)
+Every path requires the same account and environment preparation. Complete the [Preflight Checklist](/docs/get-started/preflight) before starting any tutorial — it covers region selection, IAM permissions, model access, and cost awareness.
 
 ---
 
-## Code-First Runtime path
+## What each path produces
 
-The Runtime path gives you full control. You write agent code (typically with the Strands Agents SDK), use the AgentCore CLI to scaffold and deploy, and add Runtime, Memory, Gateway, Identity, and Observability services as your needs grow.
+Each Get Started tutorial produces a working prototype: a deployed agent with a reachable endpoint you can invoke and iterate on. What remains after that is applying production controls — security, observability, policy enforcement, and operational readiness.
 
-**Choose this path when:**
-- You are starting a new agent project and want a production-capable structure from the start
-- You need custom tool logic, streaming, or integration patterns beyond what Harness configuration supports
-- You want infrastructure as code (CDK) and a reproducible deployment pipeline
+Move to [Preparing for production](/docs/operate/production-readiness) once you have a working prototype and want to serve real user traffic.
 
-**What you get:**
-- AgentCore CLI (`@aws/agentcore`) scaffolds project structure and a declarative `agentcore.json` config
-- Local dev loop (`agentcore dev`) with a built-in inspector for fast iteration
-- Deploy to AgentCore Runtime: microVM isolation, scale-to-zero, and OpenTelemetry tracing included
-
-**Next:** [Build from the CLI (Code-First Runtime)](/docs/get-started/quickstart)
-
----
-
-## Existing Agent Adoption path
-
-If your agent already runs somewhere (Strands, LangGraph, CrewAI, or any other framework), you can adopt AgentCore services without rewriting your agent. The adoption is incremental: deploy your existing code to Runtime first, then layer in the services you need.
-
-**Choose this path when:**
-- Your agent code already exists and is working
-- You want AgentCore Runtime's isolation, observability, or memory without a full rebuild
-- You are evaluating AgentCore for a brownfield adoption rather than a greenfield project
-
-**Next:** [Adopt AgentCore with an Existing Agent](/docs/get-started/existing-agent)
-
----
-
-## Not sure? Start here
-
-If you are new to AgentCore and unsure which path fits, start with the [Managed Harness path](/docs/get-started/firstagent). It is the fastest way to see the platform in action, and Harness agents run in production — you're not choosing a throwaway path. You can always export to code and move to the Runtime path later with no lock-in.
-
-Before you start any path, complete the [Preflight Checklist](/docs/get-started/preflight).
+:::warning
+Everything produced by a Get Started tutorial is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

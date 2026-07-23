@@ -1,0 +1,150 @@
+{
+  "_comment": "IMMUTABLE — captured before any Unit 02–04 page edit. Do not overwrite this file.",
+  "_capturedBy": "Unit 01 — Canonical Source Matrix",
+  "records": [
+    {
+      "documentId": "get-started/overview",
+      "emittedRoute": "/docs/get-started/overview",
+      "sidebarCategory": "Get Started",
+      "sidebarLabel": "Overview",
+      "sidebarOrder": 1,
+      "sourceFile": "docs/docs/get-started/overview.mdx",
+      "captureTimestamp": "2026-07-21T18:47:52.000Z"
+    },
+    {
+      "documentId": "get-started/preflight",
+      "emittedRoute": "/docs/get-started/preflight",
+      "sidebarCategory": "Get Started",
+      "sidebarLabel": "Preflight",
+      "sidebarOrder": 2,
+      "sourceFile": "docs/docs/get-started/preflight.mdx",
+      "captureTimestamp": "2026-07-21T18:47:52.000Z"
+    },
+    {
+      "documentId": "get-started/firstagent",
+      "emittedRoute": "/docs/get-started/firstagent",
+      "sidebarCategory": "Get Started",
+      "sidebarLabel": "First Agent",
+      "sidebarOrder": 3,
+      "sourceFile": "docs/docs/get-started/firstagent.mdx",
+      "captureTimestamp": "2026-07-21T18:47:52.000Z"
+    },
+    {
+      "documentId": "get-started/quickstart",
+      "emittedRoute": "/docs/get-started/quickstart",
+      "sidebarCategory": "Get Started",
+      "sidebarLabel": "Build from CLI",
+      "sidebarOrder": 1,
+      "sourceFile": "docs/docs/get-started/quickstart.mdx",
+      "captureTimestamp": "2026-07-21T18:47:52.000Z"
+    },
+    {
+      "documentId": "get-started/existing-agent",
+      "emittedRoute": "/docs/get-started/existing-agent",
+      "sidebarCategory": "Get Started",
+      "sidebarLabel": "Existing Agent",
+      "sidebarOrder": 4,
+      "sourceFile": "docs/docs/get-started/existing-agent.mdx",
+      "captureTimestamp": "2026-07-21T18:47:52.000Z"
+    },
+    {
+      "documentId": "get-started/deployment-methods",
+      "emittedRoute": "/docs/get-started/deployment-methods",
+      "sidebarCategory": "Get Started",
+      "sidebarLabel": "Deployment Methods",
+      "sidebarOrder": 5,
+      "sourceFile": "docs/docs/get-started/deployment-methods.mdx",
+      "captureTimestamp": "2026-07-21T18:47:52.000Z"
+    },
+    {
+      "documentId": "workloads/conversational/overview",
+      "emittedRoute": "/docs/workloads/conversational/overview",
+      "sidebarCategory": "Agent Workloads > Conversational Agents",
+      "sidebarLabel": "Overview",
+      "sidebarOrder": 1,
+      "sourceFile": "docs/docs/workloads/conversational/overview.mdx",
+      "captureTimestamp": "2026-07-21T18:47:52.000Z"
+    },
+    {
+      "documentId": "workloads/conversational/quickstart",
+      "emittedRoute": "/docs/workloads/conversational/quickstart",
+      "sidebarCategory": "Agent Workloads > Conversational Agents",
+      "sidebarLabel": "Quick Start",
+      "sidebarOrder": 2,
+      "sourceFile": "docs/docs/workloads/conversational/quickstart.mdx",
+      "captureTimestamp": "2026-07-21T18:47:52.000Z"
+    },
+    {
+      "documentId": "workloads/conversational/harness-quickstart",
+      "emittedRoute": "/docs/workloads/conversational/harness-quickstart",
+      "sidebarCategory": "Agent Workloads > Conversational Agents",
+      "sidebarLabel": "Harness Quick Start",
+      "sidebarOrder": 3,
+      "sourceFile": "docs/docs/workloads/conversational/harness-quickstart.mdx",
+      "captureTimestamp": "2026-07-21T18:47:52.000Z"
+    },
+    {
+      "documentId": "workloads/conversational/enterprise-features",
+      "emittedRoute": "/docs/workloads/conversational/enterprise-features",
+      "sidebarCategory": "Agent Workloads > Conversational Agents",
+      "sidebarLabel": "Enterprise Features",
+      "sidebarOrder": 3,
+      "sourceFile": "docs/docs/workloads/conversational/enterprise-features.mdx",
+      "captureTimestamp": "2026-07-21T18:47:52.000Z"
+    },
+    {
+      "documentId": "workloads/workflow/quickstart",
+      "emittedRoute": "/docs/workloads/workflow/quickstart",
+      "sidebarCategory": "Agent Workloads > Workflow Agents",
+      "sidebarLabel": "Quick Start",
+      "sidebarOrder": 2,
+      "sourceFile": "docs/docs/workloads/workflow/quickstart.mdx",
+      "captureTimestamp": "2026-07-21T18:47:52.000Z"
+    },
+    {
+      "documentId": "workloads/workflow/harness-quickstart",
+      "emittedRoute": "/docs/workloads/workflow/harness-quickstart",
+      "sidebarCategory": "Agent Workloads > Workflow Agents",
+      "sidebarLabel": "Harness Quick Start",
+      "sidebarOrder": 3,
+      "sourceFile": "docs/docs/workloads/workflow/harness-quickstart.mdx",
+      "captureTimestamp": "2026-07-21T18:47:52.000Z"
+    },
+    {
+      "documentId": "workloads/coding/quickstart",
+      "emittedRoute": "/docs/workloads/coding/quickstart",
+      "sidebarCategory": "Agent Workloads > Coding Agents",
+      "sidebarLabel": "Quick Start",
+      "sidebarOrder": 2,
+      "sourceFile": "docs/docs/workloads/coding/quickstart.mdx",
+      "captureTimestamp": "2026-07-21T18:47:52.000Z"
+    },
+    {
+      "documentId": "tutorials/overview",
+      "emittedRoute": "/docs/tutorials/overview",
+      "sidebarCategory": "Tutorials",
+      "sidebarLabel": "Overview",
+      "sidebarOrder": 0,
+      "sourceFile": "docs/docs/tutorials/overview.mdx",
+      "captureTimestamp": "2026-07-21T18:47:52.000Z"
+    },
+    {
+      "documentId": "tutorials/add-memory",
+      "emittedRoute": "/docs/tutorials/add-memory",
+      "sidebarCategory": "Tutorials",
+      "sidebarLabel": "Add Memory",
+      "sidebarOrder": 1,
+      "sourceFile": "docs/docs/tutorials/add-memory.mdx",
+      "captureTimestamp": "2026-07-21T18:47:52.000Z"
+    },
+    {
+      "documentId": "tutorials/connect-gateway-tool",
+      "emittedRoute": "/docs/tutorials/connect-gateway-tool",
+      "sidebarCategory": "Tutorials",
+      "sidebarLabel": "Connect Gateway Tool",
+      "sidebarOrder": 2,
+      "sourceFile": "docs/docs/tutorials/connect-gateway-tool.mdx",
+      "captureTimestamp": "2026-07-21T18:47:52.000Z"
+    }
+  ]
+}

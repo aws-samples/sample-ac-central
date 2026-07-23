@@ -2,12 +2,16 @@
 title: Coding Agents
 sidebar_label: Overview
 sidebar_position: 1
-last_verified: 2026-07-15
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 
 # Coding Agents
+
+:::tip Who this is for
+Developers evaluating whether a coding-agent workload fits their use case. If you've already decided and want working code, jump to the [Quick Start](/docs/workloads/coding/quickstart). Still comparing workload types? See the [Workloads overview](/docs/workloads/overview).
+:::
 
 Long-running code generation, review, and migration agents with sandboxed execution, governance, and scalability. AgentCore provides the secure runtime for tasks that produce code as output.
 
@@ -51,9 +55,9 @@ For a side-by-side comparison with Conversational and Workflow patterns, see the
 | Strengths                                             | Limitations                                                  |
 |-------------------------------------------------------|--------------------------------------------------------------|
 | Long-running execution (hours) for complex tasks      | Non-deterministic output requires human review gates         |
-| Sandboxed Code Interpreter for safe execution         | Context window limits constrain codebase understanding       |
+| Sandboxed [Code Interpreter](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-tool.html) for safe execution | Context window limits constrain codebase understanding       |
 | Identity-aware access to repositories and CI systems  | Nascent archetype; patterns are still maturing               |
-| Scale-to-zero between tasks                           | Build/test feedback loops add latency                        |
+| [Scale-to-zero between tasks](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html) | Build/test feedback loops add latency                        |
 | Full traceability from trigger to PR                  | Complex multi-file reasoning still challenging for models    |
 
 </div>
@@ -68,8 +72,8 @@ For a side-by-side comparison with Conversational and Workflow patterns, see the
 |-------------------|-----------------------------------------------|-------------------------------------------|
 | **Identity**      | Developer identity                            | Agent accesses repos as the developer     |
 | **Memory**        | Project-scoped context                        | Codebase understanding across invocations |
-| **Runtime**       | Long-running (hours), Code Interpreter        | Complex tasks need sustained compute      |
-| **Guardrails**    | Code quality + security scanning gates        | Catch vulnerabilities before merge        |
+| **Runtime**       | Long-running (hours), [Code Interpreter](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-tool.html) | Complex tasks need sustained compute      |
+| **Guardrails**    | Code quality + security scanning gates, [Cedar tool policies](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) | Catch vulnerabilities before merge        |
 | **Observability** | Per-task tracing                              | Understand what the agent changed and why |
 
 </div>
@@ -85,6 +89,14 @@ For a side-by-side comparison with Conversational and Workflow patterns, see the
 - You do not have a human review gate. Coding agents produce non-deterministic output. Merging code directly without a human or automated quality gate (tests, lint, security scan) is high risk.
 - The codebase context far exceeds the model's context window. Very large monorepos with tightly coupled modules may produce poor results until chunking and retrieval strategies are in place.
 - This is a greenfield project with no existing tests or CI. The build-test-validate loop that makes coding agents reliable requires existing scaffolding to run against.
+
+---
+
+## Further Reading
+
+- [AgentCore Code Interpreter](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-tool.html) — the managed sandbox that makes safe code execution possible
+- [Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) — reliability, cost, and security guidance for agentic workloads
+- [Agentic AI security best practices](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/best-practices.html) — Prescriptive Guidance on tool safety and input validation
 
 ---
 

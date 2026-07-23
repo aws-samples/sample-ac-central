@@ -1,79 +1,125 @@
 ---
-title: Enterprise Features
-sidebar_label: Enterprise Features
+title: Architecture Guidance
+sidebar_label: Architecture Guidance
 sidebar_position: 3
-last_verified: 2026-07-15
+last_verified: 2026-07-22
 ---
 
-import Link from '@docusaurus/Link';
+# Architecture Guidance for Conversational Agents
 
-# Enterprise Features for Conversational Agents
+:::tip Who this is for
+You've built a working prototype and want to understand the design decisions that matter as you move toward production. This page covers identity flow, session design, latency management, and error handling — the concerns that distinguish a production conversational agent from a demo.
+:::
 
-Your chatbot prototype works. Now you need it to handle real users, real security, and real scale. AgentCore bridges that gap with platform-level services that you configure, not build.
+For the full capability-to-purpose mapping, see the [AgentCore Configuration Summary](/docs/workloads/conversational/overview#agentcore-configuration-summary) in the conversational overview.
 
 ---
 
-## Platform Services
+## End-user identity flow
 
-<div className="tile-grid">
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--identity" aria-hidden="true" /><h3>Enterprise Identity & Auth</h3></div>
-    <p>Authenticate end-users via your existing IdP (Entra ID, Okta, Cognito, Auth0) with OAuth 2.0 bearer tokens via the CustomJWT authorizer. The token carries the caller's identity for authorization at every hop through the Gateway. No custom auth middleware, no shared API keys.</p>
-    <span className="service-tag tag--identity">Identity</span>
-  </div>
+The identity in a conversation is the end user, not only the agent's service principal. Verified end-user identity must flow through every layer of the stack — this is what makes conversational agents architecturally distinct from workflow or coding agents that use service-to-service credentials.
 
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--memory" aria-hidden="true" /><h3>Persistent Memory</h3></div>
-    <p>Short-term session memory for multi-turn conversations. Long-term memory for user preferences across sessions. Memory events are namespaced by `actor_id` — but cross-user isolation is only as strong as the identity values your application supplies. See <Link to="/docs/workloads/conversational/session-management#memory-namespace-and-isolation-design">Memory Namespace and Isolation Design</Link> for what your application must guarantee. No external database plumbing required.</p>
-    <span className="service-tag tag--memory">Memory</span>
-  </div>
+- **Memory** — Namespace stored events by the authenticated user so one person's history never leaks into another's session. Derive the namespace key from a verified identity claim (e.g., a token `sub` field), not a client-supplied string. See [Memory organization](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-organization.html) and [Per-user memory scoping](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-memory.html).
+- **Policy evaluation** — Pass the end-user principal to the Policy Engine on every action request. [Cedar policies](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) then scope what *this user* can do, regardless of which service credential invokes the API.
+- **Downstream tools** — Propagate the user's identity context to Gateway-connected tools so that external systems can apply their own access-control rules. Use [on-behalf-of token exchange](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/on-behalf-of-token-exchange.html) to obtain downstream access tokens scoped to the acting user.
 
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--runtime" aria-hidden="true" /><h3>Serverless Runtime with MicroVM Isolation</h3></div>
-    <p>Deploy agents without managing infrastructure. Automatic scaling from zero to thousands of concurrent sessions. Each session runs in a dedicated microVM with memory sanitized when it ends. Compute lifecycles last up to 8 hours.</p>
-    <span className="service-tag tag--runtime">Runtime</span>
-  </div>
+Treat identity as an immutable thread that connects memory retrieval, policy checks, and tool calls within a single turn. For the full identity model, see [Understanding workload identities](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/understanding-agent-identities.html) and the [JWT-based identification pattern](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/get-workload-access-token.html).
 
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--gateway" aria-hidden="true" /><h3>Secure Tool Access via Gateway</h3></div>
-    <p>Connect agents to internal APIs, databases, and SaaS tools through a managed gateway (MCP server). Auth propagation ensures the agent calls APIs as the user. VPC egress support for private resources.</p>
-    <span className="service-tag tag--gateway">Gateway</span>
-  </div>
+---
 
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--observability" aria-hidden="true" /><h3>Observability & Tracing</h3></div>
-    <p>Full trace visibility into every agent turn using OpenTelemetry standards surfaced through Amazon CloudWatch. Per-conversation tracing with user context. Integrate with Langfuse or custom OTLP endpoints.</p>
-    <span className="service-tag tag--observability">Observability</span>
-  </div>
+## Session-state preservation
 
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--guardrails" aria-hidden="true" /><h3>Guardrails & Evaluations</h3></div>
-    <p>Content filtering, PII redaction, topic boundaries, and custom guardrails. Online evaluations (GoalSuccessRate, Correctness, Helpfulness, ToolSelectionAccuracy) run continuously in production to catch regressions before users feel them.</p>
-    <span className="service-tag tag--evaluations">Evaluations</span>
-  </div>
+Conversational agents must preserve session state across turns so users experience a continuous interaction rather than repeated cold starts. This is the defining architectural difference between conversational and single-invocation patterns.
 
-  <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--cost" aria-hidden="true" /><h3>Cost Optimization</h3></div>
-    <p>Scale-to-zero means no idle cost. Context-window optimization (summarization + semantic retrieval) reduces the tokens sent to the model each turn. Route simple turns to cheaper models, complex reasoning to premium models.</p>
-    <span className="service-tag tag--runtime">Runtime</span>
-  </div>
+### Session resumption
+
+When a user returns after a timeout or disconnection, the agent must resume the correct session rather than starting fresh:
+
+- Bind sessions to a verified user ID rather than a transient connection identifier. Connection-based session keys break when WebSocket reconnects or load balancers re-route. See [Understanding workload identities](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/understanding-agent-identities.html).
+- Store session metadata (turn count, active context window, pending tool results) so the agent can reconstruct conversation state without replaying all prior turns.
+- Define a session expiry policy. The [Runtime lifecycle settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) control idle timeout and max lifetime. Expired sessions start fresh; active sessions resume mid-flow.
+
+### User-scoped memory namespacing
+
+Memory must be scoped so one user's recall never leaks to another:
+
+- Derive the memory namespace from a verified identity claim (e.g., `sub` from an ID token), not from a client-supplied parameter that could be spoofed. See [Specify long-term memory with namespaces](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/specify-long-term-memory-organization.html).
+- In multi-tenant deployments, include the tenant ID in the namespace key (`{tenant_id}/{user_id}`) to provide hard isolation between organizations. The [AWS SaaS tenant isolation strategies](https://docs.aws.amazon.com/prescriptive-guidance/latest/saas-multitenant-api-access-authorization/isolation-methods.html) whitepaper covers this pattern at the infrastructure level.
+- Reject memory operations that lack a valid namespace key rather than falling back to a shared or global namespace.
+
+### Retention and deletion boundaries
+
+Define how long state persists and how it is removed:
+
+- Set `eventExpiryDuration` to enforce time-based retention. Events older than the boundary are automatically pruned, limiting storage growth and compliance exposure. See [Create an AgentCore Memory](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-create-a-memory-store.html) for the expiry configuration.
+- Provide a user-initiated deletion path so users (or compliance processes) can remove stored context on demand.
+- Document which data is session-scoped (discarded on expiry) versus persistent (retained until explicit deletion) so operators can reason about storage growth and regulatory obligations.
+
+---
+
+## Latency management
+
+Users wait for replies in real time, so every layer of a conversational agent must respect latency budgets. These are general distributed-systems patterns applied to the conversational context — where perceived responsiveness directly affects user trust.
+
+### Stream progress
+
+Send partial results and status tokens to the client as the agent works. AgentCore supports [SSE streaming](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-http-protocol-contract.html) for HTTP and bidirectional streaming via WebSocket. Streaming keeps the user informed during tool calls and long reasoning chains, reducing perceived wait time and preventing timeout disconnects on the client side.
+
+### Bound tool timeouts
+
+Set explicit timeout limits on each tool invocation. A single slow or unresponsive tool should not block the entire conversation. Use tiered timeouts:
+
+<div className="fancy-table">
+
+| Tier | Tool type | Suggested timeout |
+|---|---|---|
+| Fast | Read-only lookups, key-value gets | 2–5 seconds |
+| Moderate | API writes, database queries | 10–15 seconds |
+| Hard ceiling | Any tool | Triggers graceful degradation rather than an unresponsive session |
+
 </div>
 
----
+### Idempotent retries
 
-## Your Journey to Production
+When a tool call times out or returns a transient error, the agent may retry automatically. Attach a caller-generated idempotency key to every state-changing request so that retries do not duplicate side effects (double charges, duplicate records, repeated notifications). Read-only operations can be retried freely; state-changing operations require the key to guarantee at-most-once semantics.
 
-From first API call to enterprise deployment in five stages.
-
-1. **Build Your Agent** — Use any framework (Strands, LangGraph, CrewAI, Claude Agent SDK). Test locally with `agentcore dev`.
-2. **Add Identity & Auth** — Configure the CustomJWT authorizer with your corporate IdP's OAuth 2.0 bearer tokens.
-3. **Connect Tools via Gateway** — Register internal APIs, databases, and SaaS integrations as MCP tools.
-4. **Deploy & Scale** — Push to AgentCore Runtime with `agentcore deploy`. No Kubernetes needed.
-5. **Monitor & Iterate** — Track every conversation with OpenTelemetry-based tracing via CloudWatch. Enable online evaluations for continuous quality measurement.
+The [Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) covers tool reliability and retry patterns in detail.
 
 ---
 
-## Related Pages
+## User-facing error handling
 
-- <Link to="/docs/workloads/conversational/session-management">Session Management & Streaming →</Link>
-- <Link to="/docs/workloads/conversational/patterns-and-architecture">Patterns & Architecture →</Link>
+Timeouts, policy denials, and tool failures are inevitable in production. Any user-facing application needs error handling — but conversational agents have a specific constraint: an error response is still a *turn in the conversation*. The agent must translate failures into clear next steps while maintaining the conversational flow.
+
+### Error categories and suggested responses
+
+<div className="fancy-table">
+
+| Error Category | Typical Cause | User-Facing Response | Recovery Action |
+|---|---|---|---|
+| Timeout | Tool or model call exceeds deadline | "This is taking longer than expected. I'll keep trying — or you can ask again in a moment." | Apply idempotent retry with exponential backoff; surface progress if streaming is available |
+| Policy denial | Cedar policy rejects the requested action | "I'm not able to perform that action with your current permissions." | Log the denied principal/action/resource tuple for audit; suggest an alternative action or escalation path |
+| Tool failure | Gateway tool returns an error or is unavailable | "I wasn't able to complete that step. Let me try a different approach." | Fall back to an alternative tool or degrade gracefully; never expose raw error payloads to the user |
+
+</div>
+
+### Design principles
+
+:::info Why these matter specifically for conversational agents
+In a traditional API, an error is a status code. In a conversation, an error is a reply the human reads and reacts to. Getting this wrong breaks trust in a way that's harder to recover from than a 500 response in a dashboard.
+:::
+
+- **Classify, don't expose.** Map internal exceptions to one of the categories above. Never surface raw error codes, ARNs, or stack traces in user-facing messages.
+- **Preserve conversational flow.** Acknowledge the issue, state what happens next, and invite the user to continue.
+- **Log for operators, speak for users.** Write full diagnostic detail (request IDs, error codes, latency) to the [observability pipeline](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html) while returning a plain-language summary to the user.
+- **Make next steps concrete.** "Try again," "ask your administrator," or "rephrase your request" are actionable. "An error occurred" is not.
+- **Avoid silent failures.** If a tool call fails and the agent proceeds without the result, inform the user that the information is unavailable rather than omitting it without explanation.
+
+---
+
+## Further reading
+
+- [Conversational production challenges](/docs/workloads/conversational/challenges) — the eight failure modes that most commonly catch teams off guard
+- [Production Readiness checklist](/docs/operate/production-readiness) — the full checklist before serving real traffic
+- [Agentic AI security best practices](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/best-practices.html) — AWS Prescriptive Guidance on identity, input validation, and tool safety
+- [Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) — cognitive pipeline optimization, tool reliability, agent observability

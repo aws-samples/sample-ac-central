@@ -2,12 +2,16 @@
 title: Session Management & Streaming
 sidebar_label: Session Management
 sidebar_position: 4
-last_verified: 2026-07-15
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 
 # Session Management & Streaming
+
+:::tip Who this is for
+Developers designing session behavior, streaming UX, and memory isolation for a conversational agent. If you haven't deployed a prototype yet, start with the [Quick Start](/docs/workloads/conversational/quickstart) or [Harness Quick Start](/docs/workloads/conversational/harness-quickstart) first.
+:::
 
 Conversational agents need stateful, long-lived sessions, not the request/response model of traditional APIs. AgentCore handles this at the platform level.
 
@@ -19,16 +23,16 @@ Conversational agents need stateful, long-lived sessions, not the request/respon
 
 | Capability          | What AgentCore Provides                                                              |
 |---------------------|--------------------------------------------------------------------------------------|
-| Session isolation   | Each session runs in a dedicated microVM. No shared state between users.             |
+| Session isolation   | Each session runs in a [dedicated microVM](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-sessions.html). No shared state between users.             |
 | Session duration    | Compute lifecycle lasts up to 8 hours. Long enough for complex multi-step workflows. |
 | Session persistence | Durable state stored in AgentCore Memory survives client disconnects. In-flight microVM state does not persist across a cold restart. |
 | Session ID tracking | Pass a `runtimeSessionId` on each invoke. Same ID = same conversation.               |
-| Scale-to-zero       | Idle sessions terminate (default 15 min). You pay only for active time.              |
+| Scale-to-zero       | Idle sessions terminate ([default 15 min](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html)). You pay only for active time.              |
 
 </div>
 
 :::note Architecture guidance
-Session duration, idle timeout defaults, and reconnect behavior are architectural properties that may vary by configuration and SDK version. Consult the [AgentCore developer guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/) for current limits and configurable values before designing against specific numbers.
+Session duration, idle timeout defaults, and reconnect behavior are architectural properties that may vary by configuration and SDK version. Consult the [AgentCore service quotas](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/bedrock-agentcore-limits.html) for current limits and configurable values before designing against specific numbers.
 :::
 
 ---
@@ -39,7 +43,7 @@ AgentCore Memory keeps your agent coherent across turns without manual context p
 
 - **Short-term memory (session)** — automatic when memory is configured. Every message in the current session is available to the agent. No prompt stuffing required.
 - **Long-term memory (cross-session)** — opt-in. Store user preferences, past decisions, and facts that should persist across sessions. Namespace per user for isolation (see [isolation design note](#memory-namespace-and-isolation-design) below).
-- **Summarization** — when a SUMMARIZATION strategy is configured, AgentCore Memory can produce summaries of older turns so the agent retains the gist without exhausting the context window. This is a configured strategy, not automatic behavior on every deployment.
+- **Summarization** — when a [SUMMARIZATION strategy](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html) is configured, AgentCore Memory can produce summaries of older turns so the agent retains the gist without exhausting the context window. This is a configured strategy, not automatic behavior on every deployment.
 
 ---
 
@@ -49,7 +53,7 @@ Real users close laptops, switch devices, and come back hours later. AgentCore i
 
 1. **Durable state in AgentCore Memory** — facts and summaries stored in memory survive client disconnects and cold restarts because they are persisted in the memory service, not only in the microVM.
 2. **Resume with the same session ID** — passing the same `runtimeSessionId` on a new invoke allows the agent to retrieve prior context from memory and continue the conversation.
-3. **Timeout behavior** — after the idle timeout (configurable, consult the [AgentCore developer guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/) for current defaults and limits), the microVM terminates. State held only in the microVM process is not recoverable; state committed to AgentCore Memory is.
+3. **Timeout behavior** — after the idle timeout (configurable, consult the [AgentCore service quotas](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/bedrock-agentcore-limits.html) for current defaults and limits), the microVM terminates. State held only in the microVM process is not recoverable; state committed to AgentCore Memory is.
 
 ---
 
@@ -58,7 +62,7 @@ Real users close laptops, switch devices, and come back hours later. AgentCore i
 Users may start on Slack, switch to a web app, then follow up on mobile. Because sessions are server-side and identified by `runtimeSessionId` + user identity:
 
 - Same user + same session ID = continuation regardless of channel.
-- AgentCore Identity links the user across channels via their IdP token, not a device cookie.
+- [AgentCore Identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html) links the user across channels via their IdP token, not a device cookie.
 
 ---
 
@@ -94,10 +98,10 @@ Conversational agents live or die on perceived responsiveness. AgentCore streams
 
 | Capability               | Detail                                                                              |
 |--------------------------|-------------------------------------------------------------------------------------|
-| Token-by-token streaming | SSE from the `/invocations` endpoint for progressive response delivery.             |
+| Token-by-token streaming | [SSE from the `/invocations` endpoint](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-http-protocol-contract.html#invocation-endpoints) for progressive response delivery.             |
 | Tool-activity feedback   | During tool calls, emit status events so the UI shows "Looking up account…"         |
 | Partial response display | Stream the answer while tools run in parallel behind the scenes.                    |
-| WebSocket support        | Bidirectional streaming via WebSocket for real-time UX — verify endpoint availability and configuration in the [AgentCore developer guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/). |
+| WebSocket support        | Bidirectional streaming via WebSocket for real-time UX — verify endpoint availability and configuration in the [AgentCore WebSocket protocol contract](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-http-protocol-contract.html). |
 
 </div>
 
@@ -117,7 +121,7 @@ Enterprise deployments serve multiple teams, business units, or customers from s
 | Memory        | Namespace-per-user. One tenant cannot retrieve another's memory events. |
 | Gateway/Tools | Auth propagation ensures each tool call is scoped to the user's token.  |
 | Observability | Traces and logs carry user context; RBAC on CloudWatch log groups.      |
-| Data at rest  | Encryption with customer-managed keys (CMK) supported.                  |
+| Data at rest  | [Encryption with customer-managed keys (CMK)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/data-encryption.html) supported.                  |
 
 </div>
 
@@ -137,7 +141,7 @@ Design checklist before enabling long-term memory in a multi-user deployment:
 
 1. `actor_id` is derived from a validated identity claim — not a client-supplied header, not a default fallback, not a constant.
 2. `session_id` is unique per conversation — not reused across users or shared across channels without intent.
-3. If you use [AgentCore Identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/), the validated token claim is the source of truth for both values.
+3. If you use [AgentCore Identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html), the validated token claim is the source of truth for both values.
 4. Test isolation explicitly: create two users, store a fact as User A, query as User B, and confirm User B cannot retrieve User A's fact.
 
 ---
@@ -148,8 +152,18 @@ Conversational memory stores information about users across sessions. Before ena
 
 :::note Data governance checklist
 - **Tenant boundaries** — verify that your `actor_id` and namespace design prevent cross-tenant access (see above).
-- **Retention** — configure `eventExpiryDuration` to the shortest period your product requires. Retaining data longer than necessary increases privacy risk.
-- **Deletion and forgetting** — plan for user deletion requests (e.g., GDPR right to erasure). Confirm your deletion workflow against the [AgentCore Memory documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
+- **Retention** — configure [`eventExpiryDuration`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-create-a-memory-store.html) to the shortest period your product requires. Retaining data longer than necessary increases privacy risk.
+- **Deletion and forgetting** — plan for user deletion requests (e.g., GDPR right to erasure). Confirm your deletion workflow against the [AgentCore Memory documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html).
 - **Sensitive data minimization** — avoid storing raw PII, credentials, or regulated data (PHI, PCI) as memory events. Extract only the facts the agent needs to function.
 - **User consent** — if your deployment is user-facing, disclose that the agent retains information across sessions and give users a way to clear their memory.
 :::
+
+---
+
+## Further Reading
+
+- [Runtime sessions](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-sessions.html) — session lifecycle, states, and `runtimeSessionId` semantics
+- [Memory organization](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-organization.html) — how strategy, actor, and session namespaces fit together
+- [Memory-augmented agents](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/memory-augmented-agents.html) — AWS Prescriptive Guidance patterns for agent memory
+- [Tenant isolation strategies](https://docs.aws.amazon.com/prescriptive-guidance/latest/saas-multitenant-api-access-authorization/isolation-methods.html) — infrastructure-level isolation patterns for multi-tenant deployments
+- [Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) — session, memory, and observability best practices

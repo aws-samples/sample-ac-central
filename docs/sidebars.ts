@@ -13,6 +13,7 @@ const sidebars: SidebarsConfig = {
         'get-started/firstagent',
         'get-started/quickstart',
         'get-started/existing-agent',
+        'get-started/deployment-methods',
       ],
     },
     {
@@ -31,6 +32,7 @@ const sidebars: SidebarsConfig = {
             'workloads/conversational/enterprise-features',
             'workloads/conversational/session-management',
             'workloads/conversational/patterns-and-architecture',
+            'workloads/conversational/challenges',
           ],
         },
         {
@@ -47,6 +49,7 @@ const sidebars: SidebarsConfig = {
             'workloads/workflow/memory-and-state',
             'workloads/workflow/evaluations',
             'workloads/workflow/patterns-and-architecture',
+            'workloads/workflow/challenges',
           ],
         },
         {
