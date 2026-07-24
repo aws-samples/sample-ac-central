@@ -97,15 +97,14 @@ For details on choosing between modes, see the [A/B testing overview](https://do
 AgentCore Gateway handles weighted traffic splitting. You set a weight (0–100) for each variant; the gateway routes incoming requests proportionally.
 
 ```bash
-# Start an A/B test with 10% treatment traffic
-agentcore run ab-test \
-  --control-weight 90 \
-  --treatment-weight 10 \
-  --control-config ./configs/v1-config.json \
-  --treatment-config ./configs/v2-config.json
+# Start an A/B test — the CLI requires a deployed gateway, variants,
+# traffic weights, and online evaluation configuration(s).
+# Use --disable-on-create to start the test in a stopped state,
+# or --role-arn to specify an execution role.
+agentcore run ab-test
 ```
 
-The equivalent API operations are `CreateABTest` and `GetABTest`. Both control and treatment variants are scored by online evaluators in parallel; the platform reports per-variant scores and statistical significance as traffic accumulates.
+You can also manage A/B tests programmatically. The equivalent API operations are `CreateABTest` and `GetABTest`, and you can poll results at any time with `agentcore view ab-test <id>` without affecting statistical validity. When results are significant, promote the winning variant with `agentcore promote ab-test -i <id>`. Both control and treatment variants are scored by online evaluators in parallel; the platform reports per-variant scores and statistical significance as traffic accumulates.
 
 ### Staged Rollout via A/B Testing
 
@@ -236,7 +235,7 @@ When retiring an entire agent (not just a version), also decommission the AgentC
 - [Target-Based A/B Testing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-target-based.html)
 - [AgentCore Runtime Versioning](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agent-runtime-versioning.html)
 - [Runtime Lifecycle Settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html)
-- [AgentCost06-BP03: Use event-driven compute and scale-to-zero patterns](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html)
+- [AgentCost06-BP03: Design cost-efficient initialization through warm pools and caching](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html)
 
 :::warning Prototype boundary
 This page walks through deployment actions that affect live agent traffic, including A/B test weight changes, alias updates, and resource decommissioning. Execute these steps in non-production environments first and confirm rollback paths before applying them to production.
