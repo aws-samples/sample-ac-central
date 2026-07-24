@@ -161,7 +161,7 @@ Quickstarts that ship with destructive tools (restart service, delete record, ap
 
 ## 8. Human-in-the-Loop Implementation Gaps
 
-High-risk actions require human approval, but "add a human approval step" is not a complete implementation. Approvals need durable state, timeouts, full context for the approver, and protection against bypass.
+High-risk actions require human approval, but "add a human approval step" is not a complete implementation. Approvals need durable state, timeouts, full context for the approver, and protection against bypass. For working code across mechanisms and frameworks, see the [Human-in-the-Loop implementation guide](/docs/patterns/human-in-the-loop).
 
 **Why it's dangerous for workflow agents:** An approval gate that does not persist state durably can lose the approval response and leave the agent stuck or timed out. An approval request without sufficient context leads to approvers rubber-stamping requests they don't understand.
 

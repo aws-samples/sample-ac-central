@@ -38,7 +38,7 @@ Match your scenario to the recommended pattern combination.
 **Single domain** (e.g., just customer billing):
 - Start with **Single Agent + Tools**
 - Add **RAG** if you need knowledge base grounding
-- Add **HITL** if actions are high-risk
+- Add **[HITL](/docs/patterns/human-in-the-loop)** if actions are high-risk
 
 **Multiple domains** (e.g., billing + support + account management):
 - Use **Agents-as-Tools** for clear domain separation
@@ -96,7 +96,7 @@ As your agent matures, you may need to upgrade patterns:
 1. **Single Agent → Agents-as-Tools** — When tool count grows large (a common heuristic is ~15+ tools), or when domains need separate guardrails and isolation
 2. **Graph → Swarm** — When branching logic becomes too complex to predefine
 3. **Agents-as-Tools → A2A** — When agents cross team/framework boundaries
-4. **Any pattern → + HITL** — When deploying to regulated environments
+4. **Any pattern → + [HITL](/docs/patterns/human-in-the-loop)** — When deploying to regulated environments
 
 [AgentCore Runtime](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html) supports all patterns natively, so most migrations are primarily code-level changes. However, patterns that involve cross-agent communication (A2A) or platform-level standardization (Bot Factory) also require infrastructure configuration (endpoints, registries, account topology) beyond the agent code itself.
 

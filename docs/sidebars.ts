@@ -96,6 +96,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'patterns/overview',
         'patterns/selection-guide',
+        'patterns/human-in-the-loop',
       ],
     },
     {
