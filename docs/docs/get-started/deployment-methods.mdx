@@ -2,7 +2,7 @@
 title: Deployment Methods
 sidebar_label: Deployment Methods
 sidebar_position: 5
-last_verified: 2026-07-20
+last_verified: 2026-07-24
 ---
 
 import Link from '@docusaurus/Link';
@@ -54,8 +54,8 @@ AgentCore resources are supported across the major IaC tools:
 - [AWS::BedrockAgentCore::Gateway](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-bedrockagentcore-gateway.html) — Gateway resource properties and configuration
 
 **AWS CDK**
-- [aws-cdk-lib.aws_bedrockagentcore module](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_bedrockagentcore-readme.html) — L1 (CloudFormation-level) constructs
-- [aws_bedrock_agentcore_alpha module](https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_bedrock_agentcore_alpha/README.html) — L2 constructs with higher-level abstractions (Runtime, Gateway)
+- [aws-cdk-lib.aws_bedrockagentcore module](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.aws_bedrockagentcore-readme.html) — L1 and L2 constructs (Runtime, Gateway, Memory, Evaluation — all stable)
+- [aws_bedrock_agentcore_alpha module](https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.aws_bedrock_agentcore_alpha/README.html) — Experimental Policy constructs (only PolicyEngine remains in alpha; all other constructs have graduated to stable)
 
 **Terraform**
 - [aws_bedrockagentcore_agent_runtime](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/bedrockagentcore_agent_runtime) — Terraform AWS provider resource for AgentCore Runtime

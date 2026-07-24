@@ -2,7 +2,7 @@
 title: Patterns & Architecture
 sidebar_label: Patterns & Architecture
 sidebar_position: 8
-last_verified: 2026-07-22
+last_verified: 2026-07-24
 ---
 
 import Link from '@docusaurus/Link';
@@ -70,7 +70,7 @@ AgentCore supports [a range of multi-agent patterns](/docs/patterns/overview). T
 | **Single Agent + Tools**      | One decision domain, clear input → output mapping         | [IT Incident Response](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents)                                     |
 | **Dual-Agent (Decide + Act)** | Separation of reasoning from execution for compliance     | [Claims Processing](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/event-driven-claims-agent)              |
 | **[Agents-as-Tools](https://strandsagents.com/docs/user-guide/concepts/multi-agent/multi-agent-patterns/)**           | Multi-domain orchestration with specialized sub-agents    | [Iberdrola IT Ops](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/)                            |
-| **Human-in-the-Loop**         | High-stakes actions requiring approval before execution   | [Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/) |
+| **[Human-in-the-Loop](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-tools.html)**         | High-stakes actions requiring approval before execution   | [Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/) |
 | **Confidence-Gated**          | Auto-execute above threshold, escalate below              | Triage (auto-route easy, escalate hard)                                                                                                                       |
 | **Fan-Out (parallel tools)**  | Enrich from multiple sources simultaneously before reason | Incident enrichment from 5+ data sources                                                                                                                      |
 
