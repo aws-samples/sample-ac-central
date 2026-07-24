@@ -2,10 +2,14 @@
 title: Pattern Selection Guide
 sidebar_label: Selection Guide
 sidebar_position: 2
-last_verified: 2026-07-15
+last_verified: 2026-07-22
 ---
 
 # Pattern Selection Guide
+
+:::tip Who this is for
+Builders who have reviewed the [pattern catalog](/docs/patterns/overview) and need to map their specific scenario to a recommended pattern combination. If you're still exploring what patterns exist, start with the overview first.
+:::
 
 Match your scenario to the recommended pattern combination.
 
@@ -21,7 +25,7 @@ Match your scenario to the recommended pattern combination.
 | Collaborative troubleshooting | Swarm                                   | 🟠 Medium-High  |
 | Regulated / compliance        | Single Agent + Reflection + HITL        | 🟡 Medium       |
 | Multi-team platform           | Bot Factory + Graph                     | 🔴 High         |
-| Cross-platform federation     | A2A + Agent-as-MCP                      | 🔴 High         |
+| Cross-platform federation     | [A2A](https://strandsagents.com/docs/user-guide/concepts/multi-agent/agent-to-agent/) + [Gateway MCP targets](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) | 🔴 High         |
 
 </div>
 
@@ -89,9 +93,19 @@ Match your scenario to the recommended pattern combination.
 
 As your agent matures, you may need to upgrade patterns:
 
-1. **Single Agent → Agents-as-Tools** - When tool count exceeds ~15, or domains need separate guardrails
-2. **Graph → Swarm** - When branching logic becomes too complex to predefine
-3. **Agents-as-Tools → A2A** - When agents cross team/framework boundaries
-4. **Any pattern → + HITL** - When deploying to regulated environments
+1. **Single Agent → Agents-as-Tools** — When tool count grows large (a common heuristic is ~15+ tools), or when domains need separate guardrails and isolation
+2. **Graph → Swarm** — When branching logic becomes too complex to predefine
+3. **Agents-as-Tools → A2A** — When agents cross team/framework boundaries
+4. **Any pattern → + HITL** — When deploying to regulated environments
 
-AgentCore Runtime supports all patterns, so migration is a code change, not an infrastructure change.
+[AgentCore Runtime](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html) supports all patterns natively, so most migrations are primarily code-level changes. However, patterns that involve cross-agent communication (A2A) or platform-level standardization (Bot Factory) also require infrastructure configuration (endpoints, registries, account topology) beyond the agent code itself.
+
+---
+
+## Further Reading
+
+- [Strands Multi-Agent Patterns](https://strandsagents.com/docs/user-guide/concepts/multi-agent/multi-agent-patterns/) — implementation reference for Graph, Swarm, Workflow, and Agents-as-Tools
+- [AgentCore Runtime — How It Works](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html) — serverless execution model that hosts all patterns
+- [AgentCore Gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) — MCP tool federation and cross-agent connectivity
+- [Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) — reliability, cost, and security guidance for multi-agent systems
+- [AgentCore Samples](https://github.com/awslabs/agentcore-samples) — working implementations of each pattern tier

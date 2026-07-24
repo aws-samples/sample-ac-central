@@ -2,12 +2,16 @@
 title: Architectural Patterns
 sidebar_label: Overview
 sidebar_position: 1
-last_verified: 2026-07-15
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 
 # Architectural Patterns
+
+:::tip Who this is for
+Builders choosing a multi-agent topology for their use case. If you already know which pattern fits, see the [Selection Guide](/docs/patterns/selection-guide) for scenario-to-pattern matching. If you haven't deployed anything yet, start with [Get Started](/docs/get-started/overview).
+:::
 
 Multi-agent patterns supported by AgentCore and the Strands SDK. Choose based on your use case, complexity, and execution requirements.
 
@@ -80,7 +84,7 @@ applicable on AgentCore but without specific AgentCore documentation.
 <div className="tile-grid">
   <div className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--hitl" aria-hidden="true" /><h3>Human-in-the-Loop (HITL)</h3></div>
-    <p>Agent pauses execution for human approval on high-risk actions. Async event-driven - the agent yields, waits for approval, then resumes.</p>
+    <p>Agent pauses execution for human approval on high-risk actions. Async event-driven — the agent yields, waits for approval via a callback mechanism (such as <a href="https://docs.aws.amazon.com/step-functions/latest/dg/tutorial-human-approval.html">Step Functions callback tokens</a> or session persistence), then resumes.</p>
     <p><strong>Example:</strong> <a href="https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/">Thomson Reuters</a></p>
     <span className="service-tag tag--identity">Medium Complexity</span>
   </div>
@@ -167,9 +171,12 @@ Which patterns are most relevant for each agent archetype.
 
 ---
 
-## Resources
+## Further Reading
 
-- [Strands Multi-Agent Docs](https://strandsagents.com/docs/user-guide/concepts/multi-agent/multi-agent-patterns/)
-- [Strands A2A Docs](https://strandsagents.com/docs/user-guide/concepts/multi-agent/agent-to-agent/)
-- [Strands Agents-as-Tools Docs](https://strandsagents.com/docs/user-guide/concepts/multi-agent/agents-as-tools/)
-- [Strands Deploy Guide](https://strandsagents.com/docs/user-guide/deploy/deploy_to_bedrock_agentcore/)
+- [Strands Multi-Agent Patterns](https://strandsagents.com/docs/user-guide/concepts/multi-agent/multi-agent-patterns/) — orchestrator, swarm, graph, workflow
+- [Strands A2A Docs](https://strandsagents.com/docs/user-guide/concepts/multi-agent/agent-to-agent/) — cross-framework agent communication
+- [Strands Agents-as-Tools](https://strandsagents.com/docs/user-guide/concepts/multi-agent/agents-as-tools/) — hierarchical delegation
+- [Strands Deploy Guide](https://strandsagents.com/docs/user-guide/deploy/deploy_to_bedrock_agentcore/) — deploying to AgentCore Runtime
+- [Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) — multi-agent reliability, cost, and security guidance
+- [Memory-Augmented Agents (Prescriptive Guidance)](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/memory-augmented-agents.html) — patterns for the RAG-augmented pattern
+- [Step Functions Human Approval](https://docs.aws.amazon.com/step-functions/latest/dg/tutorial-human-approval.html) — callback mechanism for the HITL pattern
