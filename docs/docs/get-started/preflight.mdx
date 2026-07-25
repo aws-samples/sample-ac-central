@@ -39,8 +39,8 @@ Follow [least-privilege](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-p
 Access to Amazon Bedrock foundation models is enabled by default in commercial AWS regions when your IAM role has the correct [AWS Marketplace permissions](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html). However, there are cases where additional steps are needed:
 
 - **Anthropic models** require a one-time First Time Use (FTU) form submission per account (or per organization management account). Submit use case details through the Bedrock console or the `PutUseCaseForModelAccess` API. Access is granted immediately after submission.
-- **First invocation delay** — when you invoke a third-party model for the first time, Bedrock automatically initiates a subscription process that can take up to 15 minutes. During this window, calls may return `AccessDeniedException` until the subscription completes.
-- **Marketplace permissions required** — your IAM role needs `aws-marketplace:Subscribe`, `aws-marketplace:Unsubscribe`, and `aws-marketplace:ViewSubscriptions`. Without these, the automatic subscription fails silently.
+- **Marketplace permissions required** — your IAM role needs `aws-marketplace:Subscribe`, `aws-marketplace:Unsubscribe`, and `aws-marketplace:ViewSubscriptions`. Without these, first invocation of a Marketplace-backed model fails immediately with `AccessDeniedException`.
+- **Anthropic FTU timing** — if you skip the FTU form for Anthropic models, initial invocations may succeed but then begin failing with `AccessDeniedException` after approximately 15–20 minutes. Complete the FTU form before invoking any Anthropic model to avoid this delayed failure.
 
 If you encounter an `AccessDeniedException` referencing a model ID, verify Marketplace permissions and (for Anthropic models) FTU form completion. See [Request access to models](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) for the full prerequisites.
 
@@ -56,7 +56,7 @@ Tutorial workloads typically cost a few dollars or less at development volume. T
 |---|---|---|
 | Bedrock model invocations | Per-token pricing for input and output tokens | Cost varies by model; larger models are priced higher |
 | AgentCore Runtime | $0.0895/vCPU-hour + $0.00945/GB-hour | Scale-to-zero means no cost when idle |
-| AgentCore Memory | $0.25 per 1,000 events (short-term); $0.75 per 1,000 records stored/month (long-term) | Minimal at tutorial volume |
+| AgentCore Memory | $0.25 per 1,000 events (short-term); $0.75 per 1,000 records stored/month (long-term, built-in strategies) or $0.25 per 1,000 records stored/month (override/self-managed strategies) | Minimal at tutorial volume |
 | ECR (container images) | Storage per GB/month | Created automatically by `agentcore deploy` for container-based agents |
 | S3 (build artifacts) | Storage and requests | The CLI creates `bedrock-agentcore-*` buckets for deployment artifacts; negligible at tutorial volume |
 | CodeBuild (image builds) | Per build-minute | Used by the CLI to build container images during deployment |

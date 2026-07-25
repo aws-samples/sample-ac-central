@@ -41,7 +41,7 @@ function TilesSection() {
         <Link to="/docs/workloads/workflow/overview" className="landing-tile">
           <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--runtime" aria-hidden="true" /><h3>Workflow Agents</h3></div>
           <p className="landing-tile__desc">
-            Async agents triggered by tickets, emails, webhooks, and system events. Automate workflows with confidence scoring and HITL escalation.
+            Async agents triggered by tickets, emails, webhooks, and system events. Automate workflows with policy gates and human-in-the-loop escalation.
           </p>
           {/* <span className="landing-tile__arrow">→</span> */}
         </Link>

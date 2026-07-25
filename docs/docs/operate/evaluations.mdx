@@ -2,18 +2,22 @@
 title: Evaluations
 sidebar_label: Evaluations
 sidebar_position: 3
-last_verified: 2026-07-15
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 
 # Evaluations
 
+:::tip Who this is for
+This page is for teams setting up continuous evaluation for production agents. If you are still in early development, the [Production Readiness](./production-readiness) page gives you a checklist of when evaluations need to be in place before you go live.
+:::
+
 Evaluations are how you measure whether your agent is doing the right thing, correctly, and safely, across the range of inputs it encounters in production. Guardrails and policies set the boundaries of permitted behavior; evaluations tell you whether the agent is meeting quality and safety standards within those boundaries.
 
 This page covers offline vs. online evaluations, what to measure, how to gate releases on evaluation results, and how to link evaluations to rollback triggers. Where AgentCore Evaluations is the relevant managed service, it is noted as such. General guidance is labeled accordingly.
 
-For the official AgentCore documentation, see the [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
+For the full AgentCore Evaluations service documentation, see [How Evaluations Work](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/how-it-works-evaluations.html).
 
 ---
 
@@ -47,11 +51,11 @@ Building the dataset is the hardest part. Start with:
 
 Dataset curation is an ongoing activity. Every production incident should add at least one new regression case to the offline dataset.
 
-### Online Evaluation (General Guidance)
+### Online Evaluation
 
 Online evaluation samples a percentage of live production traffic and evaluates those requests asynchronously, after the agent has already responded. The evaluation does not block the response; it runs in a separate process.
 
-AgentCore Evaluations (a managed capability within AgentCore) provides infrastructure for running continuous evaluations against live agent traffic. Consult the [official documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/) for the current configuration interface and supported evaluators.
+AgentCore Evaluations provides infrastructure for running continuous evaluations against live agent traffic. See [getting started with on-demand evaluation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-on-demand.html) for the current configuration interface and supported evaluators.
 
 The sampling rate is a cost/coverage trade-off. A 1% sample of high-traffic agents may be enough to detect statistical shifts. A 100% sample of low-traffic agents that make high-stakes decisions may be appropriate. Set the sampling rate based on the cost of a missed quality regression, not on what is cheapest.
 
@@ -68,7 +72,7 @@ Common approaches:
 - **LLM-as-judge**: use a separate, powerful model to score the agent's output against a rubric. Scalable but introduces the judge model's own biases.
 - **Tool call trajectory matching**: verify that the sequence of tool calls the agent made matches an expected trajectory. Useful for tasks where the process (not just the final output) matters.
 
-AgentCore Evaluations includes built-in evaluators for correctness and trajectory matching (as a managed capability). Verify current evaluator availability in the official documentation.
+AgentCore Evaluations includes built-in evaluators for correctness and trajectory matching. The [evaluator catalog](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) lists all available evaluators with their configuration options. Key built-in evaluators include [`Builtin.Correctness`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html), [`Builtin.GoalSuccessRate`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html), and [`Builtin.TrajectoryInOrderMatch`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html).
 
 ### Safety
 
@@ -90,11 +94,13 @@ For agents that call tools as a core part of their function, tool-call accuracy 
 
 Poor tool-call accuracy is often a prompt engineering issue, a model capability issue, or a tool definition issue. Evaluation data can distinguish between these root causes.
 
+AgentCore Evaluations provides [`Builtin.TrajectoryInOrderMatch`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) and related trajectory evaluators for measuring tool-call accuracy against expected sequences.
+
 ### Latency
 
 Latency evaluation measures the distribution of response times across requests. Key percentiles are p50, p95, and p99. A mean latency that looks acceptable can hide a long tail of slow responses that degrade user experience.
 
-Latency has two main components for agents: model inference time and tool execution time. Evaluation results should distinguish these where possible so that optimization effort is directed at the right component.
+Latency has two main components for agents: model inference time and tool execution time. Evaluation results should distinguish these where possible so that optimization effort is directed at the right component. Integrate with [AgentCore Observability tracing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html) to break down latency by span.
 
 ### Cost
 
@@ -169,6 +175,15 @@ The rollback procedure itself is covered in detail in the [Releases and Rollback
 Evaluation failures should produce regression cases that enter the offline evaluation dataset. An incident that reveals a new failure mode in production means the offline dataset did not cover that case. Add it, re-evaluate, and verify the new version would have caught the regression before it reached production.
 
 This is the mechanism by which the evaluation program improves over time: production incidents make the offline dataset harder to pass, which raises the bar for future releases.
+
+---
+
+## Further Reading
+
+- [AgentCore Evaluators Catalog](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html)
+- [How AgentCore Evaluations Work](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/how-it-works-evaluations.html)
+- [Getting Started with On-Demand Evaluation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-on-demand.html)
+- [AgentCore Observability Configuration](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html)
 
 ---
 

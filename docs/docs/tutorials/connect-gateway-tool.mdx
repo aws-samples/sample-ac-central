@@ -2,7 +2,7 @@
 title: "Tutorial: Connect a Tool via Gateway"
 sidebar_label: Connect Gateway Tool
 sidebar_position: 2
-last_verified: 2026-07-20
+last_verified: 2026-07-24
 ---
 
 :::caution Prototype, not production
@@ -57,23 +57,33 @@ Treat every state-changing call as retryable. Accept a caller-generated idempote
 
 Require explicit JSON Schema types, required fields, limits, and safe error shapes for every tool. Model outputs as deliberately as inputs: stable, typed responses let an agent distinguish success, retryable failure, and user-correctable validation errors. Keep one action per tool rather than combining lookup and mutation.
 
-#### Cover each authorization boundary with Cedar
+#### Cover each authorization boundary with [Cedar](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html)
 
 Write Cedar policies for the principal, named Gateway action, resource, and relevant context before exposing a tool. Review both direct tool calls and delegated agent paths; a Gateway tool is not safe merely because its backend has IAM permissions. Test policies in a non-production environment before enforcing them.
 
 #### Store credentials outside commands and source files
 
-:::warning Use a secret-backed credential provider
-Inline credentials can leak through shell history, process listings, CI logs, and version control. Register a secret-backed credential by name; never paste a credential value into a command, prompt, or source file. See [AgentCore Identity documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html) for secure credential management.
+:::warning Avoid inline credentials
+Inline credentials can leak through shell history, process listings, CI logs, and version control. Never paste a credential value into a command, prompt, or source file. See the [AgentCore Identity documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html) for secure credential management.
 :::
+
+Run `agentcore add credential` **without flags** to use interactive mode, which prompts for the credential value instead of taking it as a command-line argument (keeping it out of shell history):
+
+```bash
+agentcore add credential
+```
+
+For OAuth-based tools, register the provider details non-interactively and supply only non-secret identifiers on the command line:
 
 ```bash
 agentcore add credential \
   --name <YOUR_CREDENTIAL_NAME> \
-  --secret-arn <YOUR_SECRET_ARN>
+  --type oauth \
+  --discovery-url <YOUR_OAUTH_DISCOVERY_URL> \
+  --client-id <YOUR_CLIENT_ID>
 ```
 
-Reference `<YOUR_CREDENTIAL_NAME>` from the Gateway target's outbound-authentication configuration. Keep the secret value only in an approved secret store.
+Reference `<YOUR_CREDENTIAL_NAME>` from the Gateway target's outbound-authentication configuration. AgentCore Identity stores the credential in its token vault; keep any source secret value only in an approved secret store. Run `agentcore add credential --help` to confirm the flags available in your CLI version.
 
 ## Common Mistakes
 
@@ -106,10 +116,11 @@ The official quick start provisions resources according to your selected targets
 
 </div>
 
-Destroy AgentCore-managed dependencies first. This removes the runtime and Gateway before their managed targets. Then remove standalone resources in reverse dependency order.
+Remove AgentCore-managed resources first. Removing them from the project config and redeploying deletes the runtime and Gateway before their managed targets. Then remove standalone resources in reverse dependency order.
 
 ```bash
-agentcore destroy
+agentcore remove all
+agentcore deploy
 
 aws lambda delete-function --function-name <YOUR_LAMBDA_FUNCTION_NAME>
 aws secretsmanager delete-secret --secret-id <YOUR_CREDENTIAL_SECRET_NAME>

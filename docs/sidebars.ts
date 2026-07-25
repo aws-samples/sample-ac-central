@@ -59,6 +59,13 @@ const sidebars: SidebarsConfig = {
           items: [
             'workloads/coding/overview',
             'workloads/coding/quickstart',
+            'workloads/coding/execution-model',
+            'workloads/coding/sandbox-and-tools',
+            'workloads/coding/source-control',
+            'workloads/coding/memory-and-context',
+            'workloads/coding/evaluations',
+            'workloads/coding/patterns-and-architecture',
+            'workloads/coding/hosted-agents',
           ],
         },
       ],
@@ -96,6 +103,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'patterns/overview',
         'patterns/selection-guide',
+        'patterns/human-in-the-loop',
       ],
     },
     {

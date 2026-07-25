@@ -2,16 +2,20 @@
 title: Cost and Reliability
 sidebar_label: Cost and Reliability
 sidebar_position: 4
-last_verified: 2026-07-15
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 
 # Cost and Reliability
 
+:::tip Who this is for
+This page is for teams optimizing cost and reliability for production agents. If you are still prototyping, come back when you are ready to deploy to real users — the [Production Readiness](./production-readiness) page is a good starting point.
+:::
+
 Agent deployments introduce cost and reliability characteristics that differ from traditional application services. Model inference costs scale with token volume rather than request count, and agent autonomy means a single runaway session can consume more resources than thousands of normal requests. This page covers where costs come from, how to attribute and control them, and the reliability patterns that keep agents stable under load.
 
-For the official AgentCore documentation, see the [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
+For current pricing figures, see the [Amazon Bedrock AgentCore pricing page](https://aws.amazon.com/bedrock/agentcore/pricing/).
 
 ---
 
@@ -32,16 +36,17 @@ Key factors that inflate inference costs:
 
 ### Runtime Execution
 
-AgentCore Runtime charges for the compute time your agent uses during invocation. For short-lived workflow agents this is often small. For long-running conversational sessions with many back-and-forth turns, runtime execution time accumulates.
+AgentCore Runtime charges for the compute time your agent uses during invocation: **$0.0895/vCPU-hr** and **$0.00945/GB-hr**. For short-lived workflow agents this is often small. For long-running conversational sessions with many back-and-forth turns, runtime execution time accumulates.
 
-Scale-to-zero between invocations means you are not paying for idle compute when no request is in flight, but "scale-to-zero" is not "zero cost." Any persistent infrastructure (memory storage, log retention, database tables, EventBridge rules) continues to incur charges between invocations.
+[Scale-to-zero](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html) between invocations means you are not paying for idle compute when no request is in flight, but "scale-to-zero" is not "zero cost." Any persistent infrastructure (memory storage, log retention, database tables, EventBridge rules) continues to incur charges between invocations. See [runtime lifecycle settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) for idle-timeout and scale-to-zero configuration.
 
 ### Memory Storage and Extraction
 
-AgentCore Memory persists session context and long-term memories across invocations. Costs have two components:
+AgentCore [Memory](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-create-a-memory-store.html) persists session context and long-term memories across invocations. Costs have several components:
 
-- **Storage**: the volume of data stored in the memory service.
-- **Extraction**: each memory retrieval operation may involve a semantic search call over stored memories, which can invoke model inference to generate embeddings or rank results.
+- **Short-term (event) storage**: **$0.25 per 1,000 events**
+- **Long-term storage (built-in)**: **$0.75 per 1,000 records/month**
+- **Memory retrieval**: **$0.50 per 1,000 retrievals**
 
 For agents with many users or long-lived sessions, memory costs can become significant. Set retention policies and archive or delete stale memories on a schedule.
 
@@ -49,7 +54,7 @@ For agents with many users or long-lived sessions, memory costs can become signi
 
 Every tool call the agent makes may incur cost: Lambda invocations, DynamoDB reads, third-party API calls with per-call pricing, external database queries. These costs are often invisible in agent-level monitoring because they appear in the billing of the target service, not in the agent service.
 
-An agent in a reasoning loop that makes many tool calls per invocation can generate surprising costs in connected services. Log tool call counts per invocation and set alerts when counts exceed expected ranges.
+AgentCore Gateway charges **$0.005 per 1,000 invocations**. An agent in a reasoning loop that makes many tool calls per invocation can generate surprising costs in connected services. Log tool call counts per invocation and set alerts when counts exceed expected ranges.
 
 ### Logs and Traces
 
@@ -74,7 +79,7 @@ Knowing costs happened is not enough; you need to know which agent caused them, 
 
 ### Application Inference Profiles for Cost Attribution
 
-Amazon Bedrock's application inference profiles are the primary mechanism for per-agent cost attribution. An application inference profile wraps a foundation model and carries cost allocation tags. Requests that flow through the profile's ARN are billed with those tags attached.
+Amazon Bedrock's [application inference profiles](https://docs.aws.amazon.com/bedrock/latest/userguide/cost-mgmt-application-inference-profiles.html) are the primary mechanism for per-agent cost attribution. An application inference profile wraps a foundation model and carries cost allocation tags. Requests that flow through the profile's ARN are billed with those tags attached.
 
 ```python
 import boto3
@@ -135,7 +140,9 @@ This estimate will not be exact, but it surfaces order-of-magnitude surprises be
 
 ## Scale-to-Zero Is Not Zero Cost
 
-AgentCore's event-driven execution model scales to zero between invocations: there is no always-on compute running when the agent is idle. This is a significant advantage for cost efficiency compared to a traditionally provisioned service.
+AgentCore's event-driven execution model [scales to zero](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html) between invocations: there is no always-on compute running when the agent is idle. This is a significant advantage for cost efficiency compared to a traditionally provisioned service.
+
+Configure the idle-timeout and scale-to-zero behavior in the [runtime lifecycle settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) to match your latency budget and traffic pattern.
 
 However, "scale-to-zero compute" is not "zero cost." The following costs persist regardless of invocation volume:
 
@@ -143,7 +150,7 @@ However, "scale-to-zero compute" is not "zero cost." The following costs persist
 
 | Resource | Ongoing cost even at zero invocations |
 |---|---|
-| AgentCore Memory storage | Stored memories and session context incur storage charges |
+| AgentCore Memory storage | Stored memories and session context incur storage charges ($0.75/1k records/month long-term; $0.25/1k events short-term) |
 | CloudWatch log group retention | Logs already ingested continue to incur storage charges |
 | Secrets Manager secrets | Per-secret monthly charge regardless of access frequency |
 | EventBridge rules (for workflow agents) | Rule evaluation charges apply when events are processed |
@@ -206,7 +213,7 @@ Configure a DLQ on every SQS queue or EventBridge rule that feeds agent invocati
 
 ### Circuit Breakers for Spend
 
-A cost circuit breaker is not a standard reliability pattern from distributed systems, but it is important for agents. When an agent enters a runaway reasoning loop or encounters an edge case that causes it to make many more tool calls than expected, costs can spike dramatically within a single session or a short time window.
+The [circuit breaker pattern](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/circuit-breaker.html) for cost is not a standard distributed-systems reliability primitive, but it is important for agents. When an agent enters a runaway reasoning loop or encounters an edge case that causes it to make many more tool calls than expected, costs can spike dramatically within a single session or a short time window.
 
 Architecture guidance for cost circuit breakers:
 
@@ -234,6 +241,16 @@ class SessionBudget:
         if self.input_tokens > self.max_input_tokens:
             raise BudgetExceededError(f"Session exceeded {self.max_input_tokens} input tokens")
 ```
+
+---
+
+## Further Reading
+
+- [AgentCost06-BP03: Design cost-efficient initialization through warm pools and caching](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html)
+- [Amazon Bedrock AgentCore Pricing](https://aws.amazon.com/bedrock/agentcore/pricing/)
+- [Circuit Breaker pattern — AWS Prescriptive Guidance](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/circuit-breaker.html)
+- [Runtime Lifecycle Settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html)
+- [Agentic AI Lens — AWS Well-Architected Framework](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html)
 
 ---
 

@@ -2,7 +2,7 @@
 title: Production Challenges
 sidebar_label: Production Challenges
 sidebar_position: 9
-last_verified: 2026-07-22
+last_verified: 2026-07-24
 ---
 
 import Link from '@docusaurus/Link';
@@ -161,7 +161,7 @@ Quickstarts that ship with destructive tools (restart service, delete record, ap
 
 ## 8. Human-in-the-Loop Implementation Gaps
 
-High-risk actions require human approval, but "add a human approval step" is not a complete implementation. Approvals need durable state, timeouts, full context for the approver, and protection against bypass.
+High-risk actions require human approval, but "add a human approval step" is not a complete implementation. Approvals need durable state, timeouts, full context for the approver, and protection against bypass. For working code across mechanisms and frameworks, see the [Human-in-the-Loop implementation guide](/docs/patterns/human-in-the-loop).
 
 **Why it's dangerous for workflow agents:** An approval gate that does not persist state durably can lose the approval response and leave the agent stuck or timed out. An approval request without sufficient context leads to approvers rubber-stamping requests they don't understand.
 
@@ -201,7 +201,7 @@ When a multi-step agent workflow partially fails, the completed steps need to be
 **Must-dos:**
 - Define compensating transactions for every write action before deploying: restart → verify health; create ticket → close ticket; modify config → revert config.
 - Implement compensating actions as tools, subject to the same Cedar policies as forward actions.
-- Use [Step Functions error handling with catch and rollback states](https://docs.aws.amazon.com/step-functions/latest/dg/concepts-error-handling.html) for complex multi-step workflows. This is the Saga pattern applied to agent orchestration.
+- Use [Step Functions error handling with catch and rollback states](https://docs.aws.amazon.com/step-functions/latest/dg/concepts-error-handling.html) for complex multi-step workflows. This is the [Saga pattern](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-orchestration.html) applied to agent orchestration.
 - Test rollback paths as rigorously as the happy path. A rollback that has never been tested will fail when you need it most.
 - Require human approval for rollback of high-impact changes, using the same HITL pattern described above.
 

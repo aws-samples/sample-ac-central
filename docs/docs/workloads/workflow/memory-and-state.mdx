@@ -2,7 +2,7 @@
 title: Memory & State
 sidebar_label: Memory & State
 sidebar_position: 6
-last_verified: 2026-07-22
+last_verified: 2026-07-24
 ---
 
 import Link from '@docusaurus/Link';
@@ -19,7 +19,7 @@ Workflow agents use memory differently than conversational agents. Instead of mu
 
 ## Memory Strategies
 
-See the [AgentCore memory types documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html) for full configuration details on each strategy.
+See the [AgentCore memory strategies documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-strategies.html) for full configuration details on each strategy.
 
 <div className="fancy-table fancy-table--auto-first">
 
@@ -49,6 +49,8 @@ See the [AgentCore memory types documentation](https://docs.aws.amazon.com/bedro
 ---
 
 ## Memory vs. Conversational Agents
+
+AgentCore Memory provides two [memory types](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html): short-term (raw session events) and long-term (extracted facts via strategies). Workflow agents typically use long-term memory scoped to entities rather than short-term conversation replay.
 
 <div className="fancy-table fancy-table--auto-first">
 
@@ -98,7 +100,8 @@ With this configuration, when INC-001 fires again next week, the agent retrieves
 ## Further Reading
 
 - [AgentCore Memory overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html)
-- [Memory types (SEMANTIC, SUMMARIZATION)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html)
+- [Memory types (short-term and long-term)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html)
+- [Memory strategies (SEMANTIC, SUMMARIZATION, USER_PREFERENCE, EPISODIC)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-strategies.html)
 - [Memory organization: actor and session namespaces](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-organization.html)
 - [Memory-augmented agents (AWS Prescriptive Guidance)](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/memory-augmented-agents.html)
 

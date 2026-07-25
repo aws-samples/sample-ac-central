@@ -2,7 +2,7 @@
 title: Multi-Tenancy & Reference Architecture
 sidebar_label: Multi-Tenancy
 sidebar_position: 7
-last_verified: 2026-07-15
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
@@ -12,6 +12,10 @@ These are target-state architecture patterns for multi-tenant agent platforms at
 :::
 
 # Multi-Tenancy & Reference Architecture
+
+:::tip Who this is for
+Architects designing multi-tenant agent deployments — isolation models, account topology, operating models, and the maturity path from experimentation to governed platform.
+:::
 
 Multi-tenancy is a cross-cutting concern that affects every layer of the agent platform. As multiple teams, business units, and use cases share the platform, proper isolation ensures security, performance predictability, and cost accountability.
 
@@ -138,15 +142,18 @@ Organizations evolve through maturity levels. Each level builds on the previous 
 |---|---|---|
 | **L1** | Experimentation | Individual teams building PoCs. No shared infrastructure. Ad-hoc security. |
 | **L2** | Foundation | Shared runtime and gateway deployed. Basic registry. Central observability. |
-| **L3** | Scaling | Self-service onboarding. CI/CD with eval gates. Multi-team adoption. A/B testing via AgentCore config bundles (configuration-level session variants). |
+| **L3** | Scaling | Self-service onboarding. CI/CD with eval gates. Multi-team adoption. A/B testing via `agentcore run ab-test` (native Gateway-driven weighted splitting). |
 | **L4** | Governed & Optimized | Full governance automation. Cost optimization. Continuous evals. Federated ops. |
 
 </div>
 
-:::note Configuration-level vs infrastructure-level routing
-AgentCore A/B testing uses config bundles (`abTests` in `agentcore.json`) to vary agent configuration per session — this is **configuration-level routing**. Config bundles select configuration variants based on session attributes; they do not distribute traffic percentages across infrastructure endpoints.
+:::note Native A/B testing vs infrastructure-level routing
+AgentCore provides **native A/B testing** with Gateway-driven weighted traffic splitting. Use `agentcore run ab-test` (CLI) or the `CreateABTest` API to configure tests. Two modes are available:
 
-AgentCore Gateway does not perform weighted traffic distribution between endpoints. For **infrastructure-level traffic splitting** or **infrastructure-level weighted routing** across separate deployment targets, use external mechanisms such as CloudFront, ALB weighted target groups, or Route 53 weighted routing.
+- **Config-bundle mode** — tests prompt, tool, or model configuration variants on the same runtime ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-config-bundle.html))
+- **Target-based mode** — routes traffic across different runtime endpoints ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-target-based.html))
+
+For **infrastructure-level traffic splitting** across entirely separate deployment targets outside AgentCore (for example, a green-field re-architecture comparison), external mechanisms such as CloudFront, ALB weighted target groups, or Route 53 weighted routing remain an option. See the [A/B testing overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing.html) for guidance on choosing the right mode.
 :::
 
 ---
@@ -171,8 +178,8 @@ AgentCore Gateway does not perform weighted traffic distribution between endpoin
     <p>• Build self-service onboarding workflows<br/>
     • Implement CI/CD pipelines with evaluation gates<br/>
     • Add cost attribution and per-team budgets<br/>
-    • Enable configuration-level A/B testing via AgentCore config bundles — route different sessions to different agent configurations (model, prompt, tools) to compare performance<br/>
-    • Use infrastructure-level traffic splitting, such as CloudFront, ALB weighted target groups, or Route 53 weighted routing, only when you need network-layer distribution across separate deployment targets<br/>
+    • Enable native A/B testing via `agentcore run ab-test` — compare configuration variants (config-bundle mode) or different runtime endpoints (target-based mode) with Gateway-driven weighted traffic splitting and online evaluation scoring<br/>
+    • Use infrastructure-level traffic splitting, such as CloudFront, ALB weighted target groups, or Route 53 weighted routing, only when you need network-layer distribution across deployment targets entirely outside AgentCore<br/>
     • Onboard 3+ domain teams to the platform</p>
     <span className="service-tag tag--gateway">Scaling</span>
   </div>
@@ -193,3 +200,13 @@ AgentCore Gateway does not perform weighted traffic distribution between endpoin
 :::info
 You don't need to reach L4 on day one. Start with L1 (experimentation), validate the value, then invest in platform capabilities incrementally. Most organizations should target L2 within 3 months and L3 within 6-9 months.
 :::
+
+---
+
+## Further Reading
+
+- [A/B Testing Overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing.html) — native Gateway-driven weighted traffic splitting
+- [Config-bundle A/B Testing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-config-bundle.html) — configuration variant testing on the same runtime
+- [Target-based A/B Testing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-target-based.html) — cross-endpoint traffic splitting
+- [AWS Organizations Multi-Account Strategy](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_getting-started_concepts.html) — account vending and SCP governance
+- [AgentCore Gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) — MCP tool federation, per-tenant throttling, and routing
