@@ -1,0 +1,149 @@
+---
+title: Hosted IDE Agents
+sidebar_label: Hosted IDE Agents
+sidebar_position: 9
+last_verified: 2026-07-08
+---
+
+import Link from '@docusaurus/Link';
+
+# Hosted IDE Agents on AgentCore
+
+Already using Claude Code, Kiro, or Codex on your laptop? Run them on AgentCore instead. Your session survives a closed lid, credentials stay off local machines, and every agent gets its own isolated microVM.
+
+---
+
+## Why Move Off Your Laptop
+
+The problem: coding agents need uninterrupted sessions, a persistent filesystem, and access to credentials. A laptop provides all three, but poorly. Close the lid and the agent dies. Credentials sit in `~/.aws/`, `~/.ssh/`, and `.env`. Port collisions and shared environments introduce flakiness.
+
+On AgentCore Runtime:
+
+- **Isolated microVM per session** — no shared state, no port collisions
+- **Persistent workspace** — session storage at `/mnt/workspace` survives disconnects and resume
+- **Managed credentials** — Token Vault or IAM roles, nothing on local disk
+- **Connect from anywhere** — reconnect via `agentcore exec` from any terminal
+
+---
+
+## Which Agents Can You Host?
+
+AgentCore Runtime runs any process that fits in a container, it is not limited to a fixed list of agents. Any coding agent that can run in a Linux environment (CLI-based, headless) can be deployed. The table below shows validated examples, not the full set:
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Agent       | Auth Model                   | Model                              |
+|-------------|------------------------------|-------------------------------------|
+| Claude Code | IAM role (Bedrock native)    | `global.anthropic.claude-opus-4-6-v1`  |
+| OpenCode    | IAM role (Bedrock native)    | `global.anthropic.claude-sonnet-4-6`   |
+| Hermes      | IAM role (Bedrock native)    | Bedrock (Llama, Claude)            |
+| Kiro        | Token Vault + Identity       | Bedrock (auto model router)        |
+| Codex       | Token Vault                  | OpenAI models via Bedrock          |
+| Cursor      | Token Vault                  | Bedrock                            |
+
+</div>
+
+The runtime provides a containerized microVM with persistent storage, networking, and managed credentials. Agents that use Bedrock natively (Claude Code, OpenCode, Hermes) need only an IAM execution role with `bedrock:InvokeModel`. For agents that call external APIs (Codex, Cursor, or your own custom tools), store keys in Token Vault and access them via environment variables at runtime. For Claude Code specifically, set `CLAUDE_CODE_USE_BEDROCK=1` in the container environment.
+
+---
+
+## How It Works
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Your Terminal</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">agentcore exec (WebSocket)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">MicroVM (agent + /mnt/workspace)</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">Gateway (GitHub MCP)</span>
+</div>
+
+Each agent runs in its own microVM with a persistent workspace. You connect via interactive shell (WebSocket) or fire one-shot commands (HTTP/2). The session stays alive even when you disconnect.
+
+---
+
+## Connect to Your Agent
+
+```bash
+# Drop into the agent's VM (interactive shell)
+agentcore exec --it --runtime my-coding-agent --session-id sess-jane-1234
+
+# Reconnect later — your session survived closing the laptop
+agentcore exec --it --session-id sess-jane-1234 --shell-id shell-789
+
+# One-shot command — no LLM, no token cost
+agentcore exec --runtime my-coding-agent --session-id sess-jane-1234 \
+  "cd /mnt/workspace && npm test"
+```
+
+Interactive shells support colors, tab completion, and Ctrl+C. On brief network drops the session reconnects automatically; longer drops print a resume command with the `--shell-id`.
+
+---
+
+## Wire Up Tools via MCP
+
+Give your agent access to GitHub, Jira, or internal APIs through a shared MCP Gateway:
+
+```bash
+# Claude Code
+claude mcp add agentcore \
+  https://<gateway-id>.gateway.bedrock-agentcore.us-west-2.amazonaws.com/mcp \
+  --transport http
+```
+
+Sub-agents inherit the MCP configuration. The Gateway aggregates all targets into a single endpoint with semantic tool search.
+
+---
+
+## Example: Deploy Claude Code on AgentCore
+
+The core deployment step is creating a runtime with your container image and a shared filesystem:
+
+```python
+import boto3
+
+client = boto3.client("bedrock-agentcore", region_name="us-west-2")
+
+client.create_agent_runtime(
+    agentRuntimeName="claude-code-agent",
+    agentRuntimeArtifact={
+        "containerConfiguration": {
+            "containerUri": "123456789012.dkr.ecr.us-west-2.amazonaws.com/claude-code:latest"
+        }
+    },
+    networkConfiguration={"networkMode": "PUBLIC"},
+    protocolConfiguration={"serverProtocol": "HTTP"},
+    filesystemConfigurations=[
+        {"sessionStorage": {"mountPath": "/mnt/workspace"}},
+        {"s3FilesAccessPoint": {
+            "accessPointArn": "arn:aws:s3files:us-west-2:123456789012:access-point/skills-ap",
+            "mountPath": "/mnt/s3files"
+        }},
+    ],
+    roleArn="arn:aws:iam::123456789012:role/AgentCoreExecutionRole",
+)
+```
+
+The container image includes the Claude Code CLI, Node.js, and an entrypoint that sets `CLAUDE_CODE_USE_BEDROCK=1`. S3 Files at `/mnt/s3files` provides shared skills and MCP proxy scripts across all sessions; session storage at `/mnt/workspace` gives each session its own persistent project directory.
+
+---
+
+## Full Deployment Walkthrough
+
+Each agent follows the same pattern: `setup.sh` (build arm64 image, push to ECR) then `deploy.py` (create IAM role + AgentCore Runtime).
+
+For the full infrastructure walkthroughs:
+
+- **Blog post:** [It's safe to close your laptop now — Hosting coding agents on Amazon Bedrock AgentCore](https://aws.amazon.com/blogs/machine-learning/its-safe-to-close-your-laptop-now-hosting-coding-agents-on-amazon-bedrock-agentcore/)
+- **Workshop sample:** [sample-amazon-bedrock-agentcore-coding-agents](https://github.com/aws-samples/sample-amazon-bedrock-agentcore-coding-agents) (multi-agent orchestrator, deterministic gates, console UI)
+- **Feature samples:** [agentcore-samples/coding-agents](https://github.com/awslabs/agentcore-samples/tree/main/01-features/02-host-your-agent/01-runtime/04-coding-agents) (S3 Files, EFS, 6-agent competition, autonomous durable agent)
+- **Video:** [AI-powered SDLC with Claude Code, Codex, Kiro](https://www.youtube.com/watch?v=vmybpMc4GMY)
+
+---
+
+## Related Pages
+
+- <Link to="/docs/workloads/coding/execution-model">Execution Model — long-running sessions and lifecycle →</Link>
+- <Link to="/docs/workloads/coding/sandbox-and-tools">Sandbox & Tools — session storage and shell access →</Link>
+- <Link to="/docs/workloads/coding/source-control">Source Control — GitHub MCP Gateway setup →</Link>

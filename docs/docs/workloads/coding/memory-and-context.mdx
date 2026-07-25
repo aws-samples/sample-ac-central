@@ -1,0 +1,168 @@
+---
+title: Memory & Context
+sidebar_label: Memory & Context
+sidebar_position: 6
+---
+
+import Link from '@docusaurus/Link';
+
+# Memory for Coding Agents
+
+Coding agents use memory differently than conversational or workflow agents. Instead of recalling user preferences or incident history, they remember **repository-level patterns**, for example coding conventions, past decisions, and lessons from prior tasks on the same codebase.
+
+---
+
+## Memory Strategies
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Strategy         | Use Case                                                       | Example                                                 |
+|------------------|----------------------------------------------------------------|---------------------------------------------------------|
+| SEMANTIC         | Remember codebase conventions and patterns across tasks        | "This repo uses factory pattern for service classes"    |
+| SUMMARIZATION    | Condense prior task outcomes into context for the next task    | "Last refactor introduced a shared utils module"        |
+| None (stateless) | One-shot code generation where each task is independent        | "Generate tests for this function" (no repo context)    |
+
+</div>
+
+---
+
+## Project-Scoped Memory
+
+For coding agents, the memory entity is the **repository**, not a user or incident:
+
+- `session_id` = repository identifier (the agent remembers per repo)
+- `actor_id` = service identity (not a human, but the coding agent itself)
+
+This means all tasks on the same repository share context, while tasks on different repos are isolated.
+
+---
+
+## Cross-Task Learning
+
+The most powerful memory pattern for coding agents: store lessons at the end of each task, recall them at the start of the next.
+
+1. **HYDRATE** (task start): Retrieve stored lessons for this repository before the agent begins work
+2. **FINALIZE** (task end): Extract insights from the completed task and store them ("tests in this repo require `--forked` flag", "auth module has circular import risks")
+
+Over time, the agent accumulates repository specific knowledge that makes each subsequent task faster and more accurate.
+
+---
+
+## When to Use Memory vs. Repository Context
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Question                                                   | Answer → Use...               |
+|------------------------------------------------------------|-------------------------------|
+| Does the agent need to know conventions learned over time?  | AgentCore Memory (SEMANTIC)   |
+| Does the agent need to read actual source code?             | Session storage (Git clone)   |
+| Does the agent track ticket/PR status?                      | External state (Jira API)     |
+| Is each task fully independent?                             | No memory needed              |
+
+</div>
+
+---
+
+## Example: Repository-Scoped Memory
+
+```python
+import os
+import subprocess
+
+from strands import Agent, tool
+
+from bedrock_agentcore.memory.integrations.strands import (
+    AgentCoreMemorySessionManager,
+)
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
+
+app = BedrockAgentCoreApp()
+
+
+@tool
+def shell(command: str) -> dict:
+    """Execute a shell command in the workspace.
+
+    Args:
+        command: The shell command to run.
+    """
+    try:
+        result = subprocess.run(
+            command, shell=True, capture_output=True, text=True,
+            timeout=60, cwd="/mnt/workspace",
+        )
+        return {"stdout": result.stdout[-3000:], "exit_code": result.returncode}
+    except subprocess.TimeoutExpired:
+        return {"error": "Command timed out"}
+
+
+SYSTEM_PROMPT = """You are a coding agent. Your workspace is /mnt/workspace.
+Use shell to run commands. Apply lessons from prior tasks on this repository."""
+
+
+@app.entrypoint
+async def invoke(payload, context):
+    repo_name = payload.get("repo", "default")
+
+    # Memory scoped to this repository — recalls lessons from prior tasks
+    session_manager = AgentCoreMemorySessionManager(
+        memory_id=os.environ["BEDROCK_AGENTCORE_MEMORY_ID"],
+        region=os.environ.get("AWS_REGION", "us-east-1"),
+        session_id=f"repo-{repo_name}",
+        actor_id="coding-agent",
+    )
+
+    agent = Agent(
+        model="global.anthropic.claude-sonnet-4-6",
+        system_prompt=SYSTEM_PROMPT,
+        tools=[shell],
+        session_manager=session_manager,
+    )
+
+    async for event in agent.stream_async(payload.get("prompt", "")):
+        if "data" in event:
+            yield event["data"]
+
+
+if __name__ == "__main__":
+    app.run()
+```
+
+:::info Prerequisites
+This sample requires a Memory resource. Create one with `agentcore add memory --name AgentMemory --strategies SEMANTIC --expiry 90`, then deploy with `agentcore deploy`. The `BEDROCK_AGENTCORE_MEMORY_ID` environment variable is injected automatically at runtime. See the <Link to="/docs/tutorials/add-memory">Add Memory tutorial</Link> for the full walkthrough.
+:::
+
+With this configuration, every task on the same repository recalls prior lessons: "Last time we touched the auth module, tests in `tests/integration/` broke due to circular imports."
+
+---
+
+## Memory vs. Other Workloads
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Dimension         | Coding Memory                              | Workflow Memory                          | Conversational Memory                   |
+|-------------------|--------------------------------------------|------------------------------------------|-----------------------------------------|
+| Scope             | Per-repository conventions and lessons     | Per-entity facts (incident, ticket)      | Per-user conversation history           |
+| Duration          | Long-term (weeks/months)                   | Cross-invocation (hours/days)            | Session + long-term (minutes/days)      |
+| Access pattern    | "What did we learn about this repo?"       | "What happened to this entity last?"     | "What did the user say earlier?"        |
+| Namespace         | Repository name                            | Entity ID                                | User ID                                 |
+
+</div>
+
+---
+
+## Context Window Management
+
+Large codebases exceed any model's context window. Strategies to manage this:
+
+- **Selective file loading**: only read files relevant to the current task
+- **AST summaries**: parse source into function signatures and class outlines
+- **Agent steering files**: maintain a `AGENTS.md` or `.agent-context` file in the repo with architecture notes
+- **Structured codebase maps**: generate directory trees with one-line descriptions per module
+
+---
+
+## Related Pages
+
+- <Link to="/docs/workloads/coding/source-control">Source Control — Git and repository access →</Link>
+- <Link to="/docs/workloads/coding/evaluations">Evaluations — measuring quality →</Link>
