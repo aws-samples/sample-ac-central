@@ -2,14 +2,14 @@
 title: AgentCore Central
 sidebar_label: Home
 sidebar_position: 1
-last_verified: 2026-07-15
+last_verified: 2026-07-24
 ---
 
 import Link from '@docusaurus/Link';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import ThemedImage from '@theme/ThemedImage';
 
-# The AgentCore Central
+# AgentCore Central
 
 Learn, build, and operate agents with Amazon Bedrock AgentCore. Reference architectures, multi-agent patterns, and workload playbooks - in one place.
 
@@ -21,7 +21,7 @@ Learn, build, and operate agents with Amazon Bedrock AgentCore. Reference archit
 
   <Link to="/docs/workloads/workflow/overview" className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--runtime" aria-hidden="true" /><h3>Automation agents</h3></div>
-    <p>Async agents triggered by tickets, emails, webhooks, and system events. Automate workflows with confidence scoring and HITL escalation.</p>
+    <p>Async agents triggered by tickets, emails, webhooks, and system events. Automate workflows with policy gates and human-in-the-loop escalation.</p>
   </Link>
 
   <Link to="/docs/workloads/coding/overview" className="tile-card">
@@ -52,28 +52,28 @@ AgentCore managed services that together form the agent platform.
 
 <div className="stack-grid">
   <div className="stack-item">
-    <h4>Runtime</h4>
-    <p>Sandboxed container execution with long-running task support.</p>
+    <h4><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html" target="_blank" rel="noopener">Runtime</a></h4>
+    <p>Sandboxed container execution with <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-long-run.html" target="_blank" rel="noopener">long-running task support</a>.</p>
   </div>
   <div className="stack-item">
-    <h4>Memory</h4>
+    <h4><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html" target="_blank" rel="noopener">Memory</a></h4>
     <p>Short-term and long-term memory scoped per session, user, or project.</p>
   </div>
   <div className="stack-item">
-    <h4>Gateway</h4>
+    <h4><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html" target="_blank" rel="noopener">Gateway</a></h4>
     <p>Tool federation via MCP with inbound JWT auth and Lambda targets.</p>
   </div>
   <div className="stack-item">
-    <h4>Identity</h4>
+    <h4><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-oauth.html" target="_blank" rel="noopener">Identity</a></h4>
     <p>OAuth/OIDC token brokering - the agent never sees client secrets.</p>
   </div>
   <div className="stack-item">
-    <h4>Observability</h4>
-    <p>OTLP traces, metrics, and logs to CloudWatch with online evaluation.</p>
+    <h4><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html" target="_blank" rel="noopener">Observability</a></h4>
+    <p>OTLP traces, metrics, and logs to CloudWatch with <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/online-evaluations.html" target="_blank" rel="noopener">online evaluation</a>.</p>
   </div>
   <div className="stack-item">
     <h4>Tools</h4>
-    <p>Code Interpreter and Browser Tool as managed sandboxes.</p>
+    <p><a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-tool.html" target="_blank" rel="noopener">Code Interpreter</a> and <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/browser-tool.html" target="_blank" rel="noopener">Browser Tool</a> as managed sandboxes.</p>
   </div>
 </div>
 
@@ -100,7 +100,17 @@ AgentCore managed services that together form the agent platform.
 
   <a href="https://strandsagents.com" className="tile-card" target="_blank" rel="noopener">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--cube" aria-hidden="true" /><h3>Strands SDK</h3></div>
-    <p>Official multi-agent SDK for AgentCore. Implements the patterns documented here with first-class support for tools, memory, and A2A.</p>
+    <p>AWS's open-source agent SDK with first-class AgentCore integration. Implements the patterns documented here with support for tools, memory, and A2A.</p>
   </a>
 
 </div>
+
+---
+
+## Further reading
+
+Cross-cutting guides that apply to all agent workloads and patterns on this site:
+
+- [AWS Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) — Best practices for designing, deploying, and operating agentic AI systems reliably, securely, and cost-effectively at scale.
+- [Security for agentic AI on AWS](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/introduction.html) — Practical security recommendations covering input validation, guardrails, infrastructure security, and data governance for agent systems.
+- [Agentic AI patterns](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/multi-agent-collaboration.html) — Multi-agent collaboration patterns, workflow orchestration, and architecture comparisons from AWS Prescriptive Guidance.

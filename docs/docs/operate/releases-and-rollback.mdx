@@ -2,18 +2,20 @@
 title: Releases and Rollback
 sidebar_label: Releases and Rollback
 sidebar_position: 5
-last_verified: 2026-07-15
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
 
 # Releases and Rollback
 
-Releasing a new agent version and rolling back a bad one are both routine operations. Both become faster and safer when you design for them before they are needed. This page covers how to version agent artifacts, how to roll out changes gradually, when and how to roll back, and how to deprecate and retire agents that are no longer needed.
+:::tip Who this is for
+This page is for teams designing deployment pipelines and rollback strategies for production agents. If you are still iterating on your prototype, start with the [Production Readiness](./production-readiness) checklist and return here when you are ready to design your release process.
+:::
 
-AgentCore provides the runtime, memory, gateway, and identity services that agents run on. Routing and rollback orchestration (switching traffic between agent versions, managing endpoint aliases, and coordinating staged rollouts) is the responsibility of the customer's deployment and infrastructure layer, not a built-in AgentCore feature. The patterns here describe how to build that layer.
+Releasing a new agent version and rolling back a bad one are both routine operations. Both become faster and safer when you design for them before they are needed. This page covers how to version agent artifacts, how to roll out changes gradually — including AgentCore's native A/B testing capability — when and how to roll back, and how to deprecate and retire agents that are no longer needed.
 
-For the official AgentCore documentation, see the [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
+For the full developer guide, see the [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agent-runtime-versioning.html).
 
 ---
 
@@ -67,7 +69,7 @@ An agent's behavior is determined by a combination of artifacts. A meaningful "v
 
 </div>
 
-A version is a named, immutable snapshot of all these artifacts together. If any artifact changes, that is a new version.
+A version is a named, immutable snapshot of all these artifacts together. If any artifact changes, that is a new version. See [AgentCore Runtime versioning](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agent-runtime-versioning.html) for how the platform manages runtime version snapshots.
 
 ### Storing Versions
 
@@ -78,18 +80,58 @@ Architecture guidance:
 
 ---
 
-## Staged Rollout
+## A/B Testing with AgentCore
 
-A staged rollout introduces a new version to a fraction of production traffic before committing to a full deployment. If the new version behaves badly, only a small fraction of requests are affected, and rollback is fast.
+AgentCore provides native A/B testing as a managed capability. You can split live production traffic between two agent variants — control and treatment — and let the platform's online evaluation measure both variants simultaneously, reporting statistical significance when enough data accumulates.
 
-### Routing Architecture
+### Two Modes
 
-AgentCore does not natively manage weighted traffic routing between agent versions. The customer builds this using one of these approaches:
+**Config-bundle A/B testing** runs both variants on the same runtime endpoint but with different configuration bundles (e.g., different system prompts, model parameters, or tool configurations). This is the fastest way to test a behavioral change without redeploying infrastructure.
 
-- **Lambda aliases with weighted routing**: if the agent's entry point is a Lambda function, Lambda's built-in weighted alias feature routes a configurable percentage of traffic to the new version and the remainder to the old version.
-- **Application Load Balancer weighted target groups**: route a percentage of requests to the new version's endpoint and the remainder to the stable version.
-- **Feature flag service**: a centralized feature flag can route specific tenants, users, or a percentage of traffic to the new version before full rollout.
+**Target-based A/B testing** routes traffic to entirely different endpoint targets — for example, two distinct AgentCore runtime deployments running different code versions.
+
+For details on choosing between modes, see the [A/B testing overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing.html), [config-bundle mode](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-config-bundle.html), and [target-based mode](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-target-based.html).
+
+### Traffic Splitting
+
+AgentCore Gateway handles weighted traffic splitting. You set a weight (0–100) for each variant; the gateway routes incoming requests proportionally.
+
+```bash
+# Start an A/B test — the CLI requires a deployed gateway, variants,
+# traffic weights, and online evaluation configuration(s).
+# Use --disable-on-create to start the test in a stopped state,
+# or --role-arn to specify an execution role.
+agentcore run ab-test
+```
+
+You can also manage A/B tests programmatically. The equivalent API operations are `CreateABTest` and `GetABTest`, and you can poll results at any time with `agentcore view ab-test <id>` without affecting statistical validity. When results are significant, promote the winning variant with `agentcore promote ab-test -i <id>`. Both control and treatment variants are scored by online evaluators in parallel; the platform reports per-variant scores and statistical significance as traffic accumulates.
+
+### Staged Rollout via A/B Testing
+
+A typical progressive rollout using native A/B testing:
+
+<div className="fancy-table">
+
+| Stage | Treatment weight | Advancement criteria |
+|---|---|---|
+| Canary | 5–10% | Error rate and latency stable; no safety evaluation failures |
+| Limited | 25–50% | Online evaluation scores match or exceed control; no cost spikes |
+| Full | 100% | All metrics stable; previous version moved to deprecated |
+
+</div>
+
+Advance stages when the advancement criteria are met, not on a fixed time schedule. Advance faster when traffic volume is high enough for strong statistical confidence; advance more slowly when traffic is low.
+
+### Infrastructure-Level Routing Alternatives
+
+For traffic routing that lives entirely outside AgentCore (e.g., at the infrastructure layer before requests reach the AgentCore endpoint), the following patterns are common alternatives:
+
+- **Lambda aliases with weighted routing**: if the agent's entry point is a Lambda function, Lambda's built-in weighted alias feature routes a configurable percentage of traffic to the new version.
+- **Application Load Balancer weighted target groups**: route a percentage of requests to the new version's endpoint at the load balancer level.
+- **Feature flag service**: a centralized feature flag routes specific tenants, users, or a percentage of traffic to the new version.
 - **API Gateway canary deployments**: for agents exposed via API Gateway, canary deployments provide built-in percentage-based traffic splitting.
+
+These approaches complement AgentCore's native A/B testing when you need routing decisions made before the AgentCore layer (e.g., tenant-based routing based on external state), or when you need to test infrastructure changes that span multiple services.
 
 ```python
 # Example: Lambda alias with weighted routing (boto3)
@@ -109,22 +151,6 @@ lambda_client.update_alias(
     }
 )
 ```
-
-### Staged Rollout Stages
-
-A typical staged rollout progresses through three stages. The time at each stage depends on traffic volume: enough requests need to flow through the new version to produce statistically meaningful evaluation results before advancing.
-
-<div className="fancy-table">
-
-| Stage | Traffic to new version | Advancement criteria |
-|---|---|---|
-| Canary | 5-10% | Error rate and latency stable; no safety evaluation failures |
-| Limited | 25-50% | Online evaluation scores match or exceed previous version; no cost spikes |
-| Full | 100% | All metrics stable; previous version moved to deprecated |
-
-</div>
-
-Do not advance stages on a fixed time schedule. Advance when the advancement criteria are met. Advance faster if traffic volume is high enough that you have strong statistical confidence quickly; advance more slowly if traffic is low.
 
 ---
 
@@ -155,7 +181,7 @@ Define rollback triggers before deploying to production. Triggers fall into thre
 ### Rollback Procedure
 
 1. **Identify the last known-good version.** This should be the version that was deployed before the current one and passed all evaluation gates. It should be in a deployable state.
-2. **Reroute traffic.** Update the routing configuration (Lambda alias, ALB target group, feature flag, or API Gateway canary) to send 100% of traffic to the known-good version. This is the single action that stops new requests from hitting the bad version.
+2. **Reroute traffic.** Update the routing configuration (AgentCore A/B test weights, Lambda alias, ALB target group, feature flag, or API Gateway canary) to send 100% of traffic to the known-good version. This is the single action that stops new requests from hitting the bad version.
 3. **Verify the reroute.** Confirm that the known-good version is receiving traffic and that error rates and evaluation scores are recovering.
 4. **Drain in-flight sessions.** For conversational agents with long sessions, decide whether to abruptly end active sessions on the bad version or let them complete. Abrupt termination is jarring to users but stops the bad behavior faster; graceful drain is smoother but prolongs exposure.
 5. **Preserve evidence.** Before modifying anything further, preserve logs, traces, and evaluation data from the bad version. This is the evidence base for the post-incident review.
@@ -199,6 +225,21 @@ Retiring a version means decommissioning its resources:
 6. Update the deployment registry to mark the version as retired.
 
 When retiring an entire agent (not just a version), also decommission the AgentCore Runtime endpoint, memory namespaces associated with the agent, and any Gateway tool configurations that existed only for this agent.
+
+---
+
+## Further Reading
+
+- [A/B Testing in AgentCore — Overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing.html)
+- [Config-Bundle A/B Testing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-config-bundle.html)
+- [Target-Based A/B Testing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-target-based.html)
+- [AgentCore Runtime Versioning](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agent-runtime-versioning.html)
+- [Runtime Lifecycle Settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html)
+- [AgentCost06-BP03: Design cost-efficient initialization through warm pools and caching](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html)
+
+:::warning Prototype boundary
+This page walks through deployment actions that affect live agent traffic, including A/B test weight changes, alias updates, and resource decommissioning. Execute these steps in non-production environments first and confirm rollback paths before applying them to production.
+:::
 
 ---
 

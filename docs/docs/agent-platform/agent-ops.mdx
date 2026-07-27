@@ -2,7 +2,7 @@
 title: Agent Ops
 sidebar_label: Agent Ops
 sidebar_position: 6
-last_verified: 2026-07-15
+last_verified: 2026-07-22
 ---
 
 import Link from '@docusaurus/Link';
@@ -12,6 +12,10 @@ These are target-state architecture patterns for agent operations at enterprise 
 :::
 
 # Agent Ops
+
+:::tip Who this is for
+Platform engineers designing deployment and operations for agents on AgentCore — specifically the CI/CD pipeline, traffic management, A/B testing, lifecycle governance, and operational feedback loops.
+:::
 
 Agent Ops extends DevOps practices to the unique challenges of AI agents. Because agents are non-deterministic and continuously evolving, they require purpose-built CI/CD pipelines, continuous evaluation, traffic management, and lifecycle governance. This page covers the full deployment pipeline, ongoing operations, and the clear distinction between what AgentCore Runtime provides natively and what you build on top.
 
@@ -82,18 +86,18 @@ Continuous operational health checks powered by AgentCore Observability, Evaluat
 
 <div className="fancy-table">
 
-| Signal           | Monitors                                     | Action on Breach                          |
-| ---------------- | -------------------------------------------- | ----------------------------------------- |
-| **Quality**      | Faithfulness, relevance, completeness scores | Alert owner, escalate if sustained        |
-| **Cost**         | Token spend, tool invocation costs per agent | Throttle, switch model, notify team       |
-| **Behavior**     | Response distribution, tool usage patterns   | Investigate drift, trigger on-demand eval |
-| **Availability** | Success rate, timeout rate, error rate       | Auto-scale, circuit break, rollback       |
+| Signal           | Monitors                                                                 | Action on Breach                          |
+| ---------------- | ------------------------------------------------------------------------ | ----------------------------------------- |
+| **Quality**      | `Builtin.Faithfulness`, `Builtin.ResponseRelevance`, `Builtin.Correctness` scores ([evaluators](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html)) | Alert owner, escalate if sustained        |
+| **Cost**         | Token spend, tool invocation costs per agent                             | Throttle, switch model, notify team       |
+| **Behavior**     | Response distribution, tool usage patterns                               | Investigate drift, trigger on-demand eval |
+| **Availability** | Success rate, timeout rate, error rate                                   | Auto-scale, circuit break, rollback       |
 
 </div>
 
 ### Versioning, Endpoints, and Canary Rollout
 
-AgentCore Runtime versions automatically. Any change that affects behavior (protocol settings, container image, network configuration) creates a new immutable version; unrelated changes do not. **Endpoints** are the mechanism for controlling which version actually serves traffic:
+AgentCore Runtime versions automatically. Any change that affects behavior (protocol settings, container image, network configuration) creates a new immutable version; unrelated changes do not. **Endpoints** are the mechanism for controlling which version actually serves traffic. See [Runtime lifecycle settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) for full details on endpoint management.
 
 <div className="fancy-table">
 
@@ -106,7 +110,9 @@ AgentCore Runtime versions automatically. Any change that affects behavior (prot
 
 </div>
 
-This gives you blue-green deployment out of the box: cut a new version, validate it behind a `staging` endpoint, then repoint `PROD` to it once you're confident. What Runtime does **not** provide natively is weighted or percentage-based traffic splitting across versions. That requires a routing layer in front of Runtime (for example, an API Gateway stage variable, an application load balancer weighted target group, or logic in your own orchestrator) that sends some percentage of requests to the `PROD` endpoint and the rest to a `canary` endpoint.
+See [Agent Runtime versioning](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agent-runtime-versioning.html) for the full versioning model.
+
+This gives you blue-green deployment out of the box: cut a new version, validate it behind a `staging` endpoint, then repoint `PROD` to it once you're confident.
 
 A canary pattern built on top of endpoint versioning looks like:
 
@@ -115,9 +121,27 @@ A canary pattern built on top of endpoint versioning looks like:
 3. Compare quality, latency, and cost between `canary` and `PROD` using AgentCore Observability's per-version metrics.
 4. If the canary holds or improves on quality thresholds, repoint `PROD` to the new version and delete the `canary` endpoint. If it regresses, delete `canary` and repoint traffic back to `PROD`. No code change is needed since `PROD` never moved.
 
-:::info
-Endpoint versioning and blue-green promotion are native to AgentCore Runtime today. Percentage-based traffic splitting and automatic quality-triggered rollback are patterns you build on top using your own routing layer and Observability metrics. Treat any documentation or tutorial that implies Gateway does weighted traffic splitting natively as inaccurate.
-:::
+### Native A/B Testing
+
+AgentCore provides native A/B testing with Gateway-driven weighted traffic splitting. This lets you compare agent variants scientifically — with statistical significance — without building your own routing layer.
+
+Two modes are available ([A/B testing overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing.html)):
+
+- **Config-bundle mode** — compares prompt, tool, or model configuration variants running on the same runtime. Use this when you want to test whether a prompt rewrite or model upgrade improves quality without changing infrastructure. See [config-bundle A/B testing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-config-bundle.html).
+- **Target-based mode** — routes traffic to two different runtime endpoints. Use this for comparing fundamentally different agent architectures or framework versions. See [target-based A/B testing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-target-based.html).
+
+Both modes support percentage-weighted traffic splits via `--control-weight` / `--treatment-weight` (0–100, default 50/50). Routing is sticky by `runtimeSessionId`, so a given session always reaches the same variant. Online evaluations score both variants throughout the test, and statistical significance is reported automatically.
+
+```bash
+# Start an A/B test with a 90/10 traffic split
+agentcore run ab-test \
+  --control-endpoint arn:aws:bedrock-agentcore:...:endpoint/prod \
+  --treatment-endpoint arn:aws:bedrock-agentcore:...:endpoint/candidate \
+  --control-weight 90 \
+  --treatment-weight 10
+```
+
+You can also create and query A/B tests programmatically via the `CreateABTest` / `GetABTest` APIs.
 
 ### Agent Lifecycle Management
 
@@ -151,11 +175,23 @@ Key lifecycle operations:
 | Capability                 | Primary Service                                        | Label |
 | -------------------------- | ------------------------------------------------------ | ----- |
 | CI/CD Pipeline             | CodePipeline + CodeBuild (or GitHub Actions)           | Adjacent AWS |
-| Evaluation Gates           | AgentCore Evaluations                                  | AgentCore-native ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/)) |
+| Evaluation Gates           | AgentCore Evaluations                                  | AgentCore-native ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html)) |
 | Monitoring & Alerts        | AgentCore Observability + CloudWatch Alarms            | AgentCore-native + Adjacent AWS |
 | Cost Tracking              | AWS Cost Explorer + Cost Allocation Tags               | Adjacent AWS |
-| Version Management         | AgentCore Runtime endpoint versioning                  | AgentCore-native |
-| Traffic Splitting / Canary | Customer-built routing layer + AgentCore Observability | Customer-built pattern |
-| Agent Catalog              | AWS Agent Registry                                     | Preview ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/)) |
+| Version Management         | AgentCore Runtime endpoint versioning ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agent-runtime-versioning.html)) | AgentCore-native |
+| A/B Testing                | AgentCore native — Gateway-driven weighted splitting ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing.html)) | AgentCore-native |
+| Canary Rollout (custom %)  | Customer-built routing layer + AgentCore Observability | Customer-built pattern |
+| Agent Catalog              | AWS Agent Registry                                     | Preview ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html)) |
 
 </div>
+
+---
+
+## Further Reading
+
+- [A/B Testing Overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing.html) — native Gateway-driven traffic splitting
+- [Config-bundle A/B Testing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-config-bundle.html) — prompt/tool/model variants on same runtime
+- [Target-based A/B Testing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-target-based.html) — different runtime endpoints
+- [Agent Runtime Versioning](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agent-runtime-versioning.html) — immutable versions and endpoint promotion
+- [Runtime Lifecycle Settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) — endpoint management and lifecycle phases
+- [AgentCore Evaluators](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) — `Builtin.*` evaluator IDs and usage

@@ -110,6 +110,20 @@ A consolidated index of authoritative external links used throughout this site. 
 |---|---|---|
 | Gateway overview | [gateway.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) | Unified connectivity layer between agents and tools |
 | Gateway quick start | [gateway-quick-start.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-quick-start.html) | Create a gateway, add targets, invoke from an agent |
+| Gateway MCP elicitation | [gateway-mcp-elicitation.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-mcp-elicitation.html) | MCP server targets requesting user input mid-tool-call (native HITL) |
+
+</div>
+
+---
+
+## Browser
+
+<div className="fancy-table">
+
+| Topic | URL | What it covers |
+|---|---|---|
+| Browser Tool overview | [browser-tool.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/browser-tool.html) | Managed browser sandbox for web interaction: AWS managed vs. custom browser options |
+| Browser sessions and isolation | [browser-resource-session-management.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/browser-resource-session-management.html) | Per-session microVM isolation and resource management for browser workloads |
 
 </div>
 
@@ -136,6 +150,8 @@ A consolidated index of authoritative external links used throughout this site. 
 | Topic | URL | What it covers |
 |---|---|---|
 | Policy authorization flow | [policy-authorization-flow.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) | How Cedar policies authorize agent actions |
+| Policy enforcement modes | [policy-enforcement-modes.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-enforcement-modes.html) | LOG_ONLY vs ENFORCE at engine and per-policy level |
+| Testing a policy | [policy-test-a-policy.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-test-a-policy.html) | Shadow-test policies in LOG_ONLY mode before enforcing |
 | Policy getting started | [policy-getting-started.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-getting-started.html) | Deploy a gateway with Cedar policy enforcement |
 | Guardrails in policies | [policy-guardrails-in-policies.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-guardrails-in-policies.html) | Content filtering, PII detection, prompt injection defense |
 | Bedrock Guardrails | [guardrails.html](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) | Bedrock-level content safety controls |
@@ -154,6 +170,23 @@ A consolidated index of authoritative external links used throughout this site. 
 | Evaluations overview | [how-it-works-evaluations.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/how-it-works-evaluations.html) | Offline and online evaluation of agent quality |
 | Evaluators (built-in and custom) | [evaluators.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) | Built-in evaluator catalog (`Builtin.Helpfulness`, `Builtin.GoalSuccessRate`, trajectory match family) and custom evaluators |
 | On-demand evaluation (CLI + SDK) | [getting-started-on-demand.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-on-demand.html) | `agentcore run eval`, the `bedrock_agentcore_starter_toolkit` Evaluation SDK, and the boto3 Evaluate API |
+
+</div>
+
+---
+
+## A/B Testing
+
+<div className="fancy-table">
+
+| Topic | URL | What it covers |
+|---|---|---|
+| A/B testing overview | [ab-testing.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing.html) | Native Gateway-driven weighted traffic splitting between agent variants |
+| Config-bundle A/B testing | [ab-testing-config-bundle.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-config-bundle.html) | Prompt, tool, and model configuration variant testing on the same runtime |
+| Target-based A/B testing | [ab-testing-target-based.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-target-based.html) | Cross-endpoint traffic splitting between different runtime deployments |
+| A/B testing prerequisites | [ab-testing-prereqs.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-prereqs.html) | SDK version, online evaluation, and Gateway requirements |
+| Agent Runtime versioning | [agent-runtime-versioning.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agent-runtime-versioning.html) | Immutable versions, endpoint promotion, and blue-green deployments |
+| Gateway rules (weighted routing) | [gateway-rules-examples.html](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-rules-examples.html) | Create gateway rules for weighted config-bundle or target-based splits |
 
 </div>
 
@@ -183,6 +216,7 @@ A consolidated index of authoritative external links used throughout this site. 
 | Topic | URL | What it covers |
 |---|---|---|
 | Request model access | [model-access.html](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) | Enable specific models per account, per region |
+| Application inference profiles | [cost-mgmt-application-inference-profiles.html](https://docs.aws.amazon.com/bedrock/latest/userguide/cost-mgmt-application-inference-profiles.html) | Cost allocation tags, per-agent cost attribution, and cross-region routing |
 | Single-prompt inference (InvokeModel) | [inference-api.html](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-api.html) | Run one-shot inference with InvokeModel / InvokeModelWithResponseStream — the stateless alternative to a persistent agent |
 | Data protection | [data-protection.html](https://docs.aws.amazon.com/bedrock/latest/userguide/data-protection.html) | Encryption, data residency, shared responsibility |
 | Bedrock Agents Classic migration | [agents-classic-maintenance-mode.html](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html) | Migrating from Classic to AgentCore |
@@ -268,6 +302,7 @@ A consolidated index of authoritative external links used throughout this site. 
 | Coding assistants catalog | [03-coding-assistants](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/03-coding-assistants) | Code generation, review, migration agents |
 | Text-to-Python IDE | [text-to-python-ide](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/03-coding-assistants/text-to-python-ide) | Code gen + Code Interpreter validation |
 | Framework integrations | [03-integrations/agentic-frameworks](https://github.com/awslabs/amazon-bedrock-agentcore-samples/tree/main/03-integrations/agentic-frameworks) | BedrockAgentCoreApp wrapper examples for all frameworks |
+| Human-in-the-loop patterns | [sample-human-in-the-loop-patterns](https://github.com/aws-samples/sample-human-in-the-loop-patterns) | Four HITL methods (hooks, tool context, Step Functions, MCP elicitation) on Strands + AgentCore Runtime |
 
 </div>
 
@@ -297,6 +332,7 @@ A consolidated index of authoritative external links used throughout this site. 
 | BGL — NL-to-SQL self-serve BI | [democratizing-business-intelligence blog](https://aws.amazon.com/blogs/machine-learning/democratizing-business-intelligence-bgls-journey-with-claude-agent-sdk-and-amazon-bedrock-agentcore/) | Slack-based NL-to-SQL agent with Claude Agent SDK on AgentCore |
 | Thomson Reuters — platform engineering hub | [thomson-reuters agentic platform blog](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/) | Central orchestrator routing to specialized agents with human-in-the-loop |
 | Iberdrola — IT operations | [iberdrola-enhances-it-operations blog](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/) | Multi-agent IT operations with LangGraph and VPC-secured runtime |
+| AutoScout24 — Bot Factory | [autoscout24 bot-factory blog](https://aws.amazon.com/blogs/machine-learning/how-autoscout24-built-a-bot-factory-to-standardize-ai-agent-development-with-amazon-bedrock/) | Standardized agent development through reusable templates and event-driven services |
 
 ---
 
