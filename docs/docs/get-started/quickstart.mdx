@@ -44,6 +44,16 @@ The wizard prompts for your language, framework, model provider, and build metho
 
 ---
 
+## Alternative: Managed Harness path
+
+If you prefer AgentCore to manage the agent loop (model selection, system prompt, tool orchestration) rather than writing your own orchestration code, follow the harness tutorial instead:
+
+- [Get started with the managed harness](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html)
+
+The CLI path above gives you full control over the orchestration layer. The harness path trades that control for faster setup — you configure rather than code. Both deploy to AgentCore Runtime with the same security and scaling characteristics.
+
+---
+
 ## Why CLI is the fastest code-first path
 
 The CLI gives you a local dev loop with hot-reload, version-controlled declarative configuration, and a single command (`agentcore deploy`) to move from prototype to deployed endpoint. You own the code, control the dependencies, and can test against a live model locally before deploying.

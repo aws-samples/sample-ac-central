@@ -14,6 +14,27 @@ import CanonicalRecommendation from '@site/src/components/CanonicalRecommendatio
 Developers ready to build an event-driven workflow agent from a sample. If you're still deciding whether this pattern is the right fit, see the [workflow overview](/docs/workloads/workflow/overview) first.
 :::
 
+---
+
+## Get running in 3 steps
+
+```bash
+# 1. Clone a maintained sample (e.g., the event-driven claims agent)
+git clone https://github.com/awslabs/agentcore-samples.git
+cd agentcore-samples/02-use-cases/02-workflow-automation-agents/event-driven-claims-agent
+
+# 2. Install and run locally
+agentcore dev
+
+# 3. Send a test event — the agent triages and acts
+```
+
+The [Workflow Automation Catalog](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents) has maintained samples for incident triage, claims processing, document ingestion, and payment workflows. All include policy gates and non-destructive defaults.
+
+---
+
+## Choose the right sample
+
 Select the right workflow automation sample for your trigger and action model, understand the safety boundaries, and start building.
 
 <CanonicalRecommendation

@@ -14,7 +14,25 @@ Reference architecture and recommended multi-agent patterns for building product
 
 ## Reference Architecture
 
-A production coding agent on AgentCore:
+A production coding agent on AgentCore follows a layered architecture with clear separation between triggers, reasoning, execution, and output delivery.
+
+### Architecture Components
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Layer | Component | Responsibility |
+|-------|-----------|----------------|
+| **Trigger** | GitHub/GitLab webhook, Jira, Schedule, CI event | Receives the external event and invokes the agent |
+| **Ingestion** | Lambda / EventBridge | Normalizes the event payload and routes to AgentCore Runtime |
+| **Reasoning** | AgentCore Runtime + LLM | Agent loop: reads context, plans approach, generates code |
+| **Execution** | Code Interpreter / microVM | Runs generated code, tests, and linters in an isolated sandbox |
+| **Context** | AgentCore Memory + Gateway (GitHub MCP) | Project context, file history, repository access |
+| **Output** | PR / Branch / Artifact | Agent-generated code delivered via git with human review gate |
+| **Quality** | AgentCore Evaluations + Observability | Trajectory checks, LLM-judged quality, traces |
+
+</div>
+
+### Execution Flow
 
 <div className="arch-flow">
   <span className="arch-flow-step">Trigger (Webhook / Ticket / Schedule)</span>
@@ -47,6 +65,10 @@ A production coding agent on AgentCore:
   <span className="arch-flow-arrow">→</span>
   <span className="arch-flow-step">Merge</span>
 </div>
+
+### Reference implementation
+
+The [Multi-Agent Coding Workshop](https://github.com/aws-samples/sample-amazon-bedrock-agentcore-coding-agents) provides a complete, deployable reference architecture with a multi-agent setup (planner, coder, reviewer), durable orchestration, and CI integration.
 
 ---
 
