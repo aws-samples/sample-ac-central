@@ -139,98 +139,23 @@ Use this table to map your requirements to a reference category. Multiple "best 
 
 ---
 
-## Create a project and agent with the AgentCore CLI
+## Getting Started Resources
 
-The workload categories on this page are architecture guidance, not `agentcore create` options. The CLI creates a project and, unless `--no-agent` is specified, an agent resource inside it. Choose the framework, model provider, memory, build, protocol, and network settings based on the agent's requirements.
+Once you've chosen your workload type, jump to the quickstart that fits:
 
-:::info Verified CLI version
-The commands in this section were checked with AgentCore CLI `0.24.1` on July 16, 2026. Check the [AgentCore CLI project creation guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-get-started-cli.html) and run `agentcore create --help` when using a different CLI version.
-:::
+<div className="fancy-table fancy-table--auto-first">
 
-### Recommended workflow-agent command
-
-> **Guidance:** This is a recommended starting point for an event-driven workflow agent. The workload category does not require these exact values.
-
-Run the command from the directory where you want the project to be created:
-
-```bash
-npm install -g @aws/agentcore@0.24.1
-agentcore --version
-agentcore create \
-  --name WorkflowAgent \
-  --project-name workflowagent \
-  --framework Strands \
-  --model-provider Bedrock \
-  --memory longAndShortTerm \
-  --build CodeZip \
-  --language Python \
-  --protocol HTTP \
-  --network-mode PUBLIC
-```
-
-Replace `WorkflowAgent` and `workflowagent` with your agent and project names. A project name must start with a letter, contain only alphanumeric characters, and be no more than 23 characters long.
-
-The options in this example mean:
-
-<div className="fancy-table">
-
-| Option | Purpose |
-|--------|---------|
-| `--name` | Names the agent resource. |
-| `--project-name` | Names the generated project. |
-| `--framework Strands` | Uses the [Strands Agents](https://strandsagents.com/) framework. |
-| `--model-provider Bedrock` | Uses Amazon Bedrock as the model provider. |
-| `--memory longAndShortTerm` | Provides both short-term and long-term memory for cross-invocation context. |
-| `--build CodeZip` | Uses a CodeZip deployment artifact instead of a container image. |
-| `--language Python` | Generates a Python agent project. |
-| `--protocol HTTP` | Uses HTTP for Runtime invocation. |
-| `--network-mode PUBLIC` | Uses public network access; use VPC mode when private connectivity is required. |
+| Path | What you get | Link |
+|------|-------------|------|
+| **CLI quickstart** | Scaffold any agent project with `agentcore create`, iterate locally with hot-reload, deploy with one command | [Build from CLI](/docs/get-started/quickstart) |
+| **Managed harness** | Configure rather than code: AgentCore manages the agent loop, memory, and system prompt | [First Agent (Harness)](/docs/get-started/firstagent) |
+| **Conversational quickstart** | Sample-driven path for chat agents with identity, memory, and streaming | [Conversational Quick Start](/docs/workloads/conversational/quickstart) |
+| **Workflow quickstart** | Event-driven agent with bounded autonomy and tool gates | [Workflow Quick Start](/docs/workloads/workflow/quickstart) |
+| **Coding quickstart** | Long-running code agent with sandbox execution | [Coding Quick Start](/docs/workloads/coding/quickstart) |
 
 </div>
 
-### Adjust the memory and network settings
-
-Use one of these memory options when the workflow does not need both forms of context:
-
-```bash
-# No AgentCore memory
---memory none
-
-# Short-term memory only
---memory shortTerm
-```
-
-For a VPC deployment, replace `--network-mode PUBLIC` and provide the required network resources:
-
-```bash
---network-mode VPC \
---subnets subnet-12345678,subnet-87654321 \
---security-groups sg-12345678
-```
-
-VPC mode does not provide outbound internet access by default. For outbound internet access, route private subnets through a NAT gateway; for AWS service access without internet, configure the required VPC endpoints. See the [AgentCore VPC networking guidance](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-vpc.html) for subnet and Availability Zone requirements.
-
-The event source—such as EventBridge, SNS, SQS, S3, a webhook, or a schedule—is not selected by `agentcore create`. Configure that integration separately after scaffolding the Runtime project. If `--skip-install` or `--skip-python-setup` is used, create the environment and install dependencies before local development:
-
-```bash
-cd app/WorkflowAgent
-uv venv
-uv sync
-```
-
-Once dependencies are installed, run the agent locally:
-
-```bash
-agentcore dev
-```
-
-This starts the local dev server and opens the test page. You can also send a quick test prompt using the test page:
-
-```bash
-"What can you do?"
-```
-
-For conversational and coding agents, reuse the same command structure but select memory, build, network, and integration settings appropriate to those workloads.
+For CLI reference and the full set of `agentcore create` options, see the [AgentCore CLI project creation guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-get-started-cli.html).
 
 ---
 

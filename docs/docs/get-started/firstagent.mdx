@@ -5,27 +5,19 @@ sidebar_position: 3
 last_verified: 2026-07-16
 ---
 
-# Your First Agent (Console)
+# Your First Agent (Managed Harness)
 
 :::tip Who this is for
-First-time builders who prefer a UI-led experience without local tooling. If you want a code-first dev loop with version control and hot-reload, see [Build from CLI](/docs/get-started/quickstart).
+First-time builders who want the fastest path to a working agent without writing orchestration code. The managed harness handles the agent loop, model configuration, and system prompt for you. If you want full control over orchestration, see [Build from CLI](/docs/get-started/quickstart).
 :::
 
-Deploy an agent through the AWS console without installing local tooling or writing orchestration code — the console handles resource creation, IAM role setup, and initial configuration on your behalf.
+Deploy an agent using the AgentCore managed harness. The harness gives you a running agent with a reachable endpoint in minutes — you define the model, system prompt, and tools; AgentCore manages the execution loop.
 
 ---
 
-## Canonical tutorial
+## Create your first harness agent
 
-AWS does not yet publish a dedicated console walkthrough. The console UI is self-guided — start here:
-
-- [Amazon Bedrock AgentCore console](https://console.aws.amazon.com/bedrock-agentcore/home#) — the UI walks you through creating a harness with a model, system prompt, and tools
-
-For the documented procedural path (CLI and boto3):
-
-- [Get started with the harness (CLI / boto3)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html)
-
-Prefer the terminal? Create the same agent in three commands:
+The fastest path today is the AgentCore CLI:
 
 ```bash
 agentcore create --name myfirstagent --model-provider bedrock
@@ -33,6 +25,14 @@ agentcore dev
 ```
 
 This scaffolds a harness project and opens the browser test page where you can chat with your agent immediately.
+
+For the full procedural walkthrough using the CLI or boto3:
+
+- [Get started with the harness (CLI / boto3)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html)
+
+:::note Console experience coming soon
+A self-guided console UI for creating harness agents is planned but not yet available. Until then, use the CLI or SDK paths above.
+:::
 
 ---
 

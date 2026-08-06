@@ -205,6 +205,10 @@ You don't need to reach L4 on day one. Start with L1 (experimentation), validate
 
 ## Further Reading
 
+- [Building multi-tenant agents with Amazon Bedrock AgentCore](https://aws.amazon.com/blogs/machine-learning/building-multi-tenant-agents-with-amazon-bedrock-agentcore/) — AWS blog covering isolation models, identity propagation, and cost attribution patterns
+- [Shared infrastructure, isolated tenants: Pool model multi-tenancy with AgentCore](https://aws.amazon.com/blogs/machine-learning/shared-infrastructure-isolated-tenants-pool-model-multi-tenancy-with-amazon-bedrock-agentcore/) — deep-dive on the pool isolation model with tier/tenant/user hierarchy
+- [Multi-Tenant Bedrock Agents Security with Cedar](https://kane.mx/posts/2026/multi-tenant-agent-security-blueprint/) — community post on Cedar policy patterns for multi-tenant agent authorization
+- [sample-multi-tenant-agent-core-app (GitHub)](https://github.com/aws-samples/sample-multi-tenant-agent-core-app) — reference implementation with Cognito JWT auth, DynamoDB sessions, and granular cost attribution
 - [A/B Testing Overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing.html) — native Gateway-driven weighted traffic splitting
 - [Config-bundle A/B Testing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-config-bundle.html) — configuration variant testing on the same runtime
 - [Target-based A/B Testing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-target-based.html) — cross-endpoint traffic splitting

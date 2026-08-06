@@ -308,10 +308,20 @@ Only **application inference profiles** support cost allocation tags. System-def
 
 A **Central AI Account** pattern extends this further for organizations running many agents: model access is centralized in one account, and every team's traffic flows through an application inference profile scoped to that team. This gives the platform team a single place to enforce model allowlists and budget alarms, while still attributing spend back to the originating team through tags.
 
+### Additional cost attribution mechanisms
+
+Bedrock's cost management capabilities are evolving rapidly. Beyond application inference profiles, consider these complementary mechanisms:
+
+- **IAM principal-based cost attribution** — Bedrock now automatically attributes inference costs to the IAM principal (user, role, or federated identity) that made the call, without requiring profiles or tags. See [Introducing granular cost attribution for Amazon Bedrock](https://aws.amazon.com/blogs/machine-learning/introducing-granular-cost-attribution-for-amazon-bedrock/).
+- **Bedrock Projects** — a higher-level construct for organizing AI workloads with built-in cost boundaries and team-scoped resource management. See [Manage AI costs with Amazon Bedrock Projects](https://aws.amazon.com/blogs/machine-learning/manage-ai-costs-with-amazon-bedrock-projects/).
+
+These mechanisms complement rather than replace application inference profiles. Use profiles for tag-based attribution, IAM principal attribution for automatic per-caller tracking, and Projects for organizational scoping. See the [Bedrock cost management FAQ](https://docs.aws.amazon.com/bedrock/latest/userguide/cost-mgmt-faq.html) for guidance on combining them.
+
 ---
 
 ## Further Reading
 
+- [AgentCore Governance Workshop](https://catalog.us-east-1.prod.workshops.aws/workshops/3f49be39-c62b-40a2-975b-be9bf626526a/en-US) — hands-on workshop covering governance, policy, and security patterns for agent platforms
 - [Policy Authorization Flow](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) — how Cedar policies are evaluated in the request path
 - [Policy Enforcement Modes](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-enforcement-modes.html) — `LOG_ONLY` vs `ENFORCE` at engine and policy level
 - [Testing a Policy](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-test-a-policy.html) — sandbox policy evaluation before enforcing

@@ -36,6 +36,10 @@ Follow [least-privilege](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-p
 
 ## Bedrock model access
 
+:::note AgentCore does not require Amazon Bedrock
+AgentCore is model-agnostic. You can use any LLM provider (Anthropic direct, OpenAI, self-hosted models, etc.) from your agent code. The samples and tutorials on this site use Bedrock for convenience because it runs within your AWS account with no additional API keys. If you bring your own model provider, skip this section entirely.
+:::
+
 Access to Amazon Bedrock foundation models is enabled by default in commercial AWS regions when your IAM role has the correct [AWS Marketplace permissions](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html). However, there are cases where additional steps are needed:
 
 - **Anthropic models** require a one-time First Time Use (FTU) form submission per account (or per organization management account). Submit use case details through the Bedrock console or the `PutUseCaseForModelAccess` API. Access is granted immediately after submission.

@@ -11,12 +11,31 @@ import CanonicalRecommendation from '@site/src/components/CanonicalRecommendatio
 # Quick Start: Coding Agent
 
 :::tip Who this is for
-Developers ready to build a coding agent that generates, executes, or validates code from a maintained sample. Still deciding whether coding is the right workload? Start with the [Coding overview](/docs/workloads/coding/overview).
+Developers ready to build a coding agent that generates, executes, or validates code. Still deciding whether coding is the right workload? Start with the [Coding overview](/docs/workloads/coding/overview).
 :::
 
-Find the right coding agent sample for your use case, understand the isolation models, and get to working code fast.
+---
+
+## Get running in 3 steps
+
+```bash
+# 1. Clone the maintained sample
+git clone https://github.com/awslabs/agentcore-samples.git
+cd agentcore-samples/02-use-cases/03-coding-assistants/text-to-python-ide
+
+# 2. Install and run locally
+agentcore dev
+
+# 3. Try it — ask the agent to write and execute code
+```
+
+The [Text-to-Python IDE sample](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/03-coding-assistants/text-to-python-ide) demonstrates the Plan, Generate, Validate loop with [Code Interpreter](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/code-interpreter-tool.html) providing fully managed isolation. Code executes in a sandbox, separate from the agent's own filesystem and credentials.
+
+Need a different pattern (code review, multi-file refactoring, CI integration)? Browse the full [Coding Assistants Catalog](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/03-coding-assistants).
 
 ---
+
+## Choose the right sample
 
 <CanonicalRecommendation
   defaultSource={{
