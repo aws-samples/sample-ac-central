@@ -78,6 +78,8 @@ def get_incident_details(incident_id: str) -> str:
 
 The [Gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) aggregates all MCP targets into a single virtual MCP server, exposing one consolidated `tools/list` to the agent. **Semantic tool search** lets the agent select the right tool even when hundreds are registered. This is important for autonomous workflows that span many enterprise systems. See the [Gateway quick start](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-quick-start.html) for step-by-step setup.
 
+The default quota is 100 targets per gateway and 1,000 tools per target, both adjustable via Service Quotas. See the [AgentCore quotas reference](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/bedrock-agentcore-limits.html) for the full set of Gateway limits.
+
 <div className="fancy-table fancy-table--auto-first">
 
 | Target Type               | Use For                                                                |

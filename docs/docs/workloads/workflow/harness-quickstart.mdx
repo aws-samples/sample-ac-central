@@ -57,10 +57,14 @@ Use an AgentCore Harness when your event pipeline needs a **bounded reasoning st
 The [Runtime quickstart](/docs/workloads/workflow/quickstart) implements the full Trigger → Enrich → Reason → Act → Emit loop in code, with Python tool functions for the Enrich and Act phases. An **AgentCore Harness** is a managed agent loop declared as configuration — a natural fit when your pipeline needs a *bounded reasoning step* between systems that already exist:
 
 ```
-① TRIGGER  → EventBridge/SQS delivers the event
+① TRIGGER  → EventBridge/SQS delivers the event to a Lambda function that invokes the harness
 ② REASON   → Harness classifies and emits a structured verdict   ← this page
 ③ ACT      → Downstream automation executes the verdict
 ```
+
+If your orchestration layer is already AWS Step Functions, you don't need the Lambda bridge shown above: Step Functions has a native integration with the managed Harness, so a state machine can declare and invoke a harness directly as a reasoning step, with the model, tools, and behavior specified as state machine configuration. This supports parallel and sequential agent steps within one workflow, with a human-approval state before critical actions, and full audit trail in the execution history (agent input, output, token usage, duration, and links to turn-level CloudWatch detail).
+
+Two constraints to plan around: the `InvokeHarness` Task state has a hard 15-minute execution limit regardless of the harness's own `timeoutSeconds` (the harness keeps running past that point toward its own timeout, but the Task state itself has already timed out), and the response includes only the final assistant message as Converse-shaped JSON — earlier turns, tool-use blocks, and reasoning blocks are not included in the output. See the [Step Functions AgentCore integration](https://docs.aws.amazon.com/step-functions/latest/dg/connect-bedrockagentcore.html) for the full list of limitations.
 
 ### When execution limits are config, not code
 
