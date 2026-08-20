@@ -19,6 +19,7 @@ Coding agents execute code they generate. Without isolation, a bad generation co
 | Option              | What It Is                                              | Best For                                              |
 |---------------------|---------------------------------------------------------|-------------------------------------------------------|
 | Runtime shell       | Full shell inside the agent's microVM (BYOC container)  | Production agents with custom toolchains              |
+| Runtime Instances    | AWS-managed EC2 in your account, GPU support, persistent EBS | Long-running or GPU-bound coding tasks that exceed micro-VM limits |
 | Code Interpreter    | Managed sandbox (Python, JS, TS) with pre-installed libs | Data analysis, prototyping, no container to manage    |
 | Docker Sandbox      | Local Docker container via Strands SDK                   | Local development and testing before deploy           |
 
@@ -34,7 +35,7 @@ The runtime supports three mount types under `filesystemConfigurations`. Pick by
 
 | Storage           | Persistence                                  | Sharing                                   | Best For                                              |
 |-------------------|----------------------------------------------|-------------------------------------------|-------------------------------------------------------|
-| Session Storage   | Survives stop/resume; 14-day idle expiry     | Isolated per session                      | Agent workspace: cloned repos, build artifacts        |
+| Session Storage (Preview) | Survives stop/resume; 14-day idle expiry | Isolated per session                | Agent workspace: cloned repos, build artifacts        |
 | S3 Files          | Permanent (S3 lifecycle rules apply)         | Shared across sessions and agents          | Shared skills, templates, reference code              |
 | EFS               | Permanent (until deleted)                    | Shared across sessions and agents          | Large repos, shared dependency caches, ML models      |
 
@@ -48,6 +49,7 @@ The default choice for a coding agent's workspace at `/mnt/workspace`:
 
 | Property          | Value                                            |
 |-------------------|--------------------------------------------------|
+| Status            | Public Preview                                   |
 | Mount path        | Configurable under `/mnt/` (e.g., `/mnt/workspace`) |
 | Max size          | 1 GB per session                                 |
 | Persistence       | Survives stop/resume; 14-day idle expiry         |

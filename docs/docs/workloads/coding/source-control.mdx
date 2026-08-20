@@ -35,7 +35,7 @@ Coding agents need to read repositories, create branches, and open pull requests
 
 ## Git in the Sandbox
 
-Session storage preserves `/mnt/workspace` across invocations. Clone a repo on the first invocation; subsequent sessions find it already there:
+Session storage (Public Preview) preserves `/mnt/workspace` across invocations. Clone a repo on the first invocation; subsequent sessions find it already there:
 
 - First run: `git clone https://github.com/org/repo.git /mnt/workspace/repo`
 - Next runs: `cd /mnt/workspace/repo && git pull origin main`

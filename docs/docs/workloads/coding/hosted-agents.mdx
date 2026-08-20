@@ -127,6 +127,8 @@ client.create_agent_runtime(
 
 The container image includes the Claude Code CLI, Node.js, and an entrypoint that sets `CLAUDE_CODE_USE_BEDROCK=1`. S3 Files at `/mnt/s3files` provides shared skills and MCP proxy scripts across all sessions; session storage at `/mnt/workspace` gives each session its own persistent project directory.
 
+Runtime microVM sessions are capped at 2 vCPU/8 GB and a 2 GB container image, both fixed limits. For coding agents with heavier toolchains, larger dependency sets, or repository clones that exceed these ceilings, use [Runtime Instances](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/) for AWS-managed EC2 compute with configurable instance sizing.
+
 ---
 
 ## Full Deployment Walkthrough

@@ -36,6 +36,7 @@ Labels used throughout this page:
 | **AI Gateway** | AgentCore Gateway | Unified entry point, MCP tool federation, JWT auth, per-tenant throttling, routing | AgentCore-native |
 | **Registry & Discovery** | AWS Agent Registry + Bedrock Model Catalog | Agent catalog, versioning, capability discovery, model selection | Preview |
 | **Agent Runtime** | AgentCore Runtime | Sandboxed containers, micro-VM isolation, long-running tasks, auto-scaling ([how it works](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html)) | AgentCore-native |
+| **Agent Runtime (extended compute)** | AgentCore Runtime Instances | AWS-managed EC2 in your account for long-running, GPU-backed, or persistent-disk workloads that exceed micro-VM session limits | AgentCore-native |
 | **Memory & Context** | AgentCore Memory + OpenSearch + S3 Vectors + Knowledge Bases | Short/long-term memory, vector search, RAG, session context | AgentCore-native + Adjacent AWS |
 | **Observability** | AgentCore Observability | OTLP traces, metrics, logs, online evaluation, guardrail events | AgentCore-native |
 | **AgentOps** | AgentCore Evaluations + AgentCore A/B Testing + CI/CD tools | Offline/online evals, quality gates, drift detection; native A/B testing with Gateway-driven weighted traffic splitting (see [A/B testing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing.html) and [Agent Ops](./agent-ops)) | AgentCore-native + Adjacent AWS |
@@ -89,7 +90,7 @@ AgentCore is protocol-native, supporting open standards for interoperability acr
   <span className="arch-flow-arrow">•</span>
   <span className="arch-flow-step">AG-UX (Agent User Experience)</span>
   <span className="arch-flow-arrow">•</span>
-  <span className="arch-flow-step">x402 (Payment Protocol)</span>
+  <span className="arch-flow-step">x402 / MPP (Payment Protocols)</span>
   <span className="arch-flow-arrow">•</span>
   <span className="arch-flow-step">OTEL (OpenTelemetry)</span>
 </div>
@@ -97,7 +98,7 @@ AgentCore is protocol-native, supporting open standards for interoperability acr
 - **MCP** - Tool federation and discovery. Agents connect to MCP servers through the Gateway without managing individual tool integrations.
 - **A2A** - Cross-framework agent collaboration. Agents built with different frameworks communicate via the open A2A protocol.
 - **AG-UX** - Agent user experience protocol for rich, interactive agent-to-human interfaces with structured UI components and streaming responses.
-- **x402** - HTTP-native payment protocol enabling agents to pay for services and APIs autonomously using the `402 Payment Required` flow.
+- **x402 / MPP** - HTTP-native payment protocols enabling agents to pay for services and APIs autonomously. AgentCore Payments, which implements both protocols for agent-to-agent and agent-to-service transactions, is generally available. A curated set of vetted pay-per-use endpoints is discoverable through the x402 Bazaar MCP Server, accessible via Gateway.
 - **OTEL** - Standardized observability. Traces, metrics, and logs flow via OpenTelemetry to AgentCore Observability and CloudWatch.
 
 ---

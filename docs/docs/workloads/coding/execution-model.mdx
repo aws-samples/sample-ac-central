@@ -48,9 +48,9 @@ Unlike workflow agents that run a single pass (Trigger → Act → Emit), coding
 
 ## Long-Running Sessions
 
-AgentCore Runtime sessions support up to **8 hours** of continuous execution. Key behaviors:
+AgentCore Runtime sessions support up to **8 hours** of continuous execution. For tasks that need to run longer, require a GPU, or need persistent disk beyond the micro-VM's ephemeral storage, AgentCore Runtime Instances provide AWS-managed EC2 compute in your account with support for multi-day sessions. Key behaviors for standard micro-VM sessions:
 
-- **Session storage persists across stop/resume**: the microVM may terminate on idle, but `/mnt/workspace` remounts instantly when the session resumes
+- **Session storage persists across stop/resume** (Public Preview): the microVM may terminate on idle, but `/mnt/workspace` remounts instantly when the session resumes
 - **Idle timeout is configurable**: default 15 minutes; set higher for coding tasks that pause between LLM calls
 - **Max lifetime caps total duration**: prevents runaway sessions from accumulating cost
 
