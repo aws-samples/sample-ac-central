@@ -47,7 +47,7 @@ An agent deployment pipeline validates quality, safety, and performance at every
 | -------------------- | -------------------------------------------- | ----------------------------------------------- |
 | **Commit**           | Code pushed, PR created                      | Linting, type checks, unit tests pass           |
 | **Build & Test**     | Container image built, integration tests run | All tests pass, image scans clean               |
-| **Validate (Evals)** | Offline evaluations against test dataset     | Quality ≥ threshold, safety 100%, latency ≤ SLA |
+| **Validate (Evals)** | Deterministic tests plus offline evaluations against test dataset | Deterministic checks pass, quality score ≥ threshold, latency ≤ SLA |
 | **Promote to Stage** | Deploy to staging environment                | Smoke tests pass, no regression vs. baseline    |
 | **Registry**         | Agent version registered with metadata       | Approval workflow complete (if required)        |
 | **Promote to Prod**  | Deploy to production with traffic ramp       | Canary metrics healthy, no alerts triggered     |

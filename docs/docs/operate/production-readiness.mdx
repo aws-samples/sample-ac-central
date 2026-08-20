@@ -124,8 +124,8 @@ Work through this checklist before advancing from pilot to controlled production
 |---|---|
 | Offline evaluation baseline established | A ground-truth dataset exists; baseline scores for correctness, safety, and tool-call accuracy are recorded. See the [AgentCore Evaluators catalog](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) |
 | Online evaluation sampling configured | A fraction of live traffic is evaluated continuously in production |
-| Evaluation gates block bad releases | CI/CD pipeline requires evaluation scores to meet thresholds before promoting to production |
-| Evaluation results linked to rollback triggers | A score drop below threshold triggers an alert and initiates the rollback procedure |
+| Evaluation gates combined with deterministic checks | CI/CD pipeline requires evaluation scores alongside deterministic tests (unit tests, schema validation, tool-call correctness checks) to meet thresholds before promoting to production |
+| Evaluation results feed rollback decisions, with a human checkpoint for automated triggers | A score drop below threshold triggers an alert; pair automated rollback triggers with a review step, especially early in an agent's production life |
 
 </div>
 

@@ -60,7 +60,19 @@ Evaluations require an agent deployed on AgentCore Runtime with observability en
 
 ## Running an Evaluation
 
-Use the AgentCore starter toolkit to evaluate a session against ground truth. See the [on-demand evaluation getting started guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-on-demand.html) for full setup instructions.
+Use the AgentCore CLI to evaluate a session against ground truth. Run this from inside an AgentCore project directory (created with `agentcore create`); use the `--agent-arn` flag instead of `--runtime` to run it from outside a project directory. See the [on-demand evaluation getting started guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-on-demand.html) for full setup instructions.
+
+```bash
+agentcore run eval \
+  --runtime YOUR_RUNTIME_NAME \
+  --session-id YOUR_SESSION_ID \
+  --evaluator "Builtin.GoalSuccessRate" \
+  --evaluator "Builtin.TrajectoryExactOrderMatch"
+```
+
+Results are saved locally and can be reviewed later with `agentcore evals history`.
+
+For programmatic use, the AgentCore SDK offers the same capability:
 
 ```python
 from bedrock_agentcore_starter_toolkit import Evaluation
@@ -77,7 +89,7 @@ for r in results:
 ```
 
 :::info Verified CLI version
-`agentcore run eval` was checked with AgentCore CLI `0.24.1` on July 22, 2026. Run `agentcore run --help` when using a different CLI version.
+`agentcore run eval` was checked with AgentCore CLI `0.26.0`. Run `agentcore run --help` when using a different CLI version.
 :::
 
 :::tip Cost-efficient quality gates
