@@ -53,6 +53,16 @@ Decide which facts may be retained, for how long, and how users can request dele
 
 Set `eventExpiryDuration` to the shortest time-based retention period that satisfies the user experience. A short expiry is usually appropriate for temporary preferences or case context; use an explicit product policy before choosing longer retention. Test expiry and deletion behavior for each tenant, especially when changing a memory strategy or retention period.
 
+### Narrow retrieval with metadata, not just namespace
+
+Namespaces isolate memories by primary entity (user, tenant, patient, client), but within a single namespace a broad semantic search returns everything close in meaning. Attach structured metadata attributes to memory records (priority, department, tags, time range) and filter on those values at retrieval time to narrow results further. Indexed keys are declared when the memory is created and cannot be removed afterward, so decide your metadata schema before you need it in production.
+
+For values that must land on the record exactly as supplied, without LLM inference or variability, mark the metadata key `extractionType: "STRICTLY_CONSISTENT"`. This matters for organizational classifiers, compliance labels, or routing attributes: the LLM is never consulted for that key, and events sharing the same strictly-consistent value are extracted and consolidated together, isolated from events with different values. Limits: up to 3 strictly-consistent keys per strategy, string type only, and the key must be indexed.
+
+### Skip extraction for events that shouldn't reach long-term memory
+
+Mark an event with `extractionMode: "SKIP"` to store it in short-term memory only, without sending it through the extraction pipeline to long-term memory. Use this for bulk-imported records that already exist elsewhere, content that should only be available in-session, or replicated events in a multi-region setup where re-extracting a copy would duplicate facts already extracted from the original.
+
 ## Common Mistakes
 
 - **Treating memory as a database:** it improves recall but does not replace the durability, reporting, or audit guarantees of a system of record.

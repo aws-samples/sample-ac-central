@@ -135,6 +135,8 @@ Without platform-level isolation, teams build custom tenant partitioning into ev
 
 AgentCore Memory uses `actor_id` to namespace memory events per user. The platform enforces that namespace boundary — but it cannot enforce that your application supplies the right `actor_id` value in the first place.
 
+When retrieving memory records, use `namespace` to filter by exact prefix match, or `namespacePath` for hierarchical retrieval that returns all records under a parent namespace. If your namespace design nests scopes (for example, tenant under organization), `namespacePath` is the parameter that returns everything under a given parent level; `namespace` alone only matches records whose namespace starts with the exact string you provide. See [RetrieveMemoryRecords](https://docs.aws.amazon.com/bedrock-agentcore/latest/APIReference/API_RetrieveMemoryRecords.html) for the full parameter reference.
+
 **Isolation only works when identity is correct.** If your code passes a shared constant (e.g., `"default-user"`), all users who share that value read and write into the same memory namespace. The result is cross-user data leakage with no platform-level warning.
 
 Design checklist before enabling long-term memory in a multi-user deployment:

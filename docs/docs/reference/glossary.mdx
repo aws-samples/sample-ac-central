@@ -85,7 +85,7 @@ An AgentCore-managed abstraction that wraps an agent's lifecycle, including star
 
 ### MCP (Model Context Protocol)
 
-An open standard for exposing tools, resources, and prompts to language models over a structured JSON-RPC protocol. AgentCore Gateway can register MCP servers as tool targets, and managed capabilities such as Code Interpreter and Browser Tool surface themselves to agents as MCP-compatible tools. The protocol version required by Gateway is 2025-06-18 or 2025-03-26.
+An open standard for exposing tools, resources, and prompts to language models over a structured JSON-RPC protocol. AgentCore Gateway can register MCP servers as tool targets, and managed capabilities such as Code Interpreter and Browser Tool surface themselves to agents as MCP-compatible tools. Gateway supports multiple MCP protocol versions and can be upgraded to newer spec revisions in place via `UpdateGateway`.
 
 ---
 

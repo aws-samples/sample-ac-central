@@ -6,11 +6,11 @@ last_verified: 2026-07-08
 ---
 
 :::info Versions
-Examples built with **AgentCore CLI** `@aws/agentcore@0.23.0`. Commands or flags may differ in other versions. Run `agentcore --version` to check yours.
+Examples built with **AgentCore CLI** `@aws/agentcore@0.26.0`. Commands or flags may differ in other versions. Run `agentcore --version` to check yours.
 :::
 
 :::warning Snapshot documentation
-This page is a **manually maintained snapshot** written against `@aws/agentcore@0.23.0`. The `agentcore.json` schema evolves between CLI releases: fields may be added, renamed, or removed in later versions. For the authoritative, up-to-date schema, see the [AgentCore CLI repository](https://github.com/aws/agentcore-cli) and its schema documentation. For official service documentation, see the [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
+This page is a **manually maintained snapshot** written against `@aws/agentcore@0.26.0`. The `agentcore.json` schema evolves between CLI releases: fields may be added, renamed, or removed in later versions. For the authoritative, up-to-date schema, see the [AgentCore CLI repository](https://github.com/aws/agentcore-cli) and its schema documentation. For official service documentation, see the [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
 :::
 
 # agentcore.json Schema Reference
@@ -104,6 +104,7 @@ Defines the agent runtimes to deploy. Each entry corresponds to one AgentCore Ru
 | `protocol`                 | string | no       | `HTTP` (default), `MCP`, `A2A`, or `AGUI`                                                        |
 | `tags`                     | object | no       | Key-value tags                                                                                   |
 | `filesystemConfigurations` | array  | no       | Session storage, EFS, or S3 Files mounts (max 5 total)                                           |
+| `requestHeaderAllowlist`   | array  | no       | Custom request headers to pass through to the agent beyond `Authorization` and `X-Amzn-Bedrock-AgentCore-Runtime-Custom-*` (max 20 headers); enforcement follows a blocklist at the service layer, aligned with Gateway's header propagation model |
 
 </div>
 

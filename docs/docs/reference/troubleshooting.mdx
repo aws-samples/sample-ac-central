@@ -6,7 +6,7 @@ last_verified: 2026-07-08
 ---
 
 :::info Versions
-Examples built with **AgentCore CLI** `@aws/agentcore@0.23.0`. Commands or flags may differ in other versions. Run `agentcore --version` to check yours.
+Examples built with **AgentCore CLI** `@aws/agentcore@0.26.0`. Commands or flags may differ in other versions. Run `agentcore --version` to check yours.
 :::
 
 # Troubleshooting
@@ -91,7 +91,7 @@ agent = Agent(model=model, session_manager=session_manager, tools=tools)
 | Symptom                              | Root Cause                          | Solution                                                  |
 | ------------------------------------ | ----------------------------------- | --------------------------------------------------------- |
 | Gateway stuck in CREATING            | IAM trust policy missing            | Service role must trust `bedrock-agentcore.amazonaws.com` |
-| Target stuck in SYNCHRONIZING        | MCP server version incompatible     | Must support MCP version 2025-06-18 or 2025-03-26         |
+| Target stuck in SYNCHRONIZING        | MCP server version incompatible     | Confirm the target's MCP server supports a protocol version Gateway currently accepts; upgrade the Gateway's `supportedVersions` via `UpdateGateway` if needed |
 | `AccessDeniedException` on tool call | Missing Lambda invoke permission    | Add `lambda:InvokeFunction` to gateway service role       |
 | Agent can't find the tool            | Target not READY, or schema invalid | Check `agentcore status`; verify JSON schema is valid     |
 | Tool returns unexpected format       | Lambda using HTTP envelope          | Return direct objects, not `{statusCode, body}` wrappers  |
@@ -183,7 +183,7 @@ when {
 | Symptom                       | Root Cause             | Solution                                               |
 | ----------------------------- | ---------------------- | ------------------------------------------------------ |
 | `Unknown service` in boto3    | boto3 too old          | `pip install --upgrade boto3 botocore`                 |
-| CLI command not recognized    | Outdated CLI version   | `npm install -g @aws/agentcore@0.23.0` — before upgrading, check the [CLI releases page](https://github.com/aws/agentcore-cli/releases) for compatibility notes |
+| CLI command not recognized    | Outdated CLI version   | `npm install -g @aws/agentcore@0.26.0` — before upgrading, check the [CLI releases page](https://github.com/aws/agentcore-cli/releases) for compatibility notes |
 | Session terminated early      | Idle timeout too short | Increase via `agentcore.json` or `agentcore add agent` |
 | 504 Gateway Timeout on invoke | Agent took too long    | Check agent logs; optimize tool calls or model         |
 
