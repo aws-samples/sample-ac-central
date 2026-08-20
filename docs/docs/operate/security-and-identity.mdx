@@ -89,6 +89,10 @@ Add explicit `Deny` statements for destructive actions the agent should never ta
 
 The agent's IAM execution role covers what the agent can do in AWS directly. For calls that pass through AgentCore Gateway to external tools and MCP servers, [Cedar policies](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) (in AgentCore Policy) are the authorization layer, not IAM. Both layers need to be scoped: IAM for AWS API calls, Cedar for tool invocations through Gateway.
 
+### Resource-Based Policies
+
+Identity-based IAM policies control what actions a principal can take; they don't control who can reach a specific resource. For that, Runtime, Gateway, and Memory resources support resource-based policies via the `AWS::BedrockAgentCore::ResourcePolicy` CloudFormation resource, attached directly to the resource itself. Use a resource-based policy to restrict invocations with condition-based controls and enforce least-privilege at the resource level, whether that's invoking a Runtime, calling a Gateway, or reading from and writing to a Memory resource. Resource-based policies are evaluated alongside identity-based policies, with explicit denies always taking precedence. See [the CloudFormation reference](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-bedrockagentcore-resourcepolicy.html) for the resource schema.
+
 ---
 
 ## AgentCore Identity
@@ -101,9 +105,13 @@ When a client calls an agent endpoint, AgentCore Identity validates the caller's
 
 For customer-facing conversational agents, OAuth 2.0 with a JWT signed by your identity provider is the common pattern. For machine-to-machine workflow agents, SigV4 with service credentials is typical.
 
+If Gateway is meant to be the only path into a Runtime, enforce that at the Runtime rather than relying on convention. For SigV4-authenticated runtimes, use an `aws:SourceArn` condition scoped to your Gateway; for JWT-authenticated runtimes, use `allowedWorkloadConfiguration`. Either mechanism rejects direct calls to the Runtime that bypass Gateway, which matters if you rely on Gateway-level policy or rate limiting as an enforcement point — those controls only apply to traffic that actually goes through Gateway.
+
 ### Outbound Authentication: Calling Tools and APIs
 
 When the agent calls an external API or tool through Gateway, AgentCore Identity brokers the outbound credential. The agent never sees the raw credentials; it requests a token for a named credential provider, and Gateway presents that token to the downstream service.
+
+OAuth credential providers support client authentication via either a `client_id`/`client_secret` pair or **Private Key JWT (RFC 7523)**, where the agent authenticates with a signed JWT assertion instead of a shared secret. This matters for identity providers, such as Okta's agent-identity offerings, that require Private Key JWT and do not accept a client secret.
 
 This is the mechanism that keeps credentials out of agent code, system prompts, and tool definitions. See the [AgentCore runtime OAuth documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-oauth.html) for configuration details.
 
@@ -193,9 +201,9 @@ Bedrock Guardrails can be applied to agent inputs to block known injection patte
 
 ### Cedar Policies as a Tool-Abuse Backstop
 
-[Cedar policies enforced at Gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) provide a deterministic backstop against tool abuse. Even if the agent is manipulated into attempting an unauthorized tool call, the Gateway will deny it if the Cedar policy does not permit that principal-action-resource combination.
+[Cedar policies enforced at Gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) provide a deterministic backstop against tool abuse for calls that route through AgentCore Gateway. If the agent is manipulated into attempting an unauthorized tool call through Gateway, Gateway denies it when the Cedar policy does not permit that principal-action-resource combination. Design tool access so that calls to sensitive resources route through Gateway, since a call made directly to Runtime or a backend service bypasses Gateway-based checks.
 
-This is why Cedar policies and Guardrails both need to be in place: Guardrails catch bad content before it influences the model's reasoning; Cedar policies catch unauthorized actions that a manipulated model tries to execute.
+This is why Cedar policies and Guardrails both need to be in place: Guardrails catch bad content before it influences the model's reasoning; Cedar policies catch unauthorized actions that a manipulated model tries to execute through Gateway.
 
 ### Least-Privilege for Tool Definitions
 
@@ -271,6 +279,14 @@ Restrict access to audit logs. Audit logs for agents that process sensitive data
 ### CloudWatch Integration
 
 AgentCore Observability publishes traces and logs to CloudWatch. Enable CloudWatch Logs Insights for ad-hoc investigation and set up metric filters on error rate, policy deny rate, and unexpected tool call patterns. These metric filters form the basis of the anomaly alarms described in the production-readiness checklist.
+
+---
+
+## Compliance and Regional Availability
+
+AgentCore is FedRAMP Class D (formerly FedRAMP High) compliant, and is available in AWS GovCloud (US-West). AgentCore Memory, Policy, and Harness are generally available in GovCloud (US-West) alongside Runtime, Gateway, and Evaluations. Confirm current regional service availability in the [AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/) before committing to a region for a regulated workload, since availability by service and region evolves independently.
+
+AgentCore supports AWS PrivateLink across every primitive, so traffic between your VPC and AgentCore (Runtime, Memory, Built-in Tools, Identity, Gateway, Policy, and Evaluations and Optimizations) can stay off the public internet through a VPC interface endpoint. AgentCore exposes three endpoints: a data plane endpoint (`com.amazonaws.region.bedrock-agentcore`) covering Runtime, Memory, Built-in Tools, and Identity invocation traffic; a control plane endpoint (`com.amazonaws.region.bedrock-agentcore-control`) for management APIs; and a dedicated Gateway endpoint (`com.amazonaws.region.bedrock-agentcore.gateway`). Attach VPC endpoint policies to control which principals, actions, and resources can reach each endpoint. See [VPC interface endpoints](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/vpc-interface-endpoints.html) for setup.
 
 ---
 

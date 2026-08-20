@@ -70,7 +70,7 @@ The governance plane is where policies are authored, agents are registered, iden
 <div className="tile-grid">
   <div className="tile-card">
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--scroll" aria-hidden="true" /><h3>AgentCore Policy</h3></div>
-    <p>Declarative policies (Cedar) that define what agents can access, which tools they can invoke, and under what conditions. Version-controlled and auditable.</p>
+    <p>Declarative policies (Cedar) that define what agents can access, which tools they can invoke, and under what conditions. Version-controlled and auditable. Partner security tools, such as Rubrik Agent Cloud, can feed governance signals into the policy engine so detection and enforcement work together at the Gateway.</p>
     <span className="service-tag tag--identity">Policy Definition</span>
     <span className="service-tag tag--gateway">Preview</span>
   </div>
@@ -150,7 +150,8 @@ The enforcement plane applies governance policies at runtime, at every point in 
 | Authentication    | AgentCore Identity | Validate caller identity (JWT, API key, OAuth token) |
 | Cedar Policy Eval | AgentCore Policy   | Evaluate fine-grained access control policies        |
 | FGAC              | IAM + Cedar        | Field-level and resource-level authorization         |
-| Rate Limiting     | AgentCore Gateway  | Throttle requests per tenant, per agent, per user (configured via Gateway policies)    |
+| Temporal Policies | AgentCore Policy   | Stateful authorization decisions based on session history, not just the current request |
+| Rate Limiting     | AgentCore Gateway  | Native per-user and per-group throttling across all Gateway targets, enforced without agent code changes |
 
 </div>
 
@@ -332,7 +333,7 @@ These mechanisms complement rather than replace application inference profiles. 
 
 ## Putting It Together
 
-The governance architecture ensures that every agent interaction passes through multiple enforcement points. No single bypass can compromise the system.
+The governance architecture layers enforcement points across the request path: identity validation, Cedar policy evaluation, rate limiting, and guardrails each apply independently. Cedar enforcement is scoped to calls that pass through AgentCore Gateway; agents or services that call Runtime or backend systems directly do not pass through Gateway-based checks, so design tool access to route through Gateway where governance coverage is required.
 
 :::info
 The governance plane and enforcement plane work together as a **continuous loop**: policies are defined centrally, enforced at runtime, and observability data feeds back to refine policies and detect anomalies.

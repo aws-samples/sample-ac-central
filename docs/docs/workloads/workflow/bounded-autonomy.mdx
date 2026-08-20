@@ -35,6 +35,7 @@ Without bounded autonomy, you get one of two outcomes:
 | Capability                  | Detail                                                                      |
 |-----------------------------|-----------------------------------------------------------------------------|
 | Tool-level access control   | Allow or deny specific tools based on Cedar policies.                       |
+| Combined schema size        | The Cedar schema generated from a policy engine's associated gateways is capped at 400 KB, driven by tool count and input-parameter complexity rather than policy count. Gateways with a very large or complex tool catalog may need a dedicated policy engine. See the [AgentCore limitations reference](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-limitations-section.html). |
 | Condition-based enforcement | Restrict tool use based on request context (time, entity type, priority).   |
 | [LOG_ONLY vs ENFORCE modes](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-getting-started.html)   | Start with LOG_ONLY to observe decisions; switch to ENFORCE for production. |
 | [Audit trail](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html)                 | Every policy evaluation is logged with full context in CloudWatch.          |
