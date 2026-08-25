@@ -47,7 +47,7 @@ An agent deployment pipeline validates quality, safety, and performance at every
 | -------------------- | -------------------------------------------- | ----------------------------------------------- |
 | **Commit**           | Code pushed, PR created                      | Linting, type checks, unit tests pass           |
 | **Build & Test**     | Container image built, integration tests run | All tests pass, image scans clean               |
-| **Validate (Evals)** | Deterministic tests plus offline evaluations against test dataset | Deterministic checks pass, quality score ≥ threshold, latency ≤ SLA |
+| **Validate (Evals)** | Deterministic tests plus batch evaluations against test dataset | Deterministic checks pass, quality score ≥ threshold, latency ≤ SLA |
 | **Promote to Stage** | Deploy to staging environment                | Smoke tests pass, no regression vs. baseline    |
 | **Registry**         | Agent version registered with metadata       | Approval workflow complete (if required)        |
 | **Promote to Prod**  | Deploy to production with traffic ramp       | Canary metrics healthy, no alerts triggered     |
@@ -181,7 +181,7 @@ Key lifecycle operations:
 | Version Management         | AgentCore Runtime endpoint versioning ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agent-runtime-versioning.html)) | AgentCore-native |
 | A/B Testing                | AgentCore native — Gateway-driven weighted splitting ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing.html)) | AgentCore-native |
 | Canary Rollout (custom %)  | Customer-built routing layer + AgentCore Observability | Customer-built pattern |
-| Agent Catalog              | AWS Agent Registry                                     | Preview ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html)) |
+| Agent Catalog              | AWS Agent Registry                                     | Preview ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/registry.html)) |
 
 </div>
 

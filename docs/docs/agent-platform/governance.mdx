@@ -8,7 +8,7 @@ last_verified: 2026-07-22
 import Link from '@docusaurus/Link';
 
 :::info Architecture Patterns
-These are target-state architecture patterns for agent governance and security at enterprise scale, not required prerequisites for a first prototype. Core identity and guardrails are available today; AgentCore Policy and AWS Agent Registry are in public preview.
+These are target-state architecture patterns for agent governance and security at enterprise scale, not required prerequisites for a first prototype. Core identity, guardrails, and AgentCore Policy are generally available today; AWS Agent Registry is in public preview.
 :::
 
 # Governance & Security
@@ -72,7 +72,6 @@ The governance plane is where policies are authored, agents are registered, iden
     <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--scroll" aria-hidden="true" /><h3>AgentCore Policy</h3></div>
     <p>Declarative policies (Cedar) that define what agents can access, which tools they can invoke, and under what conditions. Version-controlled and auditable. Partner security tools, such as Rubrik Agent Cloud, can feed governance signals into the policy engine so detection and enforcement work together at the Gateway.</p>
     <span className="service-tag tag--identity">Policy Definition</span>
-    <span className="service-tag tag--gateway">Preview</span>
   </div>
 
   <div className="tile-card">

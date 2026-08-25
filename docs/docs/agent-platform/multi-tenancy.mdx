@@ -30,7 +30,7 @@ Each platform layer requires its own isolation strategy. A "tenant" may be a tea
 | Dimension | Isolation Requirement | Implementation |
 |---|---|---|
 | **Runtime & Compute** | Agents from different tenants cannot share execution contexts | Separate containers/micro-VMs, namespace isolation |
-| **Tool Scope Boundaries** | Tenants access only their authorized tools and MCP servers | Per-tenant Gateway policies, Cedar authorization. Combined Cedar schema per policy engine is capped at 400 KB, driven by tool count; large multi-tenant tool catalogs may need multiple policy engines. |
+| **Tool Scope Boundaries** | Tenants access only their authorized tools and MCP servers | Per-tenant Gateway policies, Cedar authorization. Combined Cedar schema per policy engine is capped at 400 KB, driven by both tool count and parameter complexity; large multi-tenant tool catalogs may need multiple policy engines. |
 | **Data & Prompt Isolation** | One tenant's data never leaks into another's context | Tenant-scoped storage, prompt injection guardrails |
 | **Memory Isolation** | Agent memory is partitioned per tenant | Tenant-prefixed memory stores, access policies |
 | **Eval & Telemetry Separation** | Metrics, traces, and evals are attributed to the correct tenant | Tenant tags on all telemetry, separate dashboards |

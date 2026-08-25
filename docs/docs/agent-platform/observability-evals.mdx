@@ -105,7 +105,7 @@ Evaluations run in three modes, each serving a different point in the agent life
 
 | Mode          | When                            | Trigger                                       | Purpose                                      |
 | ------------- | ------------------------------- | --------------------------------------------- | -------------------------------------------- |
-| **Offline**   | Every deployment                | CI/CD pipeline gate                           | Prevent regressions from reaching production |
+| **Batch**     | Every deployment                | CI/CD pipeline gate                           | Prevent regressions from reaching production |
 | **On-Demand** | Event-driven or human-triggered | Manual request, incident response, experiment | Deep-dive analysis, A/B comparison           |
 | **Online**    | Continuous in production        | Sampling (e.g., 10% of traffic)               | Detect drift, measure real-world quality     |
 
@@ -113,7 +113,7 @@ Evaluations run in three modes, each serving a different point in the agent life
 
 <div className="tile-grid">
   <div className="tile-card">
-    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--traffic" aria-hidden="true" /><h3>Offline - CI/CD Gate</h3></div>
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--traffic" aria-hidden="true" /><h3>Batch - CI/CD Gate</h3></div>
     <p>Runs on every deployment. Evaluates against a curated test dataset. Blocks promotion if quality, safety, or performance thresholds aren't met.</p>
     <span className="service-tag tag--evaluations">Every Deploy</span>
   </div>
@@ -139,7 +139,7 @@ A full evaluation framework measures agents across five dimensions:
 
 <div className="fancy-table">
 
-| Dimension       | Offline                | On-Demand             | Online             | Example Evaluators                       |
+| Dimension       | Batch                  | On-Demand             | Online             | Example Evaluators                       |
 | --------------- | ---------------------- | --------------------- | ------------------ | ---------------------------------------- |
 | **Quality**     | ✅ Regression test      | ✅ A/B comparison      | ✅ Sampling         | [`Builtin.Faithfulness`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html), `Builtin.ResponseRelevance`, `Builtin.Correctness` |
 | **Safety**      | ✅ Adversarial inputs   | ✅ Red team results    | ✅ Guardrail events | `Builtin.Harmfulness`, PII detection, topic violations |
