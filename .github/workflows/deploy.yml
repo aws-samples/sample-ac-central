@@ -41,8 +41,8 @@ jobs:
       - name: Build site
         working-directory: docs
         env:
-          SITE_URL: https://cuddly-spork-r247q4j.pages.github.io
-          SITE_BASE_URL: /
+          SITE_URL: https://aws-samples.github.io
+          SITE_BASE_URL: /sample-ac-central/
           ISSUE_URL: https://github.com/aws-samples/sample-ac-central/issues/new
         run: npm run build
 
