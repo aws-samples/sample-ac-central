@@ -1,0 +1,137 @@
+---
+title: "Tutorial: Connect a Tool via Gateway"
+sidebar_label: Connect Gateway Tool
+sidebar_position: 2
+last_verified: 2026-07-24
+---
+
+:::caution Prototype, not production
+This tutorial describes a prototype. Before routing real users or data to it, complete the [Production Readiness checklist](/docs/operate/production-readiness).
+:::
+
+# Connect a Tool via Gateway
+
+**AgentCore-native.** AgentCore Gateway presents Lambda, API, and MCP capabilities as tools behind one managed MCP endpoint. Use it when agents need controlled access to shared or external capabilities without embedding every integration in agent code.
+
+## Why It Matters
+
+Gateway-connected tools extend an agent's capabilities beyond its built-in knowledge, enabling real-world actions through external services while maintaining authorization boundaries. A Gateway gives agents a reusable, controlled boundary for shared services while tool owners evolve integrations independently.
+
+## When to Use
+
+### Workload Decision Table
+
+<div className="fancy-table">
+
+| Condition | Recommendation | Rationale |
+| --- | --- | --- |
+| Agent needs controlled access to external APIs or shared services | Add Gateway tool | Gateway provides managed authorization boundaries and catalog reuse across agents |
+| Multiple agents or workflows share the same integration | Add Gateway tool | Common authentication, authorization, and lifecycle management reduce duplication |
+| Teams need a reusable tool catalog with Cedar-based authorization | Add Gateway tool | Policy-controlled access lets tool owners evolve independently of agent code |
+| User requests require audited, user-context access to external systems | Add Gateway tool | Gateway enforces per-request authorization with principal context |
+| Tool is local, read-only, and unique to one agent | Prefer co-located tool | No benefit from shared catalog or external authorization boundary |
+| A single workflow owns a small, deterministic helper | Prefer co-located tool | Sharing adds lifecycle and network overhead without value |
+| Sharing and independent lifecycle management add no value | Prefer co-located tool | Co-located tools avoid Gateway latency and configuration for simple cases |
+
+</div>
+
+## Official Tutorial
+
+For setup, target registration, deployment, and agent connection, follow the [official AWS Gateway quick start](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-quick-start.html).
+
+:::caution Prototype path
+The official tutorial above creates prototype resources. Apply the [Production Readiness checklist](/docs/operate/production-readiness) before routing real traffic.
+:::
+
+## What to Watch Out For
+
+### Workload-Specific Considerations
+
+> **Guidance:** These are workload patterns, not AWS product behavior. Verify platform capabilities in the [AgentCore Gateway documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html).
+
+#### Design idempotent tools for retries
+
+Treat every state-changing call as retryable. Accept a caller-generated idempotency key, record the completed result, and return that result for a repeated key; do not create a second ticket, payment, or update. Read-only tools should clearly state their freshness behavior so an agent can decide whether to retry.
+
+#### Define typed input and output schemas
+
+Require explicit JSON Schema types, required fields, limits, and safe error shapes for every tool. Model outputs as deliberately as inputs: stable, typed responses let an agent distinguish success, retryable failure, and user-correctable validation errors. Keep one action per tool rather than combining lookup and mutation.
+
+#### Cover each authorization boundary with [Cedar](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html)
+
+Write Cedar policies for the principal, named Gateway action, resource, and relevant context before exposing a tool. Review both direct tool calls and delegated agent paths; a Gateway tool is not safe merely because its backend has IAM permissions. Test policies in a non-production environment before enforcing them.
+
+#### Store credentials outside commands and source files
+
+:::warning Avoid inline credentials
+Inline credentials can leak through shell history, process listings, CI logs, and version control. Never paste a credential value into a command, prompt, or source file. See the [AgentCore Identity documentation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html) for secure credential management.
+:::
+
+Run `agentcore add credential` **without flags** to use interactive mode, which prompts for the credential value instead of taking it as a command-line argument (keeping it out of shell history):
+
+```bash
+agentcore add credential
+```
+
+For OAuth-based tools, register the provider details non-interactively and supply only non-secret identifiers on the command line:
+
+```bash
+agentcore add credential \
+  --name <YOUR_CREDENTIAL_NAME> \
+  --type oauth \
+  --discovery-url <YOUR_OAUTH_DISCOVERY_URL> \
+  --client-id <YOUR_CLIENT_ID>
+```
+
+Reference `<YOUR_CREDENTIAL_NAME>` from the Gateway target's outbound-authentication configuration. AgentCore Identity stores the credential in its token vault; keep any source secret value only in an approved secret store. Run `agentcore add credential --help` to confirm the flags available in your CLI version.
+
+## Common Mistakes
+
+<div className="fancy-table">
+
+| Mistake | Better approach |
+| --- | --- |
+| Gateway-wrapping a one-off local helper | Keep small, agent-specific, deterministic helpers co-located. |
+| Retrying a mutation without a key | Require an idempotency key and return the original result. |
+| Using vague or untyped schemas | Declare input, output, validation, and error contracts. |
+| Relying on backend IAM alone | Apply Cedar policies to the Gateway tool boundary. |
+| Passing secrets to a CLI or prompt | Use the credential provider pattern above. |
+
+</div>
+
+## Resources Created and Cleanup
+
+The official quick start provisions resources according to your selected targets. A typical Lambda-backed Gateway deployment creates these resources; pricing varies by Region and stored data.
+
+<div className="fancy-table">
+
+| Resource | AWS service | Persists? | Approximate idle cost (USD/month) |
+| --- | --- | --- | --- |
+| Agent runtime | AgentCore Runtime | Until destroyed | $0 without invocations; usage is metered ([pricing](https://aws.amazon.com/bedrock/agentcore/pricing/)) |
+| Gateway | AgentCore Gateway | Until destroyed | $0 without requests; usage is metered ([pricing](https://aws.amazon.com/bedrock/agentcore/pricing/)) |
+| Lambda target | AWS Lambda | If created separately | $0 without invocations, excluding storage ([pricing](https://aws.amazon.com/lambda/pricing/)) |
+| Credential secret | AWS Secrets Manager | Until deleted | About $0.40 per secret ([pricing](https://aws.amazon.com/secrets-manager/pricing/)) |
+| Container image | Amazon ECR | Often after teardown | About $0.10 per GB stored ([pricing](https://aws.amazon.com/ecr/pricing/)) |
+| Logs and traces | Amazon CloudWatch | Often after teardown | About $0.03 per GB stored ([pricing](https://aws.amazon.com/cloudwatch/pricing/)) |
+
+</div>
+
+Remove AgentCore-managed resources first. Removing them from the project config and redeploying deletes the runtime and Gateway before their managed targets. Then remove standalone resources in reverse dependency order.
+
+```bash
+agentcore remove all
+agentcore deploy
+
+aws lambda delete-function --function-name <YOUR_LAMBDA_FUNCTION_NAME>
+aws secretsmanager delete-secret --secret-id <YOUR_CREDENTIAL_SECRET_NAME>
+aws ecr delete-repository --repository-name <YOUR_ECR_REPOSITORY_NAME> --force
+aws logs delete-log-group --log-group-name <YOUR_LOG_GROUP_NAME>
+```
+
+Verify AgentCore removal with `agentcore status`; it should list no runtime or Gateway resources. `aws lambda get-function --function-name <YOUR_LAMBDA_FUNCTION_NAME>` should return not found. `aws secretsmanager describe-secret --secret-id <YOUR_CREDENTIAL_SECRET_NAME>` should show a scheduled deletion date, then return not found after the recovery window. Verify ECR and CloudWatch cleanup with `aws ecr describe-repositories --repository-names <YOUR_ECR_REPOSITORY_NAME>` and `aws logs describe-log-groups --log-group-name-prefix <YOUR_LOG_GROUP_NAME>`; they should return a not-found result or no matching groups. If teardown fails, see [Cleanup Failures](/docs/reference/troubleshooting#cleanup-failures).
+
+## Next Steps
+
+- [Add Memory](/docs/tutorials/add-memory): add cross-session recall.
+- [Gateway troubleshooting](/docs/reference/troubleshooting#gateway): diagnose target, schema, and permission errors.
+- [Production Readiness checklist](/docs/operate/production-readiness): prepare before routing production traffic.

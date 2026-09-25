@@ -1,0 +1,163 @@
+---
+title: Observability & Evaluations
+sidebar_label: Observability & Evaluations
+sidebar_position: 5
+last_verified: 2026-07-22
+---
+
+import Link from '@docusaurus/Link';
+
+:::info Architecture Patterns
+These are target-state architecture patterns for agent observability and evaluation at enterprise scale, not required prerequisites for a first prototype. AgentCore Observability and Evaluations are native services; CloudWatch alarms and CI/CD integrations are adjacent AWS services you wire together.
+:::
+
+# Observability & Evaluations
+
+:::tip Who this is for
+Teams instrumenting observability and evaluation pipelines for production agents — the observe-evaluate-optimize loop, built-in evaluator IDs, evaluation modes, and how to close the feedback loop with CI/CD and alerting.
+:::
+
+Agents are non-deterministic. The same input can produce different outputs, take different reasoning paths, and invoke different tools. Traditional monitoring (CPU, memory, error rates) is necessary but insufficient. Agent platforms need an **observe → evaluate → optimize** loop that continuously measures quality, safety, and performance. This page covers what AgentCore Observability and Evaluations provide natively, how to close the loop with adjacent AWS services, and which actions (such as rollback) remain customer-built patterns.
+
+---
+
+## The Observe → Evaluate → Optimize Loop
+
+<div className="arch-flow">
+  <span className="arch-flow-step"><span className="tile-icon tile-icon-svg tile-icon--telescope" aria-hidden="true" /> Observe</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step"><span className="tile-icon tile-icon-svg tile-icon--blueprint" aria-hidden="true" /> Evaluate</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step"><span className="tile-icon tile-icon-svg tile-icon--runtime" aria-hidden="true" /> Alert & Optimize</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step"><span className="tile-icon tile-icon-svg tile-icon--refresh" aria-hidden="true" /> Repeat</span>
+</div>
+
+---
+
+## Observe
+
+Collect comprehensive telemetry from every agent interaction. The observation layer captures what happened, when, and how long it took.
+
+**Services:** AgentCore Observability, CloudWatch, X-Ray
+
+<div className="fancy-table">
+
+| Signal               | What's Captured                                                            | Purpose                                    |
+| -------------------- | -------------------------------------------------------------------------- | ------------------------------------------ |
+| **Traces**           | End-to-end request flow, tool calls, model invocations, latency per step   | Debug failures, understand reasoning paths |
+| **Metrics**          | Token usage, latency percentiles, success/error rates, cost per invocation | SLA monitoring, capacity planning          |
+| **Logs**             | Agent reasoning, tool inputs/outputs, memory operations                    | Root cause analysis, audit                 |
+| **User Feedback**    | Thumbs up/down, corrections, escalations                                   | Ground truth signal for evaluation         |
+| **Guardrail Events** | Policy violations, blocked content, PII detections                         | Safety monitoring, policy tuning           |
+
+</div>
+
+---
+
+## Evaluate
+
+Automatically assess agent behavior against defined quality, safety, and performance criteria. Evaluations turn raw telemetry into actionable quality signals.
+
+**Service:** AgentCore Evaluations
+
+<div className="fancy-table">
+
+| Dimension       | What's Measured                                          | Example Metrics                                          |
+| --------------- | -------------------------------------------------------- | -------------------------------------------------------- |
+| **Quality**     | Response accuracy, relevance, completeness, groundedness | [`Builtin.Faithfulness`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html), `Builtin.ResponseRelevance`, `Builtin.Correctness`, `Builtin.GoalSuccessRate` |
+| **Safety**      | Guardrail compliance, content policy adherence           | `Builtin.Harmfulness`, PII leak rate, topic violation count |
+| **Performance** | Latency, throughput, token efficiency                    | P95 latency, tokens per task, `Builtin.ToolSelectionAccuracy`, tool call efficiency |
+| **Cost**        | Token consumption, compute cost, tool invocation cost    | Cost per conversation, cost per task completion          |
+| **Drift**       | Behavior change over time, model degradation             | Quality score trend, response distribution shift         |
+
+</div>
+
+---
+
+## Alert & Optimize
+
+Close the loop by triggering automated actions when evaluations detect issues.
+
+**Services:** CI/CD pipelines, CloudWatch Alarms
+
+<div className="fancy-table">
+
+| Action            | Trigger                               | Result                                             |
+| ----------------- | ------------------------------------- | -------------------------------------------------- |
+| **Alerts**        | Quality score drops below threshold   | PagerDuty/Slack notification to agent owner        |
+| **Rollback**      | Safety evaluation fails in production | Repoint the `PROD` endpoint to a previous Runtime version (customer-built pattern using Runtime endpoint versioning + Observability metrics) |
+| **Throttle**      | Cost exceeds budget threshold         | Reduce rate limits or switch to cheaper model      |
+| **Update Evals**  | New failure patterns detected         | Add new evaluation criteria to catch edge cases    |
+| **Optimize**      | Ongoing quality metrics               | Model tuning, prompt refinement, data augmentation |
+
+</div>
+
+---
+
+## Evaluation Framework
+
+Evaluations run in three modes, each serving a different point in the agent lifecycle.
+
+### Evaluation Modes
+
+<div className="fancy-table">
+
+| Mode          | When                            | Trigger                                       | Purpose                                      |
+| ------------- | ------------------------------- | --------------------------------------------- | -------------------------------------------- |
+| **Batch**     | Every deployment                | CI/CD pipeline gate                           | Prevent regressions from reaching production |
+| **On-Demand** | Event-driven or human-triggered | Manual request, incident response, experiment | Deep-dive analysis, A/B comparison           |
+| **Online**    | Continuous in production        | Sampling (e.g., 10% of traffic)               | Detect drift, measure real-world quality     |
+
+</div>
+
+<div className="tile-grid">
+  <div className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--traffic" aria-hidden="true" /><h3>Batch - CI/CD Gate</h3></div>
+    <p>Runs on every deployment. Evaluates against a curated test dataset. Blocks promotion if quality, safety, or performance thresholds aren't met.</p>
+    <span className="service-tag tag--evaluations">Every Deploy</span>
+  </div>
+
+  <div className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--target" aria-hidden="true" /><h3>On-Demand</h3></div>
+    <p>Triggered by humans or events. Used for incident investigation, experiment analysis, or deep-dive into specific agent behaviors.</p>
+    <span className="service-tag tag--identity">Event Triggered</span>
+  </div>
+
+  <div className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--broadcast" aria-hidden="true" /><h3>Online - Production Sampling</h3></div>
+    <p>Continuously samples live traffic. Detects quality drift, new failure modes, and model degradation before users report issues.</p>
+    <span className="service-tag tag--observability">Continuous</span>
+  </div>
+</div>
+
+---
+
+### Evaluation Dimensions
+
+A full evaluation framework measures agents across five dimensions:
+
+<div className="fancy-table">
+
+| Dimension       | Batch                  | On-Demand             | Online             | Example Evaluators                       |
+| --------------- | ---------------------- | --------------------- | ------------------ | ---------------------------------------- |
+| **Quality**     | ✅ Regression test      | ✅ A/B comparison      | ✅ Sampling         | [`Builtin.Faithfulness`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html), `Builtin.ResponseRelevance`, `Builtin.Correctness` |
+| **Safety**      | ✅ Adversarial inputs   | ✅ Red team results    | ✅ Guardrail events | `Builtin.Harmfulness`, PII detection, topic violations |
+| **Performance** | ✅ Latency benchmarks   | ✅ Load testing        | ✅ P95/P99 tracking | End-to-end latency, token efficiency     |
+| **Cost**        | ✅ Cost projection      | ✅ Budget analysis     | ✅ Spend tracking   | Cost per task, cost vs. quality tradeoff |
+| **Operational** | ✅ Error rate baselines | ✅ Incident postmortem | ✅ Availability     | Success rate, retry rate, timeout rate   |
+
+</div>
+
+:::info
+Start with **Quality** and **Safety** evaluations. Add Performance, Cost, and Operational dimensions as your agent fleet matures and you need optimization signals.
+:::
+
+---
+
+## Further Reading
+
+- [AgentCore Evaluators](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) — complete list of `Builtin.*` evaluator IDs with descriptions
+- [How Evaluations Work](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/how-it-works-evaluations.html) — offline, on-demand, and online evaluation modes
+- [Configure Observability](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html) — setting up OTLP traces, metrics, and logs
+- [Well-Architected Agentic AI Lens — AgentOps pillar](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentops06.html) — operational excellence guidance for agentic workloads

@@ -1,0 +1,56 @@
+---
+title: Tutorials
+sidebar_label: Overview
+sidebar_position: 0
+last_verified: 2026-07-08
+---
+
+:::info Versions
+Examples built with **Strands Agents SDK** `1.52.0` and **bedrock-agentcore** `1.21.0`. APIs may differ in other versions.
+:::
+
+:::caution Prototype, not production
+Tutorials on this site create prototypes, not production-ready systems. Before routing real users or data to any agent you build here, work through the [Production Readiness checklist](/docs/operate/production-readiness).
+:::
+
+import Link from '@docusaurus/Link';
+
+# Tutorials
+
+Step-by-step guides for common AgentCore tasks. Each tutorial takes 10–20 minutes and produces working code you can adapt.
+
+<div className="tile-grid">
+  <Link to="/docs/tutorials/add-memory" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--memory" aria-hidden="true" /><h3>Add Memory to Your Agent</h3></div>
+    <p>Give your agent cross-session recall. Remember user preferences, facts, and conversation history with SEMANTIC and SUMMARIZATION strategies.</p>
+  </Link>
+
+  <Link to="/docs/tutorials/connect-gateway-tool" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--gateway" aria-hidden="true" /><h3>Connect a Tool via Gateway</h3></div>
+    <p>Add external API access through AgentCore Gateway. Create a Lambda tool, register it, and call it from your agent via MCP.</p>
+  </Link>
+</div>
+
+:::tip Looking for a complete agent application?
+These tutorials focus on **individual capabilities** — adding one AgentCore feature (Memory, Gateway) to an existing agent project. If you need an **end-to-end implementation** that covers project creation, deployment, and integrated workload behavior, start with the [Quickstart](/docs/get-started/quickstart) and then explore the [Workload Catalog](/docs/workloads/overview) for architecture patterns and full agent application flows.
+:::
+
+---
+
+## Prerequisites
+
+All tutorials assume you have:
+
+- An existing agent project (start with the [Quickstart](/docs/get-started/quickstart) if you don't have one)
+- AgentCore CLI installed (`npm install -g @aws/agentcore`)
+- AWS credentials configured
+- Python 3.12+ and `uv` installed
+
+---
+
+## Workshops
+
+Guided, hands-on labs hosted on AWS Workshop Studio:
+
+- [Getting Started with AgentCore](https://catalog.workshops.aws/agentcore-getting-started) — Fundamentals workshop covering AgentCore concepts and building your first agent
+- [Diving Deep into AgentCore](https://catalog.workshops.aws/agentcore-deep-dive) — Advanced workshop exploring AgentCore capabilities in depth

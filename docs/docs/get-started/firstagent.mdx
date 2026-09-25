@@ -1,0 +1,49 @@
+---
+title: Your First Agent (Managed Harness)
+sidebar_label: First Agent
+sidebar_position: 3
+last_verified: 2026-07-16
+---
+
+# Your First Agent (Managed Harness)
+
+:::tip Who this is for
+First-time builders who want the fastest path to a working agent without writing orchestration code. The managed harness handles the agent loop, model configuration, and system prompt for you. If you want full control over orchestration, see [Build from CLI](/docs/get-started/quickstart).
+:::
+
+Deploy an agent using the AgentCore managed harness. The harness gives you a running agent with a reachable endpoint in minutes — you define the model, system prompt, and tools; AgentCore manages the execution loop.
+
+---
+
+## Create your first harness agent
+
+The fastest path today is the AgentCore CLI:
+
+```bash
+agentcore create --name myfirstagent --model-provider bedrock
+agentcore dev
+```
+
+This scaffolds a harness project and opens the browser test page where you can chat with your agent immediately.
+
+For the full procedural walkthrough using the CLI or boto3:
+
+- [Get started with the harness (CLI / boto3)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html)
+
+---
+
+## What you'll have at the end
+
+A deployed agent with a reachable endpoint you can invoke and test interactively. The harness manages the agent loop, model configuration, and system prompt — see [Harness operations](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-operations.html) for what you can configure after creation.
+
+---
+
+## Next steps
+
+- [Prepare your agent for production traffic](/docs/operate/production-readiness)
+- [Explore deployment methods to choose your long-term workflow](/docs/get-started/deployment-methods)
+- [Add memory and tools with the Harness quickstart](/docs/workloads/conversational/harness-quickstart)
+
+:::warning
+Everything produced by this tutorial is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

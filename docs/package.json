@@ -1,0 +1,63 @@
+{
+  "name": "agentcore-central",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "docusaurus": "docusaurus",
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "swizzle": "docusaurus swizzle",
+    "deploy": "docusaurus deploy",
+    "clear": "docusaurus clear",
+    "serve": "docusaurus serve",
+    "write-translations": "docusaurus write-translations",
+    "write-heading-ids": "docusaurus write-heading-ids",
+    "validate:content": "node scripts/validate-content.mjs",
+    "validate:frontmatter": "node scripts/check-frontmatter.mjs",
+    "validate:external-links": "node scripts/validate-external-links.mjs",
+    "validate:tutorial-links": "node scripts/validate-tutorial-links.mjs",
+    "test": "node --test scripts/__tests__/validate-tutorial-links.test.mjs",
+    "validate": "npm run validate:content && npm run validate:frontmatter && npm run validate:external-links",
+    "prebuild": "npm run validate"
+  },
+  "dependencies": {
+    "@docusaurus/core": "^3.8.1",
+    "@docusaurus/preset-classic": "^3.8.1",
+    "@docusaurus/theme-mermaid": "^3.10.1",
+    "@docusaurus/theme-search-algolia": "^3.8.1",
+    "@easyops-cn/docusaurus-search-local": "^0.46.1",
+    "@mdx-js/react": "^3.0.0",
+    "clsx": "^2.1.0",
+    "prism-react-renderer": "^2.3.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@docusaurus/module-type-aliases": "^3.8.1",
+    "@docusaurus/types": "^3.8.1",
+    "typescript": "~5.5.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.5%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 3 chrome version",
+      "last 3 firefox version",
+      "last 5 safari version"
+    ]
+  },
+  "engines": {
+    "node": ">=18.0"
+  },
+  "overrides": {
+    "serialize-javascript": "^7.0.7",
+    "uuid": "^11.1.1"
+  },
+  "allowScripts": {
+    "core-js@3.49.0": true,
+    "fsevents@2.3.3": true
+  }
+}

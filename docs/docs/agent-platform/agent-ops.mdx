@@ -1,0 +1,197 @@
+---
+title: Agent Ops
+sidebar_label: Agent Ops
+sidebar_position: 6
+last_verified: 2026-07-22
+---
+
+import Link from '@docusaurus/Link';
+
+:::info Architecture Patterns
+These are target-state architecture patterns for agent operations at enterprise scale, not required prerequisites for a first prototype. Native AgentCore capabilities are clearly distinguished from customer-built patterns throughout this page.
+:::
+
+# Agent Ops
+
+:::tip Who this is for
+Platform engineers designing deployment and operations for agents on AgentCore — specifically the CI/CD pipeline, traffic management, A/B testing, lifecycle governance, and operational feedback loops.
+:::
+
+Agent Ops extends DevOps practices to the unique challenges of AI agents. Because agents are non-deterministic and continuously evolving, they require purpose-built CI/CD pipelines, continuous evaluation, traffic management, and lifecycle governance. This page covers the full deployment pipeline, ongoing operations, and the clear distinction between what AgentCore Runtime provides natively and what you build on top.
+
+---
+
+## Agent CI/CD Pipeline
+
+An agent deployment pipeline validates quality, safety, and performance at every stage. It goes beyond "does it build?"
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Commit</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Build & Test</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Validate (Evals)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Promote to Stage</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Registry</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Promote to Prod</span>
+</div>
+
+### Pipeline Stages
+
+<div className="fancy-table">
+
+| Stage                | What Happens                                 | Gate Criteria                                   |
+| -------------------- | -------------------------------------------- | ----------------------------------------------- |
+| **Commit**           | Code pushed, PR created                      | Linting, type checks, unit tests pass           |
+| **Build & Test**     | Container image built, integration tests run | All tests pass, image scans clean               |
+| **Validate (Evals)** | Deterministic tests plus batch evaluations against test dataset | Deterministic checks pass, quality score ≥ threshold, latency ≤ SLA |
+| **Promote to Stage** | Deploy to staging environment                | Smoke tests pass, no regression vs. baseline    |
+| **Registry**         | Agent version registered with metadata       | Approval workflow complete (if required)        |
+| **Promote to Prod**  | Deploy to production with traffic ramp       | Canary metrics healthy, no alerts triggered     |
+
+</div>
+
+### Quality Feedback Loop
+
+When evaluations fail at the **Validate** stage, the pipeline provides actionable feedback:
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Eval Fails</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Identify Failure Cases</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Optimize (Prompt / Model / Data)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Re-commit</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Re-validate</span>
+</div>
+
+:::tip
+Treat evaluation failures like test failures - they block the pipeline. This ensures only validated agents reach production.
+:::
+
+---
+
+## Ongoing Operations
+
+Once an agent is in production, operations shift to continuous monitoring, experimentation, and lifecycle management.
+
+### Monitoring & Evaluations
+
+Continuous operational health checks powered by AgentCore Observability, Evaluations, CloudWatch Alarms, and Cost Explorer.
+
+<div className="fancy-table">
+
+| Signal           | Monitors                                                                 | Action on Breach                          |
+| ---------------- | ------------------------------------------------------------------------ | ----------------------------------------- |
+| **Quality**      | `Builtin.Faithfulness`, `Builtin.ResponseRelevance`, `Builtin.Correctness` scores ([evaluators](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html)) | Alert owner, escalate if sustained        |
+| **Cost**         | Token spend, tool invocation costs per agent                             | Throttle, switch model, notify team       |
+| **Behavior**     | Response distribution, tool usage patterns                               | Investigate drift, trigger on-demand eval |
+| **Availability** | Success rate, timeout rate, error rate                                   | Auto-scale, circuit break, rollback       |
+
+</div>
+
+### Versioning, Endpoints, and Canary Rollout
+
+AgentCore Runtime versions automatically. Any change that affects behavior (protocol settings, container image, network configuration) creates a new immutable version; unrelated changes do not. **Endpoints** are the mechanism for controlling which version actually serves traffic. See [Runtime lifecycle settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) for full details on endpoint management.
+
+<div className="fancy-table">
+
+| Change Type                   | Version Created | `DEFAULT` Endpoint | Named Endpoint (e.g. `PROD`)       |
+| ----------------------------- | --------------- | ------------------ | ---------------------------------- |
+| Initial creation              | V1              | Points to V1       | Not yet created                    |
+| Container image update        | V2              | Moves to V2        | Stays on V1 until updated manually |
+| Point `PROD` at V2 explicitly | No new version  | Unchanged          | Moves to V2                        |
+| Container image update again  | V3              | Moves to V3        | Stays on V2                        |
+
+</div>
+
+See [Agent Runtime versioning](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agent-runtime-versioning.html) for the full versioning model.
+
+This gives you blue-green deployment out of the box: cut a new version, validate it behind a `staging` endpoint, then repoint `PROD` to it once you're confident.
+
+A canary pattern built on top of endpoint versioning looks like:
+
+1. Deploy the new agent version, create a `canary` endpoint pointed at it, leave `PROD` on the current version.
+2. Route a small percentage of live traffic to `canary` through your routing layer.
+3. Compare quality, latency, and cost between `canary` and `PROD` using AgentCore Observability's per-version metrics.
+4. If the canary holds or improves on quality thresholds, repoint `PROD` to the new version and delete the `canary` endpoint. If it regresses, delete `canary` and repoint traffic back to `PROD`. No code change is needed since `PROD` never moved.
+
+### Native A/B Testing
+
+AgentCore provides native A/B testing with Gateway-driven weighted traffic splitting. This lets you compare agent variants scientifically — with statistical significance — without building your own routing layer.
+
+Two modes are available ([A/B testing overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing.html)):
+
+- **Config-bundle mode** — compares prompt, tool, or model configuration variants running on the same runtime. Use this when you want to test whether a prompt rewrite or model upgrade improves quality without changing infrastructure. See [config-bundle A/B testing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-config-bundle.html).
+- **Target-based mode** — routes traffic to two different runtime endpoints. Use this for comparing fundamentally different agent architectures or framework versions. See [target-based A/B testing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-target-based.html).
+
+Both modes support percentage-weighted traffic splits via `--control-weight` / `--treatment-weight` (0–100, default 50/50). Routing is sticky by `runtimeSessionId`, so a given session always reaches the same variant. Online evaluations score both variants throughout the test, and statistical significance is reported automatically.
+
+```bash
+# Start an A/B test with a 90/10 traffic split
+agentcore run ab-test \
+  --control-endpoint arn:aws:bedrock-agentcore:...:endpoint/prod \
+  --treatment-endpoint arn:aws:bedrock-agentcore:...:endpoint/candidate \
+  --control-weight 90 \
+  --treatment-weight 10
+```
+
+You can also create and query A/B tests programmatically via the `CreateABTest` / `GetABTest` APIs.
+
+### Agent Lifecycle Management
+
+An agent's **operational lifecycle** (is it being built, tested, or serving traffic) and its **registry status** (is it discoverable and approved for reuse) are two different, loosely-coupled tracks. Runtime versioning and endpoints drive the first; AWS Agent Registry drives the second.
+
+<div className="fancy-table">
+
+| Operational Phase | What's Happening                              | Typical Registry Status                    |
+| ----------------- | --------------------------------------------- | ------------------------------------------ |
+| **Development**   | Build, test locally, iterate on prompts       | `DRAFT`, not yet submitted                 |
+| **Review**        | Submitted for security/compliance review      | `PENDING_APPROVAL`                         |
+| **Production**    | Serving live traffic behind a `PROD` endpoint | `APPROVED`, discoverable for reuse         |
+| **Deprecated**    | Marked for removal, consumers notified        | `DEPRECATED`, no longer surfaced in search |
+
+</div>
+
+A record can also land in `REJECTED` if a reviewer declines it. That's not a phase an agent passes through on the way to production. It's a dead end that sends the publisher back to `DRAFT`.
+
+Key lifecycle operations:
+
+- **Version History**: AgentCore Runtime creates an immutable version on every behavior-affecting change (see the endpoint versioning table above). This is independent of Registry status.
+- **Rollback**: repoint the `PROD` endpoint to a previous Runtime version. Registry status does not need to change for a rollback. The record still describes the same logical agent.
+- **Deprecation Workflow**: move the Registry record to `DEPRECATED` so it stops appearing in search and the MCP discovery endpoint, notify known consumers, and set a sunset date for the underlying Runtime endpoint. Traffic redirection after the sunset date is handled by your routing layer, not by Registry itself.
+
+---
+
+## Services Summary
+
+<div className="fancy-table">
+
+| Capability                 | Primary Service                                        | Label |
+| -------------------------- | ------------------------------------------------------ | ----- |
+| CI/CD Pipeline             | CodePipeline + CodeBuild (or GitHub Actions)           | Adjacent AWS |
+| Evaluation Gates           | AgentCore Evaluations                                  | AgentCore-native ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html)) |
+| Monitoring & Alerts        | AgentCore Observability + CloudWatch Alarms            | AgentCore-native + Adjacent AWS |
+| Cost Tracking              | AWS Cost Explorer + Cost Allocation Tags               | Adjacent AWS |
+| Version Management         | AgentCore Runtime endpoint versioning ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agent-runtime-versioning.html)) | AgentCore-native |
+| A/B Testing                | AgentCore native — Gateway-driven weighted splitting ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing.html)) | AgentCore-native |
+| Canary Rollout (custom %)  | Customer-built routing layer + AgentCore Observability | Customer-built pattern |
+| Agent Catalog              | AWS Agent Registry                                     | Preview ([docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/registry.html)) |
+
+</div>
+
+---
+
+## Further Reading
+
+- [A/B Testing Overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing.html) — native Gateway-driven traffic splitting
+- [Config-bundle A/B Testing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-config-bundle.html) — prompt/tool/model variants on same runtime
+- [Target-based A/B Testing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/ab-testing-target-based.html) — different runtime endpoints
+- [Agent Runtime Versioning](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agent-runtime-versioning.html) — immutable versions and endpoint promotion
+- [Runtime Lifecycle Settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) — endpoint management and lifecycle phases
+- [AgentCore Evaluators](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) — `Builtin.*` evaluator IDs and usage

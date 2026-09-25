@@ -1,0 +1,130 @@
+---
+title: Glossary
+sidebar_label: Glossary
+sidebar_position: 4
+last_verified: 2026-07-15
+---
+
+# Glossary
+
+Common terms for Amazon Bedrock AgentCore and adjacent technologies. For authoritative definitions, see the [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/).
+
+---
+
+### actor_id
+
+A string identifier that scopes memory records to a specific user or entity within a session. When you pass `actor_id` to memory operations, AgentCore partitions stored memories so that one user's history is never visible to another. Use a stable, per-user value such as a hashed user ID or a claim from a verified JWT.
+
+---
+
+### A2A (Agent-to-Agent protocol)
+
+An open protocol that allows agents built on different frameworks or platforms to call one another over HTTP. A2A defines a standard envelope and capability-discovery mechanism so that one agent can invoke another as a tool without knowing its internal implementation. AgentCore Gateway can expose AgentCore-hosted agents as A2A-compatible endpoints.
+
+---
+
+### agent
+
+An autonomous software process that uses a large language model to reason over inputs, select tools, and produce outputs across one or more conversational turns. In AgentCore, an agent is deployed as a Runtime and can optionally use Memory, Gateway, and other managed capabilities.
+
+---
+
+### agentcore.json
+
+The project manifest read by the AgentCore CLI. It declares the agent name, runtime configuration (language version, entrypoint, environment variables), and references to capabilities such as Memory and Gateway. The CLI reads this file during `agentcore deploy`, `agentcore dev`, and `agentcore destroy`. The [AgentCore CLI repository](https://github.com/aws/agentcore-cli) is the authoritative source for the current schema.
+
+---
+
+### Browser Tool
+
+A managed capability that gives an agent the ability to control a headless browser, navigate web pages, and extract content. It is surfaced to the agent as an MCP-compatible tool and is declared in `agentcore.json` alongside other capabilities.
+
+---
+
+### Cedar
+
+An open-source policy language developed by AWS for expressing fine-grained authorization rules. In AgentCore, Cedar policies govern which principals can invoke which actions on a Gateway, optionally with context-dependent conditions. Policies can be deployed in `LOG_ONLY` mode for observation before switching to `ENFORCE`.
+
+---
+
+### Code Interpreter
+
+A managed sandbox capability that lets an agent execute code (Python by default) in an isolated environment and return the output to the model. It is exposed as an MCP-compatible tool so the agent can write, run, and iterate on code without requiring the caller to provision infrastructure.
+
+---
+
+### endpoint
+
+A named invocation target on an AgentCore Runtime. The `DEFAULT` endpoint is created automatically and accepts requests using the standard event schema. Named endpoints can be added to support alternative payload shapes or routing logic. Callers address an endpoint by its name when invoking the Runtime API.
+
+---
+
+### evaluation
+
+The process of measuring agent behavior against expected outputs. Offline evaluation runs a fixed dataset through the agent without live traffic and compares results to ground truth. Online evaluation captures production traffic samples and scores them, often using a model-as-judge approach. AgentCore surfaces evaluation metrics through its observability integration.
+
+---
+
+### Gateway
+
+An AgentCore service that connects an agent to external tools and APIs through a managed, policy-controlled proxy. You register tool targets (Lambda functions, MCP servers, or HTTP APIs) with a Gateway, and AgentCore exposes them to the agent as a unified tool set. Gateway enforces Cedar policies on every tool call before forwarding the request.
+
+---
+
+### guardrail (Bedrock Guardrails)
+
+A configurable safety layer in Amazon Bedrock that filters model inputs and outputs based on rules you define, such as topic restrictions, content filters, and sensitive-data redaction. AgentCore Runtimes can be configured with a Bedrock Guardrails ARN so that every model invocation passes through the guardrail automatically.
+
+---
+
+### Harness
+
+An AgentCore-managed abstraction that wraps an agent's lifecycle, including startup, invocation routing, session handling, and graceful shutdown. A Harness is created via `CreateHarness` and invoked via `InvokeHarness`; the Runtime calls these operations internally so agent code does not need to implement the invocation protocol directly. Using the Harness lets AgentCore manage concurrency and observability on your behalf.
+
+---
+
+### MCP (Model Context Protocol)
+
+An open standard for exposing tools, resources, and prompts to language models over a structured JSON-RPC protocol. AgentCore Gateway can register MCP servers as tool targets, and managed capabilities such as Code Interpreter and Browser Tool surface themselves to agents as MCP-compatible tools. Gateway supports multiple MCP protocol versions and can be upgraded to newer spec revisions in place via `UpdateGateway`.
+
+---
+
+### memory
+
+Persistent storage for agent context across sessions. Short-term memory holds the conversation history for the current session and is discarded when the session ends. Long-term memory extracts and retains facts across sessions using configurable strategies such as SEMANTIC extraction. Both types are namespaced by `actor_id` so that each user has an isolated memory store.
+
+---
+
+### observability
+
+The capability to collect, store, and query traces, logs, and metrics produced by a running agent. AgentCore routes telemetry to AWS-managed storage and exposes it through CloudWatch and the AgentCore console. Observability data includes per-turn latency, tool call results, token counts, and evaluation scores where configured.
+
+---
+
+### policy (AgentCore Policy, Cedar)
+
+A Cedar-language document that controls access to Gateway resources and actions. A policy specifies a principal (who), an action (which tool or tool set), and a resource (which Gateway or Gateway ARN), with an optional `when` block for context conditions. Policies are attached to a Gateway and evaluated on every tool invocation before the request is forwarded to the target.
+
+---
+
+### Runtime
+
+The managed compute environment in AgentCore that hosts and runs your agent code. A Runtime packages your code into a container, handles invocation routing through named endpoints, enforces idle session timeouts, and integrates with Memory, Gateway, and observability. You create and update a Runtime through `agentcore deploy` or the AgentCore API.
+
+---
+
+### session
+
+A bounded unit of agent interaction identified by a session ID. Within a session, short-term memory is active and context accumulates across turns. When a session ends or its idle timeout expires, short-term memory is cleared. Long-term memory extraction may run at session end depending on your memory strategy configuration.
+
+---
+
+### Strands Agents SDK
+
+An open-source Python SDK for building agents that use the model-as-orchestrator pattern. The SDK provides abstractions for tools, memory, streaming, and multi-agent coordination, and it integrates natively with AgentCore capabilities such as Memory and Gateway. Source and documentation are available at [strandsagents.com](https://strandsagents.com).
+
+---
+
+### workload identity
+
+A set of verified credentials that identify the agent process itself, as opposed to the end user. In AgentCore, workload identity is implemented through IAM execution roles and optionally through OAuth 2.0 credential providers for tool calls that require per-identity tokens. The execution role governs what AWS resources the agent code can access at runtime.

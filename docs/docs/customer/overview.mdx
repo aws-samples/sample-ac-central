@@ -1,0 +1,79 @@
+---
+title: Reference Architectures
+sidebar_label: Overview
+sidebar_position: 1
+last_verified: 2026-07-15
+---
+
+# AgentCore Customer References and Architectures
+
+Production deployments and customer case studies built on Amazon Bedrock AgentCore. These reference architectures demonstrate real-world patterns across industries - from healthcare and energy to media and automotive.
+
+:::info Sourcing
+Stories are based on publicly available, externally approved sources. Every claim traces to a linked public reference; stories without a verifiable public source are not published.
+:::
+
+---
+
+## How to Use This Section
+
+Each customer reference includes:
+- **Architecture pattern** - The agent design pattern used (workflow, Conversational, platform, coding, swarm)
+- **Architecture diagram** - Visual representation of the solution (where available), with a text description of entry point, main flow, and key boundaries
+- **Customer story** - Business context, challenge, and solution
+- **AgentCore services** - Which AgentCore capabilities power the solution
+- **Results** - Measurable business outcomes
+- **Transferable lessons** - What the customer chose and why, stated as their decisions rather than universal prescriptions
+- **When this is relevant** - Signals that indicate this pattern fits your context
+- **Source and verification** - The public source link and last-verified date for every claim
+
+---
+
+## Approved for External Use
+
+Production stories with published blog posts and approved for external sharing.
+
+<div className="fancy-table fancy-table--auto-first">
+
+| #  | Customer                                        | Pattern                  | Industry            |
+|----|-------------------------------------------------|--------------------------|---------------------|
+| 01 | [Rede Mater Dei](./external/rede-mater-dei)    | Workflow                 | Healthcare          |
+| 02 | [Iberdrola](./external/iberdrola)               | Workflow + Conversational | Energy              |
+| 03 | [BGL](./external/bgl)                           | Conversational           | Financial Services  |
+| 04 | [Thomson Reuters](./external/thomson-reuters)   | Platform                 | Legal / Media       |
+| 05 | [AutoScout24](./external/autoscout24)           | Platform                 | Automotive          |
+| 06 | [Cox Automotive](./external/cox-automotive)     | Multi-pattern            | Automotive          |
+| 07 | [Blue Origin](./external/blue-origin)           | Coding                   | Aerospace           |
+| 08 | [Formula 1](./external/formula-1)               | Workflow                 | Media / Sports      |
+
+</div>
+
+---
+
+## Patterns at a Glance
+
+<div className="fancy-table">
+
+| Pattern            | Description                                              | Example Customers                        |
+|--------------------|----------------------------------------------------------|------------------------------------------|
+| **Workflow**       | Agents triggered by business events, processing async    | Rede Mater Dei, Iberdrola, Formula 1     |
+| **Conversational** | Conversational agents with stateful sessions             | BGL                                      |
+| **Platform**       | Enterprise platforms standardizing agent development     | Thomson Reuters, AutoScout24             |
+| **Coding**         | Agents that generate, validate, or transform code        | Blue Origin                              |
+| **Multi-pattern**  | Multiple agent workload types deployed together          | Cox Automotive                           |
+
+</div>
+
+---
+
+## Named in Public Partnership Announcements
+
+Some organizations are named publicly as adopting AgentCore as part of a broader strategic announcement, without a published technical case study describing their architecture. These are cited only for the fact of naming AgentCore, not for implementation detail.
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Customer | Context | Source |
+|---|---|---|
+| Novo Nordisk | Strategic AI partnership with AWS naming Amazon Bedrock AgentCore, alongside Amazon Bio Discovery, as infrastructure for AI agents across drug discovery and operations | [AWS Industries Blog, 2026-08-10](https://aws.amazon.com/blogs/industries/novo-nordisk-selects-aws-as-strategic-partner-to-accelerate-drug-discovery-with-ai/) |
+
+</div>

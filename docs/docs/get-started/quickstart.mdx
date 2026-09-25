@@ -1,0 +1,77 @@
+---
+title: "Build your agents from terminal"
+sidebar_label: Build from CLI
+sidebar_position: 1
+last_verified: 2026-07-24
+---
+
+import Link from '@docusaurus/Link';
+
+# Build Your Agent from the CLI
+
+:::tip Who this is for
+Developers who prefer working in a terminal, iterating locally, and managing configuration in version control. If you'd rather use a UI without local tooling, see [First Agent (Console)](/docs/get-started/firstagent).
+:::
+
+The fastest code-first path to a running agent. You'll scaffold a project, iterate locally with [hot-reload](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-get-started-cli.html), and deploy with a single command — all from your terminal.
+
+---
+
+## Canonical tutorial
+
+Follow the CLI Python tutorial to scaffold, test, and deploy your first agent:
+
+- [Build and deploy a Python agent with the AgentCore CLI](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html)
+
+If your agent codebase is TypeScript:
+
+- [Build and deploy a TypeScript agent with the AgentCore CLI](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli-typescript.html)
+
+## Quick CLI flow
+
+```bash
+# Scaffold a project using the interactive wizard
+agentcore create
+
+# Run locally with hot-reload
+agentcore dev
+
+# Deploy when ready
+agentcore deploy
+```
+
+The wizard prompts for your language, framework, model provider, and build method. See the canonical tutorials above for non-interactive options and complete configuration details.
+
+---
+
+## Alternative: Managed Harness path
+
+If you prefer AgentCore to manage the agent loop (model selection, system prompt, tool orchestration) rather than writing your own orchestration code, follow the harness tutorial instead:
+
+- [Get started with the managed harness](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html)
+
+The CLI path above gives you full control over the orchestration layer. The harness path trades that control for faster setup — you configure rather than code. Both deploy to AgentCore Runtime with the same security and scaling characteristics.
+
+---
+
+## Why CLI is the fastest code-first path
+
+The CLI gives you a local dev loop with hot-reload, version-controlled declarative configuration, and a single command (`agentcore deploy`) to move from prototype to deployed endpoint. You own the code, control the dependencies, and can test against a live model locally before deploying.
+
+---
+
+## What happens after deployment
+
+The deployed endpoint uses [IAM authorization with SigV4-signed requests](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-permissions.html) by default — it cannot be invoked without valid AWS credentials. For production, follow the [Runtime security best practices](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-security-best-practices.html) and scope [`bedrock-agentcore:InvokeAgentRuntime`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-permissions.html) to specific principals. Consider [AWS PrivateLink](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/vpc-interface-endpoints.html) if you need private API access from your VPC to AgentCore without traversing the public internet. Configure Runtime VPC connectivity and egress controls separately for the agent's outbound traffic.
+
+---
+
+## Next steps
+
+- [Prepare your agent for production traffic](/docs/operate/production-readiness)
+- [Add memory and identity for a conversational agent](/docs/workloads/conversational/quickstart)
+- [Explore multi-agent patterns](/docs/patterns/overview)
+
+:::warning
+Everything produced by this tutorial is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

@@ -1,0 +1,271 @@
+---
+title: Sandbox & Tools
+sidebar_label: Sandbox & Tools
+sidebar_position: 4
+---
+
+import Link from '@docusaurus/Link';
+
+# Sandbox & Tools for Coding Agents
+
+Coding agents execute code they generate. Without isolation, a bad generation could corrupt the host, leak credentials, or break shared state. AgentCore provides sandboxed execution at every level.
+
+---
+
+## Execution Options
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Option              | What It Is                                              | Best For                                              |
+|---------------------|---------------------------------------------------------|-------------------------------------------------------|
+| Runtime shell       | Full shell inside the agent's microVM (BYOC container)  | Production agents with custom toolchains              |
+| Runtime Instances    | AWS-managed EC2 in your account, GPU support, persistent EBS | Long-running or GPU-bound coding tasks that exceed micro-VM limits |
+| Code Interpreter    | Managed sandbox (Python, JS, TS) with pre-installed libs | Data analysis, prototyping, no container to manage    |
+| Docker Sandbox      | Local Docker container via Strands SDK                   | Local development and testing before deploy           |
+
+</div>
+
+---
+
+## Persistent Storage Options
+
+The runtime supports three mount types under `filesystemConfigurations`. Pick by persistence and sharing needs:
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Storage           | Persistence                                  | Sharing                                   | Best For                                              |
+|-------------------|----------------------------------------------|-------------------------------------------|-------------------------------------------------------|
+| Session Storage (Preview) | Survives stop/resume; 14-day idle expiry | Isolated per session                | Agent workspace: cloned repos, build artifacts        |
+| S3 Files          | Permanent (S3 lifecycle rules apply)         | Shared across sessions and agents          | Shared skills, templates, reference code              |
+| EFS               | Permanent (until deleted)                    | Shared across sessions and agents          | Large repos, shared dependency caches, ML models      |
+
+</div>
+
+### Session Storage
+
+The default choice for a coding agent's workspace at `/mnt/workspace`:
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Property          | Value                                            |
+|-------------------|--------------------------------------------------|
+| Status            | Public Preview                                   |
+| Mount path        | Configurable under `/mnt/` (e.g., `/mnt/workspace`) |
+| Max size          | 1 GB per session                                 |
+| Persistence       | Survives stop/resume; 14-day idle expiry         |
+| Filesystem ops    | Full POSIX — git, npm, pip, cargo all work       |
+| Isolation         | Per-session (one session cannot see another's data) |
+
+</div>
+
+Standard developer workflows work naturally: `git clone` into `/mnt/workspace`, install dependencies, build, and test. The next invocation finds everything still there.
+
+### S3 Files and EFS
+
+Use these when the agent needs data that outlives sessions or is shared across agents:
+
+```json
+"filesystemConfigurations": [
+  {"sessionStorage": {"mountPath": "/mnt/workspace"}},
+  {"s3Files": {"mountPath": "/mnt/skills", "accessPointArn": "arn:aws:s3:...:accesspoint/skills"}},
+  {"efsStorage": {"mountPath": "/mnt/shared", "fileSystemId": "fs-abc123", "accessPointId": "fsap-def456"}}
+]
+```
+
+- **S3 Files** works well for read-mostly shared assets: agent skills, prompt libraries, code templates. The autonomous coding samples mount skills this way so every agent instance sees the same playbooks.
+- **EFS** suits large or frequently-written shared state: monorepos too big for the 1 GB session limit, warm dependency caches (`node_modules`, `venv`), or models. Standard NFS semantics apply.
+
+:::tip Choosing storage
+Start with session storage alone — it covers the common case (one agent, one task, one workspace). Add S3 Files when you find yourself copying the same reference material into every session. Add EFS when repo size or shared write access becomes the constraint.
+:::
+
+---
+
+## Strands SDK Tools
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Tool               | Package              | What It Does                                           |
+|--------------------|----------------------|--------------------------------------------------------|
+| `bash`             | strands (vended)     | Shell commands with persistent state (env, cwd)        |
+| `file_editor`      | strands (vended)     | View, create, and edit files via string replace         |
+| `shell`            | strands-agents-tools | Shell/subprocess execution                             |
+| `file_read`        | strands-agents-tools | Read file contents                                     |
+| `code_interpreter` | strands-agents-tools | AgentCore Code Interpreter integration                 |
+
+</div>
+
+---
+
+## Example: Agent with File and Shell Tools
+
+```python
+from strands import Agent, tool
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
+
+app = BedrockAgentCoreApp()
+
+SYSTEM_PROMPT = """You are a coding agent. Your workspace is /mnt/workspace.
+Use shell to run commands, file_read to inspect files, and file_write to make changes.
+Always run tests after making changes to verify correctness."""
+
+
+@tool
+def shell(command: str) -> dict:
+    """Execute a shell command in the workspace.
+
+    Args:
+        command: The shell command to run.
+    """
+    import subprocess
+
+    try:
+        result = subprocess.run(
+            command, shell=True, capture_output=True, text=True,
+            timeout=60, cwd="/mnt/workspace",
+        )
+        return {
+            "stdout": result.stdout[-3000:],
+            "stderr": result.stderr[-1000:],
+            "exit_code": result.returncode,
+        }
+    except subprocess.TimeoutExpired:
+        return {"error": "Command timed out after 60 seconds"}
+
+
+@tool
+def file_read(path: str) -> dict:
+    """Read the contents of a file.
+
+    Args:
+        path: Absolute path to the file.
+    """
+    from pathlib import Path
+
+    target = Path(path)
+    if not target.exists():
+        return {"error": f"File not found: {path}"}
+    return {"content": target.read_text()[:10000]}
+
+
+@tool
+def file_write(path: str, content: str) -> dict:
+    """Write content to a file, creating parent directories as needed.
+
+    Args:
+        path: Absolute path to the file.
+        content: The content to write.
+    """
+    from pathlib import Path
+
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(content)
+    return {"written": str(target), "bytes": len(content)}
+
+
+agent = Agent(
+    model="global.anthropic.claude-sonnet-4-6",
+    system_prompt=SYSTEM_PROMPT,
+    tools=[shell, file_read, file_write],
+)
+
+
+@app.entrypoint
+async def invoke(payload, context):
+    """Stream responses token-by-token to the caller."""
+    async for event in agent.stream_async(payload.get("prompt", "")):
+        if "data" in event:
+            yield event["data"]
+
+
+if __name__ == "__main__":
+    app.run()
+```
+
+:::tip Streaming vs. sync entrypoints
+The <Link to="/docs/workloads/coding/quickstart">Quick Start</Link> uses a simpler sync pattern (`result = agent(prompt); return {"response": result.message}`) for clarity. Production agents use `async def` + `agent.stream_async()` + `yield` so responses render as they are generated, rather than waiting for the full answer. Both patterns work on AgentCore Runtime.
+:::
+
+---
+
+## Common Shell Commands
+
+```bash
+# Run tests
+cd /mnt/workspace && python -m pytest tests/ -v
+
+# Install dependencies
+cd /mnt/workspace && pip install -r requirements.txt
+
+# Build
+cd /mnt/workspace && npm run build
+
+# Lint
+cd /mnt/workspace && npx eslint src/ --format json
+
+# Git status
+cd /mnt/workspace && git status --short
+
+# Environment check
+python --version && node --version && git --version
+```
+
+---
+
+## Tool Design Principles
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Principle                        | Why                                                                       |
+|----------------------------------|---------------------------------------------------------------------------|
+| One tool = one action            | Compound tools confuse the LLM. Split "read and edit" into two tools.     |
+| Descriptive names and docstrings | The LLM decides tool selection based on name + description. Be specific.  |
+| Validate all inputs              | The LLM sends arbitrary values. Check paths, formats, and bounds.         |
+| Return errors as values          | Don't raise exceptions. Return `{"error": "..."}` so the agent can adapt. |
+| Typed schemas                    | Every tool gets a JSON schema defining inputs. No "catch-all" parameters. |
+| Idempotent where possible        | Agent might retry on failure. Make tools safe to call multiple times.      |
+
+</div>
+
+---
+
+## Safety Guardrails for Coding Agents
+
+Coding agents can write files and execute shell commands. Constrain them to prevent damage:
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Risk                        | Mitigation                                                              |
+|-----------------------------|-------------------------------------------------------------------------|
+| Write outside project dir   | Validate all paths with `os.path.realpath` start with `/mnt/workspace` |
+| Destructive shell commands  | Block patterns like `rm -rf /`, `chmod 777`, force-push to main         |
+| Credential exfiltration     | Deny writes to `.env`, `.pem`, `id_rsa`; strip env vars from output    |
+| Infinite loops              | Set timeouts on all subprocess calls; bound retry attempts              |
+| Push to protected branches  | Restrict git push targets in the tool or via Cedar policies             |
+
+
+</div>
+
+
+```python
+import os
+
+WORKSPACE = "/mnt/workspace"
+
+def validate_path(path: str) -> str:
+    """Ensure the path is within the workspace. Raise if not."""
+    real = os.path.realpath(path)
+    if not real.startswith(os.path.realpath(WORKSPACE)):
+        raise ValueError(f"Path {path} is outside workspace")
+    return real
+```
+
+For stronger enforcement, use AgentCore **Cedar policies** on the Gateway to restrict which tools the agent can call. See <Link to="/docs/workloads/workflow/bounded-autonomy">Bounded Autonomy</Link> for the Cedar policy model (applicable to coding agents too).
+
+---
+
+## Related Pages
+
+- <Link to="/docs/workloads/coding/execution-model">Execution Model — lifecycle and long-running sessions →</Link>
+- <Link to="/docs/workloads/coding/source-control">Source Control — Git and GitHub integration →</Link>

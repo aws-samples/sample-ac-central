@@ -1,0 +1,43 @@
+/**
+ * Theme: Ocean Depth
+ * Teal-cyan with ultra-dark base — deep ocean, high contrast
+ */
+
+:root {
+  --ifm-color-primary: #0891b2;
+  --ifm-color-primary-dark: #077b98;
+  --ifm-color-primary-darker: #06748f;
+  --ifm-color-primary-darkest: #055f76;
+  --ifm-color-primary-light: #0ea5ca;
+  --ifm-color-primary-lighter: #14b4d8;
+  --ifm-color-primary-lightest: #22d3ee;
+
+  --ifm-background-color: #f0fdfa;
+  --ifm-background-surface-color: #e0f7f5;
+
+  --theme-hero-gradient: linear-gradient(135deg, #020617 0%, #0c1a2e 50%, #083344 100%);
+  --theme-card-hover-shadow: rgba(8, 145, 178, 0.12);
+  --theme-chip-bg: rgba(8, 145, 178, 0.08);
+  --theme-chip-border: rgba(8, 145, 178, 0.2);
+  --theme-code-highlight: rgba(8, 145, 178, 0.08);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #22d3ee;
+  --ifm-color-primary-dark: #13bdd7;
+  --ifm-color-primary-darker: #12b2cb;
+  --ifm-color-primary-darkest: #0e92a7;
+  --ifm-color-primary-light: #46dcf1;
+  --ifm-color-primary-lighter: #55e0f2;
+  --ifm-color-primary-lightest: #83eaf6;
+
+  --ifm-background-color: #020617;
+  --ifm-background-surface-color: #0f172a;
+  --ifm-navbar-background-color: #020617;
+  --ifm-footer-background-color: #020617;
+
+  --theme-card-hover-shadow: rgba(34, 211, 238, 0.12);
+  --theme-chip-bg: rgba(34, 211, 238, 0.1);
+  --theme-chip-border: rgba(34, 211, 238, 0.2);
+  --theme-code-highlight: rgba(34, 211, 238, 0.1);
+}

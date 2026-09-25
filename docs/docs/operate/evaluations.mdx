@@ -1,0 +1,207 @@
+---
+title: Evaluations
+sidebar_label: Evaluations
+sidebar_position: 3
+last_verified: 2026-07-22
+---
+
+import Link from '@docusaurus/Link';
+
+# Evaluations
+
+:::tip Who this is for
+This page is for teams setting up continuous evaluation for production agents. If you are still in early development, the [Production Readiness](./production-readiness) page gives you a checklist of when evaluations need to be in place before you go live.
+:::
+
+Evaluations are how you measure whether your agent is doing the right thing, correctly, and safely, across the range of inputs it encounters in production. Guardrails and policies set the boundaries of permitted behavior; evaluations tell you whether the agent is meeting quality and safety standards within those boundaries.
+
+This page covers offline vs. online evaluations, what to measure, how to gate releases on evaluation results, and how to link evaluations to rollback triggers. Where AgentCore Evaluations is the relevant managed service, it is noted as such. General guidance is labeled accordingly.
+
+For the full AgentCore Evaluations service documentation, see [How Evaluations Work](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/how-it-works-evaluations.html).
+
+---
+
+## Offline vs. Online Evaluations
+
+Evaluations run in two modes that serve different purposes. Both are necessary; neither is sufficient alone.
+
+<div className="fancy-table">
+
+| | Offline Evaluation | Online Evaluation |
+|---|---|---|
+| **When it runs** | Before deployment, in CI/CD | Continuously in production on live traffic |
+| **Data source** | Curated ground-truth dataset | Sampled real requests |
+| **Primary purpose** | Gate releases; catch regressions before they reach users | Detect quality drift and emerging failure modes |
+| **Cost** | Proportional to dataset size and model calls | Proportional to sampling rate and production traffic |
+| **Latency impact** | None on production traffic | None on main request path if async |
+| **Limitations** | Only as good as the ground-truth dataset | Noisy; requires statistical significance before acting |
+
+</div>
+
+### Offline Evaluation
+
+Offline evaluation runs your agent against a fixed dataset of inputs with known expected outputs or behaviors. The dataset is your specification of what "correct" looks like. A weak dataset produces a passing score that means little; a representative dataset with adversarial cases gives you a meaningful quality gate.
+
+Building the dataset is the hardest part. Start with:
+
+1. Happy-path examples drawn from the agent's intended use cases.
+2. Edge cases: ambiguous inputs, incomplete information, inputs near the boundaries of the agent's scope.
+3. Adversarial examples: prompt injection attempts, requests for out-of-scope actions, malformed tool inputs.
+4. Regression cases: inputs that have caused failures in earlier versions.
+
+Dataset curation is an ongoing activity. Every production incident should add at least one new regression case to the offline dataset.
+
+### Online Evaluation
+
+Online evaluation samples a percentage of live production traffic and evaluates those requests asynchronously, after the agent has already responded. The evaluation does not block the response; it runs in a separate process.
+
+AgentCore Evaluations provides infrastructure for running continuous evaluations against live agent traffic. See [getting started with on-demand evaluation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-on-demand.html) for the current configuration interface and supported evaluators.
+
+The sampling rate is a cost/coverage trade-off. A 1% sample of high-traffic agents may be enough to detect statistical shifts. A 100% sample of low-traffic agents that make high-stakes decisions may be appropriate. Set the sampling rate based on the cost of a missed quality regression, not on what is cheapest.
+
+---
+
+## What to Evaluate
+
+### Correctness
+
+Does the agent's output match the expected answer or behavior? For factual question-answering, correctness is binary or near-binary. For tasks with multiple acceptable outputs (summarization, planning), correctness requires a rubric.
+
+Common approaches:
+- **Ground-truth matching**: compare output to a human-labeled expected output. Works well for structured outputs (JSON, extracted fields).
+- **LLM-as-judge**: use a separate, powerful model to score the agent's output against a rubric. Scalable but introduces the judge model's own biases.
+- **Tool call trajectory matching**: verify that the sequence of tool calls the agent made matches an expected trajectory. Useful for tasks where the process (not just the final output) matters.
+
+AgentCore Evaluations includes built-in evaluators for correctness and trajectory matching. The [evaluator catalog](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) lists all available evaluators with their configuration options. Key built-in evaluators include [`Builtin.Correctness`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html), [`Builtin.GoalSuccessRate`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html), and [`Builtin.TrajectoryInOrderMatch`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html).
+
+### Safety
+
+Safety evaluation checks whether the agent's outputs and actions stayed within acceptable boundaries:
+
+- Did the agent refuse or handle requests it should not fulfill?
+- Did the agent avoid generating harmful, offensive, or policy-violating content?
+- Did the agent avoid taking actions outside its authorized scope?
+
+Safety evaluation is distinct from content safety (Guardrails). Guardrails prevent known-bad content; safety evaluation measures whether the agent's overall behavior across a range of inputs is safe. An agent can pass all Guardrails checks and still behave unsafely on edge cases that the content filters do not cover.
+
+### Tool-Call Accuracy
+
+For agents that call tools as a core part of their function, tool-call accuracy measures:
+
+- **Precision**: when the agent called a tool, was it the right tool with the right arguments?
+- **Recall**: did the agent call all the tools it should have called for a given task?
+- **No spurious calls**: did the agent avoid calling tools it should not have called?
+
+Poor tool-call accuracy is often a prompt engineering issue, a model capability issue, or a tool definition issue. Evaluation data can distinguish between these root causes.
+
+AgentCore Evaluations provides [`Builtin.TrajectoryInOrderMatch`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) and related trajectory evaluators for measuring tool-call accuracy against expected sequences.
+
+### Latency
+
+Latency evaluation measures the distribution of response times across requests. Key percentiles are p50, p95, and p99. A mean latency that looks acceptable can hide a long tail of slow responses that degrade user experience.
+
+Latency has two main components for agents: model inference time and tool execution time. Evaluation results should distinguish these where possible so that optimization effort is directed at the right component. Integrate with [AgentCore Observability tracing](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html) to break down latency by span.
+
+### Cost
+
+Cost evaluation measures token consumption per invocation and total tool call costs per session. Tracking cost in evaluation (not just in billing) lets you catch cost regressions before they appear on the invoice.
+
+Input tokens, output tokens, and the number of reasoning steps all contribute to cost. A prompt change that improves accuracy but doubles token consumption may not be the right trade-off.
+
+---
+
+## Evaluation-Gated Releases
+
+An evaluation gate is a step in the CI/CD pipeline that runs offline evaluation against the candidate version and blocks promotion if scores fall below defined thresholds.
+
+### General Architecture Guidance
+
+A release pipeline with evaluation gates follows this pattern:
+
+1. Build and unit-test the new agent version (prompt, tools, model config, or application code).
+2. Run offline evaluation against the ground-truth dataset. Record scores for all metrics: correctness, safety, tool-call accuracy, latency.
+3. Compare scores against the thresholds defined for this agent. Thresholds should be versioned alongside the agent so that the standard for passing does not drift silently.
+4. If all scores meet thresholds, promote to the next stage. If any score fails, block the release and notify the responsible team.
+5. In production (controlled rollout or full traffic), run online evaluation in parallel. If online scores diverge from expected ranges, trigger a review.
+
+### Threshold Setting
+
+Setting thresholds requires judgment. Too strict and every benign change gets blocked; too loose and the gate provides no protection.
+
+Practical guidance:
+- Start with the scores achieved by the current production version as the baseline.
+- Set the threshold slightly below the baseline (e.g., 5 percentage points) to allow for dataset variance.
+- Tighten thresholds over time as the evaluation dataset grows and becomes more representative.
+- For safety metrics, use stricter thresholds than for quality metrics. A 2-point drop in safety score is more concerning than a 2-point drop in summarization quality.
+
+### What a Gate Should Not Do
+
+An evaluation gate should not be a checklist that engineering games to pass. If the dataset is too small or too easy, a gate that always passes provides false confidence. Invest in the dataset quality before relying on the gate as a meaningful signal.
+
+---
+
+## Linking Evaluations to Rollback Triggers
+
+An online evaluation score that drops below a threshold in production should trigger an alert. In some cases, it should trigger an automatic rollback. Defining these links before deployment, not after an incident, is part of production readiness.
+
+### Alert Thresholds
+
+Define alert conditions for each evaluation metric:
+
+<div className="fancy-table">
+
+| Metric | Suggested alert condition | Rationale |
+|---|---|---|
+| Correctness score | 7-day rolling average drops more than 10% from baseline | Catches gradual quality drift before it becomes a customer-facing problem |
+| Safety score | Any single-day score below the minimum acceptable threshold | Safety regressions require immediate attention |
+| Tool-call precision | Drops below the threshold that was required for release | Indicates a behavioral change that was not caught in offline eval |
+| Error rate | Rises above 3x the baseline rate | Suggests a breakage, not just quality drift |
+
+</div>
+
+### Rollback Trigger Conditions
+
+Separate "alert and investigate" from "rollback immediately." Not every score drop warrants a rollback; some warrant a hold on further rollout while investigation proceeds.
+
+General guidance:
+- **Rollback immediately**: safety score breach; error rate spike above a defined ceiling; confirmed harmful output in production.
+- **Hold and investigate**: correctness score trend downward over multiple days; tool-call accuracy degradation with no obvious cause.
+- **Monitor**: latency increase within SLA but trending upward; cost per invocation increase under budget but growing.
+
+The rollback procedure itself is covered in detail in the [Releases and Rollback](./releases-and-rollback) page.
+
+### Closing the Loop
+
+Evaluation failures should produce regression cases that enter the offline evaluation dataset. An incident that reveals a new failure mode in production means the offline dataset did not cover that case. Add it, re-evaluate, and verify the new version would have caught the regression before it reached production.
+
+This is the mechanism by which the evaluation program improves over time: production incidents make the offline dataset harder to pass, which raises the bar for future releases.
+
+---
+
+## Further Reading
+
+- [AgentCore Evaluators Catalog](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html)
+- [How AgentCore Evaluations Work](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/how-it-works-evaluations.html)
+- [Getting Started with On-Demand Evaluation](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-on-demand.html)
+- [AgentCore Observability Configuration](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html)
+
+---
+
+## Related Pages
+
+<div className="tile-grid">
+  <Link to="/docs/operate/production-readiness" className="tile-card">
+    <div className="tile-heading"><h3>Production Readiness →</h3></div>
+    <p>Evaluation checklist items and how evaluations fit into the overall production-readiness program.</p>
+  </Link>
+
+  <Link to="/docs/operate/releases-and-rollback" className="tile-card">
+    <div className="tile-heading"><h3>Releases and Rollback →</h3></div>
+    <p>How evaluation scores connect to rollback triggers and the release lifecycle.</p>
+  </Link>
+
+  <Link to="/docs/agent-platform/observability-evals" className="tile-card">
+    <div className="tile-heading"><h3>Observability and Evals →</h3></div>
+    <p>AgentCore Observability and Evaluations service overview.</p>
+  </Link>
+</div>

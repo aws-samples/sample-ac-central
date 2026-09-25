@@ -1,0 +1,49 @@
+---
+title: Get Started with AgentCore
+sidebar_label: Overview
+sidebar_position: 1
+last_verified: 2026-07-15
+---
+
+import Link from '@docusaurus/Link';
+
+# Get Started with AgentCore
+
+This page helps you pick the right getting-started path. Whether you're a first-time agent builder evaluating managed vs. code-first approaches, or an experienced developer migrating an existing agent onto AgentCore Runtime, the decision tree below will route you to the right tutorial.
+
+---
+
+## Pick your path
+
+<div className="fancy-table fancy-table--auto-first">
+
+| If you want to… | Start here |
+|---|---|
+| Deploy an agent through the console without writing orchestration code | [Your First Agent (Console)](/docs/get-started/firstagent) |
+| Build a code-first prototype from your terminal | [Build from CLI](/docs/get-started/quickstart) |
+| Migrate an existing agent (Strands, LangGraph, CrewAI, custom) onto AgentCore | [Existing Agent](/docs/get-started/existing-agent) |
+| Compare all deployment methods before deciding | [Deployment Methods](/docs/get-started/deployment-methods) |
+
+</div>
+
+:::tip Not sure where to start?
+Start with the [Harness getting-started guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html) for the fastest route to a running agent. Switch to the [CLI Python tutorial](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html) if you prefer writing agent logic in code.
+:::
+
+---
+
+## Before you begin
+
+Every path requires the same account and environment preparation. Complete the [Preflight Checklist](/docs/get-started/preflight) before starting any tutorial — it covers region selection, IAM permissions, model access, and cost awareness.
+
+---
+
+## What each path produces
+
+Each Get Started tutorial produces a working prototype: a deployed agent with a reachable endpoint you can invoke and iterate on. What remains after that is applying production controls — security, observability, policy enforcement, and operational readiness.
+
+Move to [Preparing for production](/docs/operate/production-readiness) once you have a working prototype and want to serve real user traffic.
+
+:::warning
+Everything produced by a Get Started tutorial is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

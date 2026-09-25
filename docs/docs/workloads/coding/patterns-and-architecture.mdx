@@ -1,0 +1,203 @@
+---
+title: Patterns & Architecture
+sidebar_label: Patterns & Architecture
+sidebar_position: 8
+---
+
+import Link from '@docusaurus/Link';
+
+# Patterns & Architecture for Coding Agents
+
+Reference architecture and recommended multi-agent patterns for building production coding agents on AgentCore.
+
+---
+
+## Reference Architecture
+
+A production coding agent on AgentCore follows a layered architecture with clear separation between triggers, reasoning, execution, and output delivery.
+
+### Architecture Components
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Layer | Component | Responsibility |
+|-------|-----------|----------------|
+| **Trigger** | GitHub/GitLab webhook, Jira, Schedule, CI event | Receives the external event and invokes the agent |
+| **Ingestion** | Lambda / EventBridge | Normalizes the event payload and routes to AgentCore Runtime |
+| **Reasoning** | AgentCore Runtime + LLM | Agent loop: reads context, plans approach, generates code |
+| **Execution** | Code Interpreter / microVM | Runs generated code, tests, and linters in an isolated sandbox |
+| **Context** | AgentCore Memory + Gateway (GitHub MCP) | Project context, file history, repository access |
+| **Output** | PR / Branch / Artifact | Agent-generated code delivered via git with human review gate |
+| **Quality** | AgentCore Evaluations + Observability | Trajectory checks, LLM-judged quality, traces |
+
+</div>
+
+### Execution Flow
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Trigger (Webhook / Ticket / Schedule)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Trigger Lambda</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">AgentCore Runtime</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Coding Agent</span>
+</div>
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Coding Agent</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">Memory</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">Gateway (GitHub MCP)</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">Sandbox / Code Interpreter</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">Observability</span>
+</div>
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Coding Agent</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">PR / Artifact</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Human Review Gate</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Merge</span>
+</div>
+
+### Reference implementation
+
+The [Multi-Agent Coding Workshop](https://github.com/aws-samples/sample-amazon-bedrock-agentcore-coding-agents) provides a complete, deployable reference architecture with a multi-agent setup (planner, coder, reviewer), durable orchestration, and CI integration.
+
+---
+
+## Recommended Patterns
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Pattern                       | When to Use                                                | Reference                                                                                                                               |
+|-------------------------------|------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| **Single Agent + Sandbox**    | Simple generation or test tasks scoped to one file         | <Link to="/docs/workloads/coding/quickstart">Quick Start</Link>                                                                         |
+| **Plan-Act-Reflect**          | Multi-step implementation from specs; iterate until passing | —                                                                                                                                       |
+| **Swarm (Multi-File)**        | Parallel agents handling different modules in a refactor   | <Link to="/docs/patterns/overview">Patterns Overview</Link>                                                                             |
+| **Coder + Reviewer**          | Quality-critical: separate generation from evaluation      | [Autonomous Coding Agent](https://github.com/awslabs/agentcore-samples/tree/main/01-features/02-host-your-agent/01-runtime/04-coding-agents/05-autonomous-coding-agent-durable) |
+| **Durable Orchestration**     | Multi-phase pipelines with zero-cost suspension            | [Autonomous Coding Agent](https://github.com/awslabs/agentcore-samples/tree/main/01-features/02-host-your-agent/01-runtime/04-coding-agents/05-autonomous-coding-agent-durable) |
+| **Agents-as-Tools**           | Orchestrator delegates to specialized sub-agents           | —                                                                                                                                       |
+| **Human-in-the-Loop**         | PR review gate before merge                                | [Code Agents Competition](https://github.com/awslabs/agentcore-samples/tree/main/01-features/02-host-your-agent/01-runtime/04-coding-agents/03-code-agents-competition-e2e)     |
+
+</div>
+
+:::info
+All AgentCore patterns work for coding agents. For the full 12-pattern catalog including Graph, A2A, and Router, see the <Link to="/docs/patterns/overview">Architectural Patterns Reference</Link>.
+:::
+
+:::tip Compose, not compete
+Production coding systems assign each agent one role (e.g., backend builder, validator, frontend builder) and combine their outputs into a single deliverable. The deterministic gate (pytest) is the sole acceptance authority and the LLM judge can withhold approval but never fabricate a pass.
+:::
+
+---
+
+## Pattern Selection Guide
+
+**Start with Single Agent + Sandbox** when:
+- The task is scoped to one file or module
+- You need a working example fast
+
+**Move to Plan-Act-Reflect** when:
+- The task involves multiple steps (read specs, write code, run tests, fix failures)
+- You need iterative self-correction
+
+**Use Swarm (Multi-File)** when:
+- A large refactor spans many modules that can be modified in parallel
+- Each module has independent tests
+
+**Use Coder + Reviewer** when:
+- Quality is critical (regulated code, production infrastructure)
+- You want a separate evaluation pass before delivery
+
+**Use Durable Orchestration** when:
+- The pipeline has distinct phases with wait points (human approval, async builds)
+- You want zero-cost suspension between phases
+
+**Add Human-in-the-Loop** when:
+- Code must be reviewed before merge (all production use cases)
+- Regulatory or compliance requirements mandate human sign-off
+
+---
+
+## End-to-End Coding Workflow
+
+The canonical pattern: the LLM handles reasoning, deterministic commands handle execution.
+
+```python
+import json
+import boto3
+
+client = boto3.client("bedrock-agentcore", region_name="us-east-1")
+
+AGENT_ARN = "arn:aws:bedrock-agentcore:us-east-1:123456789012:runtime/CodingAgent"
+SESSION_ID = "session-coding-task-abc123-def456-gh"
+
+
+def run_command(command, timeout=60):
+    """Run a deterministic command in the agent's microVM (zero token cost).
+
+    Response stream events:
+      contentStart  — command execution began
+      contentDelta  — stdout/stderr output (may appear multiple times)
+      contentStop   — command finished, contains exitCode and status
+    """
+    response = client.invoke_agent_runtime_command(
+        agentRuntimeArn=AGENT_ARN,
+        runtimeSessionId=SESSION_ID,
+        body={"command": command, "timeout": timeout},
+    )
+    for event in response["stream"]:
+        if "chunk" in event and "contentStop" in event["chunk"]:
+            return event["chunk"]["contentStop"].get("exitCode")
+    return None
+
+
+def invoke_agent(prompt):
+    """Send a prompt to the agent (LLM reasoning — uses tokens)."""
+    response = client.invoke_agent_runtime(
+        agentRuntimeArn=AGENT_ARN,
+        runtimeSessionId=SESSION_ID,
+        payload=json.dumps({"prompt": prompt}).encode(),
+    )
+    body = json.loads(response["response"].read())
+    return body["response"]["content"][0]["text"]
+
+
+# Step 1: LLM reasons and writes code
+invoke_agent("Read issue #42 and implement the fix in /mnt/workspace")
+
+# Step 2: Deterministic test execution (no tokens)
+exit_code = run_command("cd /mnt/workspace && python -m pytest tests/ -v", timeout=300)
+
+# Step 3: If tests pass, commit and push
+if exit_code == 0:
+    run_command("cd /mnt/workspace && git checkout -b fix/issue-42")
+    run_command('cd /mnt/workspace && git add -A && git commit -m "Fix issue #42"')
+    run_command("cd /mnt/workspace && git push origin fix/issue-42")
+```
+
+---
+
+## Your Journey to Production
+
+1. **Define your trigger**: Identify the event that starts the coding task (PR, ticket, schedule, CI failure).
+2. **Build your sandbox**: Configure session storage, install your toolchain in a container, wire file and shell tools.
+3. **Implement the agent**: Write the system prompt, connect tools, define the Plan → Generate → Validate loop.
+4. **Add evaluations**: Set up trajectory checks (100%, zero cost) and LLM-judged quality (sampled).
+5. **Deploy and monitor**: Push to AgentCore Runtime. Monitor tool usage and goal success via CloudWatch.
+
+---
+
+## Related Pages
+
+- <Link to="/docs/workloads/coding/quickstart">Quick Start →</Link>
+- <Link to="/docs/workloads/coding/execution-model">Execution Model →</Link>
+- <Link to="/docs/workloads/coding/evaluations">Evaluations →</Link>
+- [Multi-Agent Coding Workshop (full sample) →](https://github.com/aws-samples/sample-amazon-bedrock-agentcore-coding-agents)

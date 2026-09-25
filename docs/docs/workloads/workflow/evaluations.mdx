@@ -1,0 +1,125 @@
+---
+title: Evaluations
+sidebar_label: Evaluations
+sidebar_position: 7
+last_verified: 2026-07-22
+---
+
+import Link from '@docusaurus/Link';
+
+# Evaluations for Workflow Agents
+
+:::tip Who this is for
+Builders who have a deployed workflow agent and want to measure quality continuously in production. If you're still in the build phase, finish the [quickstart](/docs/workloads/workflow/quickstart) first.
+:::
+
+Workflow agents make real decisions with real consequences. You need to know, continuously and not just at launch, whether those decisions are correct. Conversational agents have users who immediately notice bad answers. Workflow agents operate in the background, so bad decisions can compound silently for days before anyone notices.
+
+---
+
+## Built-in Evaluators
+
+AgentCore provides [built-in evaluators](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) that score agent behavior against your session telemetry. Trajectory evaluators use **programmatic scoring (no LLM calls, zero token cost)**, while `Builtin.GoalSuccessRate` and `Builtin.Correctness` use LLM-as-a-Judge. For the [offline vs. online evaluation model](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/how-it-works-evaluations.html), see the AgentCore developer guide.
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Evaluator                                 | Level   | Ground Truth Field   | What It Measures                                                       |
+|-------------------------------------------|---------|----------------------|------------------------------------------------------------------------|
+| [`Builtin.GoalSuccessRate`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html)           | Session | `assertions`         | Behavior satisfies natural-language assertions (LLM-as-Judge)          |
+| [`Builtin.Correctness`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html)               | Trace   | `expectedResponse`   | Response matches the expected answer (LLM-as-Judge)                    |
+| [`Builtin.TrajectoryExactOrderMatch`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) | Session | `expectedTrajectory` | Exact tool sequence: same tools, same order, no extras (programmatic) |
+| [`Builtin.TrajectoryInOrderMatch`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html)    | Session | `expectedTrajectory` | Expected tools appear in order; extras allowed between (programmatic)  |
+| [`Builtin.TrajectoryAnyOrderMatch`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html)   | Session | `expectedTrajectory` | All expected tools present, any order, extras allowed (programmatic)   |
+| Custom (LLM-as-judge)                     | —       | placeholders         | Your domain-specific criteria (e.g., "followed escalation policy")     |
+
+</div>
+
+---
+
+## Ground Truth Evaluations
+
+Ground truth is the known-correct answer or expected behavior for a given input. It is the "gold standard" you compare actual results against. You provide reference inputs alongside session spans when calling the Evaluate API, and the service scores actual behavior against expected behavior.
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Field                | Scope   | Description                                                        |
+|----------------------|---------|--------------------------------------------------------------------|
+| `expectedResponse`   | Trace   | Expected agent response for a specific turn (scoped by `traceId`)  |
+| `assertions`         | Session | Natural-language statements that should be true about the behavior |
+| `expectedTrajectory` | Session | Expected sequence of tool-call names for the session               |
+
+</div>
+
+Ground truth fields are optional. If you omit them, evaluators fall back to their ground-truth-free mode. For workflow agents, build a benchmark dataset of past events with known-correct outcomes to catch regressions before they reach production.
+
+:::info Prerequisites
+Evaluations require an agent deployed on AgentCore Runtime with observability enabled (or a supported framework like Strands Agents or LangGraph configured for AgentCore [Observability](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html)), **Transaction Search enabled in CloudWatch**, and Python 3.10+.
+:::
+
+---
+
+## Running an Evaluation
+
+Use the AgentCore CLI to evaluate a session against ground truth. Run this from inside an AgentCore project directory (created with `agentcore create`); use the `--agent-arn` flag instead of `--runtime` to run it from outside a project directory. See the [on-demand evaluation getting started guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-on-demand.html) for full setup instructions.
+
+```bash
+agentcore run eval \
+  --runtime YOUR_RUNTIME_NAME \
+  --session-id YOUR_SESSION_ID \
+  --evaluator "Builtin.GoalSuccessRate" \
+  --evaluator "Builtin.TrajectoryExactOrderMatch"
+```
+
+Results are saved locally and can be reviewed later with `agentcore evals history`.
+
+For programmatic use, the AgentCore SDK offers the same capability:
+
+```python
+from bedrock_agentcore_starter_toolkit import Evaluation
+
+eval_client = Evaluation()
+results = eval_client.run(
+    agent_id="YOUR_AGENT_ID",
+    session_id="YOUR_SESSION_ID",
+    evaluators=["Builtin.GoalSuccessRate", "Builtin.TrajectoryExactOrderMatch"]
+)
+
+for r in results:
+    print(f"{r['evaluatorId']}: {r['value']} ({r['label']})")
+```
+
+:::info Verified CLI version
+`agentcore run eval` was checked with AgentCore CLI `0.26.0`. Run `agentcore run --help` when using a different CLI version.
+:::
+
+:::tip Cost-efficient quality gates
+Trajectory evaluators are programmatic (zero token cost), so you can run them on 100% of invocations cheaply. Reserve the LLM-judged evaluators (`Builtin.GoalSuccessRate`, `Builtin.Correctness`) for sampled traffic or high-priority events.
+:::
+
+---
+
+## Observability & Online Evaluation
+
+<div className="tile-grid">
+  <div className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--observability" aria-hidden="true" /><h3>Observability & Online Evaluation</h3></div>
+    <p>Full OpenTelemetry tracing for every agent invocation, from trigger event to final action. Track tool selection accuracy, goal success rate, and correctness continuously in production with <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html">online evaluations</a>. Know <em>why</em> the agent made each decision via per-invocation traces in CloudWatch.</p>
+    <span className="service-tag tag--observability">Observability</span>
+  </div>
+</div>
+
+---
+
+## Further Reading
+
+- [AgentCore evaluators reference](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html)
+- [How evaluations work (offline vs. online)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/how-it-works-evaluations.html)
+- [On-demand evaluation getting started](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-on-demand.html)
+- [AGENTOPS06 — Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentops06.html)
+
+---
+
+## Related Pages
+
+- <Link to="/docs/workloads/workflow/bounded-autonomy">Bounded Autonomy →</Link>
+- <Link to="/docs/workloads/workflow/patterns-and-architecture">Patterns & Architecture →</Link>

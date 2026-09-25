@@ -1,0 +1,78 @@
+---
+title: AgentCore Central
+sidebar_label: Home
+sidebar_position: 1
+last_verified: 2026-07-24
+---
+
+import Link from '@docusaurus/Link';
+import useBaseUrl from '@docusaurus/useBaseUrl';
+import ThemedImage from '@theme/ThemedImage';
+
+# AgentCore Central
+
+Learn, build, and operate agents with Amazon Bedrock AgentCore. Reference architectures, multi-agent patterns, and workload playbooks - in one place.
+
+---
+
+## Explore and scale your agents
+
+<div className="tile-grid">
+  <Link to="/docs/workloads/conversational/overview" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--chat" aria-hidden="true" /><h3>Conversational agents</h3></div>
+    <p>Chat agents that interact with your environment. They know your user's identity, have context about previous interactions, and are safeguarded to stay on topic.</p>
+  </Link>
+
+  <Link to="/docs/workloads/workflow/overview" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--runtime" aria-hidden="true" /><h3>Automation agents</h3></div>
+    <p>Async agents triggered by tickets, emails, webhooks, and system events. Automate workflows with policy gates and human-in-the-loop escalation.</p>
+  </Link>
+
+  <Link to="/docs/workloads/coding/overview" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--terminal" aria-hidden="true" /><h3>Coding agents</h3></div>
+    <p>IDE and CI-driven agents for code generation, refactor, and review. Long-running tasks in a sandboxed secure environment.</p>
+  </Link>
+
+  <Link to="/docs/patterns/overview" className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--patterns" aria-hidden="true" /><h3>Agent platform</h3></div>
+    <p>Run thousands of agents in production with unified governance and security. Scale your deployments with agent platforms built on AgentCore.</p>
+  </Link>
+</div>
+
+---
+
+## AgentCore resources
+
+<div className="stack-grid">
+
+  <a href="https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/" className="tile-card" target="_blank" rel="noopener">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--package" aria-hidden="true" /><h3>Developer Guide</h3></div>
+    <p>Official Amazon Bedrock AgentCore documentation covering every service, API, and configuration option.</p>
+  </a>
+
+  <a href="https://github.com/awslabs/agentcore-samples" className="tile-card" target="_blank" rel="noopener">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--cube" aria-hidden="true" /><h3>AgentCore Samples</h3></div>
+    <p>Public end-to-end examples and reference implementations maintained on GitHub.</p>
+  </a>
+
+  <a href="/docs/customer/overview" className="tile-card" rel="noopener">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--blueprint" aria-hidden="true" /><h3>Reference architectures</h3></div>
+    <p>Walkthroughs of complete agent architectures with annotated diagrams, component responsibilities, and customer examples.</p>
+  </a>
+
+  <a href="https://strandsagents.com" className="tile-card" target="_blank" rel="noopener">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--cube" aria-hidden="true" /><h3>Strands SDK</h3></div>
+    <p>AWS's open-source agent SDK with first-class AgentCore integration. Implements the patterns documented here with support for tools, memory, and A2A.</p>
+  </a>
+
+</div>
+
+---
+
+## Further reading
+
+Cross-cutting guides that apply to all agent workloads and patterns on this site:
+
+- [AWS Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) — Best practices for designing, deploying, and operating agentic AI systems reliably, securely, and cost-effectively at scale.
+- [Security for agentic AI on AWS](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-security/introduction.html) — Practical security recommendations covering input validation, guardrails, infrastructure security, and data governance for agent systems.
+- [Agentic AI patterns](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/multi-agent-collaboration.html) — Multi-agent collaboration patterns, workflow orchestration, and architecture comparisons from AWS Prescriptive Guidance.

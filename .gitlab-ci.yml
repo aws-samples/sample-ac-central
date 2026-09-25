@@ -1,0 +1,48 @@
+image: public.ecr.aws/docker/library/node:24-alpine
+
+stages:
+  - validate
+  - deploy
+
+# ── Validation job (MRs + default branch) ─────────────────────────────────────
+validate-docs:
+  stage: validate
+  script:
+    - cd docs
+    - npm ci
+    - npm run validate
+    - npm run build
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# ── Scheduled freshness report ─────────────────────────────────────────────────
+freshness-report:
+  stage: validate
+  script:
+    - cd docs
+    - npm ci
+    - node scripts/validate-content.mjs --strict-freshness
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+
+# ── Pages deployment (default branch only) ────────────────────────────────────
+pages:
+  stage: deploy
+  variables:
+    SITE_URL: https://${CI_PROJECT_ROOT_NAMESPACE}.pages.aws.dev
+    SITE_BASE_URL: /${CI_PROJECT_NAME}/
+    ISSUE_URL: https://gitlab.aws.dev/agentcore-gtm/agentcore-central/-/issues/new
+  script:
+    - cd docs
+    - npm ci
+    - npm run build
+    - mv build ../public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  environment:
+    name: production
+    url: https://$CI_PROJECT_ROOT_NAMESPACE.pages.aws.dev/$CI_PROJECT_NAME

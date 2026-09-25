@@ -1,0 +1,135 @@
+---
+title: Platform Stack
+sidebar_label: Platform Stack
+sidebar_position: 2
+last_verified: 2026-07-22
+---
+
+import Link from '@docusaurus/Link';
+
+# Agent Platform Stack
+
+:::tip Who this is for
+Architects evaluating how the AgentCore platform layers compose to support different agent workloads — the horizontal layers, vertical pillars, and team consumption models.
+:::
+
+The agent platform stack is a layered architecture that provides shared capabilities to domain teams. Each layer handles a specific concern, while cross-cutting pillars ensure security, governance, and operational excellence across all layers.
+
+---
+
+## Core Platform Layers
+
+The horizontal layers form the runtime backbone of the platform, spanning everything from request ingestion to operational feedback loops.
+
+<div className="stack-grid">
+  <div className="stack-item">
+    <h4>AI Gateway</h4>
+    <p>Unified entry point for all agent interactions. Handles routing, auth, rate limiting, and protocol translation.</p>
+  </div>
+  <div className="stack-item">
+    <h4>Registry & Discovery</h4>
+    <p>Central catalog of all agents, their capabilities, versions, and ownership. Enables discovery and prevents duplication.</p>
+  </div>
+  <div className="stack-item">
+    <h4>Agent Runtime</h4>
+    <p>Sandboxed execution environment for agents. Isolation, scaling, long-running task support, and resource management. Runtime Instances extend this to AWS-managed EC2 for long-running, GPU-backed, or persistent-disk workloads.</p>
+  </div>
+  <div className="stack-item">
+    <h4>Memory & Context</h4>
+    <p>Short-term and long-term memory, vector stores, knowledge bases, and session context management.</p>
+  </div>
+  <div className="stack-item">
+    <h4>Observability</h4>
+    <p>Distributed tracing, metrics, logs, and audit trails across all agent executions and tool invocations.</p>
+  </div>
+  <div className="stack-item">
+    <h4>AgentOps</h4>
+    <p>CI/CD, evaluations, A/B testing, rollback, and continuous quality assurance for the agent fleet.</p>
+  </div>
+</div>
+
+---
+
+## Security Pillar
+
+Security is not a layer - it's a vertical pillar that intersects every platform component.
+
+<div className="fancy-table">
+
+| Capability                  | Description                                                                  |
+| --------------------------- | ---------------------------------------------------------------------------- |
+| **Agent Identity**          | Each agent has a unique, verifiable identity for AuthN/AuthZ                 |
+| **Access Control Policies** | Fine-grained, declarative policies governing what agents can access          |
+| **Tool Permissions**        | Scoped permissions for each tool an agent can invoke                         |
+| **Guardrails**              | Input/output filtering, PII redaction, topic denial, hallucination detection |
+| **Data Protection**         | Encryption at rest and in transit, data classification, retention policies   |
+| **Shadow AI Detection**     | Identify and flag unregistered agents operating outside the platform         |
+
+</div>
+
+---
+
+## Governance Pillar
+
+Governance ensures agents operate within organizational policies throughout their lifecycle.
+
+<div className="fancy-table">
+
+| Capability               | Description                                                                        |
+| ------------------------ | ---------------------------------------------------------------------------------- |
+| **Lifecycle Management** | Creation → approval → deployment → deprecation → retirement                        |
+| **Policy-as-Code**       | Declarative policies versioned and enforced automatically                          |
+| **Compliance**           | Automated checks against regulatory frameworks (EU AI Act, NIST, ISO 42001)        |
+| **Audit Logs**           | Immutable record of all agent actions, policy decisions, and configuration changes |
+| **Shadow AI Prevention** | Governance workflows that make the "right path" the "easy path"                    |
+
+</div>
+
+---
+
+## Platform Ops
+
+Platform operations ensure the platform itself runs reliably and scales with organizational growth.
+
+<div className="fancy-table">
+
+| Capability                      | Description                                                   |
+| ------------------------------- | ------------------------------------------------------------- |
+| **Platform CI/CD**              | Infrastructure-as-code pipelines for platform components      |
+| **Tenant Onboarding**           | Self-service workflows for new teams to start building agents |
+| **Quotas & Limits**             | Per-team resource quotas, token budgets, and rate limits      |
+| **Multi-Account Management**    | AWS Organizations, SCPs, and account vending for isolation    |
+| **IaC Constructs**              | Reusable CDK/CloudFormation constructs for common patterns    |
+| **Cost Tracking & Attribution** | Per-agent, per-team, per-use-case cost visibility             |
+
+</div>
+
+---
+
+## How Domain Teams Consume the Platform
+
+The platform serves teams with different needs and maturity levels. Three common consumption models:
+
+<div className="tile-grid">
+  <div className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--package" aria-hidden="true" /><h3>Team 1 - Consume</h3></div>
+    <p>Uses pre-built agent templates and platform services. Configures agents through the registry, deploys via self-service pipelines. Minimal custom code.</p>
+    <span className="service-tag tag--runtime">Low Effort</span>
+  </div>
+
+  <div className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--wrench" aria-hidden="true" /><h3>Team 2 - Build on Platform</h3></div>
+    <p>Brings their own agent code and orchestration logic. Uses platform services for runtime, memory, observability, and governance. Custom agents, shared infrastructure.</p>
+    <span className="service-tag tag--identity">Medium Effort</span>
+  </div>
+
+  <div className="tile-card">
+    <div className="tile-heading"><span className="tile-icon tile-icon-svg tile-icon--scaffold" aria-hidden="true" /><h3>Team 3 - Build Independently</h3></div>
+    <p>Builds with their own framework and infrastructure but registers agents in the platform for discovery, governance, and observability. Federation model.</p>
+    <span className="service-tag tag--observability">Higher Effort</span>
+  </div>
+</div>
+
+:::tip
+The best platforms make **Team 1** the default path and **Team 3** the exception. The easier it is to consume the platform, the less Shadow AI you'll encounter.
+:::

@@ -1,0 +1,117 @@
+---
+title: Patterns & Architecture
+sidebar_label: Patterns & Architecture
+sidebar_position: 5
+last_verified: 2026-07-24
+---
+
+import Link from '@docusaurus/Link';
+
+# Patterns & Architecture for Conversational Agents
+
+:::tip Who this is for
+Developers choosing a multi-agent topology for a chat workload, or looking for a production reference architecture. If you haven't built a prototype yet, start with the [Quick Start](/docs/workloads/conversational/quickstart) first.
+:::
+
+Reference architecture and recommended multi-agent patterns for chat workloads on AgentCore.
+
+---
+
+## Reference Architecture
+
+A production-ready conversational agent architecture on AgentCore.
+
+![Conversational agent reference architecture: end users on web, mobile, or Slack authenticate through an OAuth 2.0 identity provider, reach the agent via API Gateway or WebSocket, and the agent exchanges context with AgentCore memory, routes tool calls through an MCP gateway, and emits traces to observability](/img/conv-agent-ref-arch.png)
+
+Requests enter through an identity-verified API Gateway or WebSocket connection and reach the AgentCore runtime. The agent exchanges conversation history with the [memory layer](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory.html), calls external tools through the [MCP gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html), and all interactions pass through [guardrails](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-guardrails-in-policies.html) and are traced in [observability](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html).
+
+<div className="arch-flow">
+  <span className="arch-flow-step">End User (Web/Mobile/Slack)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Identity Provider (OAuth 2.0)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">API Gateway / WebSocket</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">AgentCore runtime</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">Agent</span>
+</div>
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Agent</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">memory</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">gateway (MCP)</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">Guardrails</span>
+  <span className="arch-flow-arrow">↔</span>
+  <span className="arch-flow-step">Observability</span>
+</div>
+
+---
+
+## Recommended Patterns
+
+AgentCore supports [a range of multi-agent patterns](/docs/patterns/overview), most implemented with [Strands multi-agent primitives](https://strandsagents.com/docs/user-guide/sdk/multi-agent/multi-agent-patterns/). The ones below are the most common starting points for chat workloads.
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Pattern                   | When to Use                                               | Example                                                                                                                                                               |
+|---------------------------|-----------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Single Agent + Tools**  | Single domain, fewer than 10 tools, straightforward flows | [BGL - NL-to-SQL](https://aws.amazon.com/blogs/machine-learning/democratizing-business-intelligence-bgls-journey-with-claude-agent-sdk-and-amazon-bedrock-agentcore/) |
+| **Agentic RAG + Tools**   | Knowledge-grounded Q&A with action capability             | [BGL - NL-to-SQL](https://aws.amazon.com/blogs/machine-learning/democratizing-business-intelligence-bgls-journey-with-claude-agent-sdk-and-amazon-bedrock-agentcore/) |
+| **Agents-as-Tools**       | Multi-domain support, complex routing                     | [Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/)         |
+| **Graph (Intent Router)** | Structured flows with conditional branching               | [Iberdrola](https://aws.amazon.com/blogs/machine-learning/iberdrola-enhances-it-operations-using-amazon-bedrock-agentcore/)                                           |
+| **[Human-in-the-Loop](/docs/patterns/human-in-the-loop)**     | Regulated industries, high-stakes decisions               | [Thomson Reuters](https://aws.amazon.com/blogs/machine-learning/how-thomson-reuters-built-an-agentic-platform-engineering-hub-with-amazon-bedrock-agentcore/)         |
+
+</div>
+
+:::info
+All AgentCore patterns work for conversational agents. For the full catalog including Swarm, Workflow, and A2A, see the [Architectural Patterns Reference](/docs/patterns/overview).
+:::
+
+---
+
+## Pattern Selection Guide
+
+**Start with `Single Agent + Tools`** when:
+- Your domain is focused (one department, one system)
+- You have fewer than 10 tools
+- Conversations follow relatively predictable flows
+
+**Move to `Agents-as-Tools`** when:
+- You need multi-domain coverage (HR + IT + Finance from one chat)
+- Different domains require different tool sets and system prompts
+- You want to add domains without modifying the orchestrator
+
+**Use `Graph / Intent Router`** when:
+- Conversations have clear decision points with distinct branches
+- You need guaranteed flow control (not just LLM-decided routing)
+- Compliance requires auditable decision paths
+
+**Add `Human-in-the-Loop`** when:
+- Actions have real-world consequences (refunds, account changes, escalations)
+- Regulatory requirements mandate human approval
+- Confidence scoring indicates the agent is unsure
+
+---
+
+## Next Steps
+
+<div className="tile-grid">
+  <Link to="/docs/patterns/overview" className="tile-card">
+    <div className="tile-heading"><h3>Architectural Patterns Reference →</h3></div>
+    <p>The full pattern catalog including Swarm, Workflow, and A2A.</p>
+  </Link>
+
+  <Link to="/docs/workloads/conversational/challenges" className="tile-card">
+    <div className="tile-heading"><h3>Production Challenges →</h3></div>
+    <p>The eight failure modes these patterns must survive in production.</p>
+  </Link>
+
+  <Link to="/docs/operate/production-readiness" className="tile-card">
+    <div className="tile-heading"><h3>Production Readiness →</h3></div>
+    <p>The full checklist before serving real traffic.</p>
+  </Link>
+</div>

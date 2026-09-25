@@ -1,0 +1,283 @@
+---
+title: Production Readiness
+sidebar_label: Production Readiness
+sidebar_position: 1
+last_verified: 2026-07-22
+---
+
+import Link from '@docusaurus/Link';
+
+# Production Readiness
+
+:::tip Who this is for
+This page is for teams with a working prototype preparing to serve real users. If you are still building your first agent, start with the [quickstart guides](/docs/get-started/quickstart) first and return here when you are ready to move to production.
+:::
+
+Shipping an agent to production is not a single event. It is a progression through maturity stages, each adding controls that match the risk level at that stage. This page gives you a structured checklist for that progression and three worked examples showing how to apply it.
+
+---
+
+## The Maturity Path
+
+Agents move through four stages from first prototype to scaled production. The controls required at each stage accumulate: what is required in pilot remains required at scale.
+
+<div className="fancy-table">
+
+| Stage | Description | What changes |
+|---|---|---|
+| **Prototype** | Local development, synthetic data, one engineer | No production data, no live tools, no real users |
+| **Pilot** | Real users, real data, small controlled audience | Logging active, basic IAM scoped, owner named, rollback plan exists |
+| **Controlled Production** | Broader audience, real business impact | All checklist items complete, policy enforcement on, evaluations running |
+| **Scale** | High traffic, multi-tenant, latency and cost SLAs | Budget alarms tuned, load tested, incident runbook exercised, deprecation policy defined |
+
+</div>
+
+---
+
+## Production-Readiness Checklist
+
+Work through this checklist before advancing from pilot to controlled production. Every item has a rationale; skipping one knowingly is a risk decision that should be documented.
+
+### Ownership and Classification
+
+<div className="fancy-table">
+
+| Item | Guidance |
+|---|---|
+| Named business owner | A person, not a team alias, who can make scope and risk decisions for the agent |
+| Named technical owner (on-call) | Who responds when the agent misbehaves at 2am |
+| Data classification documented | What data the agent can see, process, and write; what it must never touch |
+| Data retention policy | How long session context, memory, logs, and traces are kept; which regulations apply. See [data encryption and storage guidance](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/data-encryption.html) |
+
+</div>
+
+### IAM and Access Control
+
+<div className="fancy-table">
+
+| Item | Guidance |
+|---|---|
+| Least-privilege IAM role | The agent's execution role grants only what it needs; no `*` actions or resources. Follow [IAM least-privilege best practices](https://docs.aws.amazon.com/IAM/latest/UserGuide/best-practices.html#grant-least-privilege) |
+| Tool permissions scoped to intent | Each tool the agent can call has an IAM policy that matches that tool's actual requirements |
+| No credentials in code or prompts | Secrets managed via AWS Secrets Manager or Parameter Store; agent retrieves them at runtime |
+| IAM role reviewed by a second engineer | Self-review catches logical errors; a second reviewer catches scope creep |
+
+</div>
+
+### Identity and Tenant Boundaries
+
+<div className="fancy-table">
+
+| Item | Guidance |
+|---|---|
+| Agent has a workload identity | Issued via [AgentCore Identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html), not a shared service account |
+| User identity propagated through hops | Every downstream tool call and sub-agent call carries the acting user's scoped token |
+| Tenant namespaces enforced | Memory, session context, and tool access are scoped per tenant; no cross-tenant reads |
+| Multi-tenant isolation tested | Verified with test cases that attempt cross-tenant access and confirm they are denied |
+
+</div>
+
+### Content Safety and Abuse Controls
+
+<div className="fancy-table">
+
+| Item | Guidance |
+|---|---|
+| Prompt injection mitigations documented | System prompt hardening, input sanitization, and/or [Bedrock Guardrails](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) applied |
+| Tool-abuse controls in place | Policy Engine (Cedar) restricts which tools the agent can call and under what conditions. See [policy authorization flow](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) |
+| Guardrails configured | [Bedrock Guardrails](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) applied for content filtering, PII detection, and topic denial where appropriate |
+| Jailbreak and adversarial inputs tested | Red-team or automated adversarial evaluation run before pilot; not just happy-path testing |
+
+</div>
+
+### Policy Enforcement
+
+<div className="fancy-table">
+
+| Item | Guidance |
+|---|---|
+| Cedar policies authored and reviewed | Policies define what the agent is allowed to do; reviewed by a second engineer. See [Cedar policy authorization](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html) |
+| Policy enforcement mode set to ENFORCE | Not left in LOG_ONLY for production; or a documented exception exists explaining why. See [policy enforcement modes](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-enforcement-modes.html) |
+| Human approval gates for high-impact actions | Actions that are irreversible or high-blast-radius require a human-in-the-loop confirmation step |
+| Exception handling for policy denials | Agent handles denied actions gracefully; does not leak policy details in error messages |
+
+</div>
+
+### Observability and Auditability
+
+<div className="fancy-table">
+
+| Item | Guidance |
+|---|---|
+| Structured logging enabled | Every agent invocation produces a log record with session ID, user/tenant identifier, tools called, and outcome. See [observability configuration](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html) |
+| Distributed tracing enabled | AgentCore Observability traces are active; trace IDs correlate logs across hops |
+| Audit log retention configured | Audit logs retained for the required duration (check your compliance regime) |
+| Alerts for anomalous behavior | Alarms set for error rate spikes, latency outliers, and unexpected tool call patterns |
+
+</div>
+
+### Evaluations
+
+<div className="fancy-table">
+
+| Item | Guidance |
+|---|---|
+| Offline evaluation baseline established | A ground-truth dataset exists; baseline scores for correctness, safety, and tool-call accuracy are recorded. See the [AgentCore Evaluators catalog](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html) |
+| Online evaluation sampling configured | A fraction of live traffic is evaluated continuously in production |
+| Evaluation gates combined with deterministic checks | CI/CD pipeline requires evaluation scores alongside deterministic tests (unit tests, schema validation, tool-call correctness checks) to meet thresholds before promoting to production |
+| Evaluation results feed rollback decisions, with a human checkpoint for automated triggers | A score drop below threshold triggers an alert; pair automated rollback triggers with a review step, especially early in an agent's production life |
+
+</div>
+
+### Incident Response
+
+<div className="fancy-table">
+
+| Item | Guidance |
+|---|---|
+| Incident runbook written | Step-by-step response for: agent producing harmful output, policy bypass, cost spike, data incident. See [runtime security best practices](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-security-best-practices.html) |
+| Rollback procedure tested | A rollback has been executed in a non-production environment at least once |
+| On-call rotation includes agent owners | The technical owner is reachable; escalation path defined |
+| Post-incident review process defined | How lessons from agent incidents are captured and fed back into policy and evaluation updates |
+
+</div>
+
+### Cost
+
+<div className="fancy-table">
+
+| Item | Guidance |
+|---|---|
+| Per-agent cost attribution configured | Application inference profile tagged and linked to a cost center |
+| Budget alarm set | AWS Budgets alarm fires before the monthly limit is exceeded, not after |
+| Token and tool call cost estimated | Back-of-envelope estimate of cost per invocation at expected volume |
+| Runaway spend circuit breaker defined | What happens if costs spike 3x over baseline: alert, throttle, or disable |
+
+</div>
+
+### Rollback and Deprecation
+
+<div className="fancy-table">
+
+| Item | Guidance |
+|---|---|
+| Previous version pinned and accessible | The last known-good version (prompt, tools, model, config) can be restored quickly. See [runtime versioning](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) |
+| Rollback triggers defined | Specific conditions that automatically or manually initiate a rollback |
+| Deprecation plan written | If the agent will eventually be retired, the migration path for users is documented |
+
+</div>
+
+---
+
+## Three Worked Examples
+
+The full checklist applies to all agents in controlled production. The examples below highlight which items carry the most weight for different agent risk profiles.
+
+### Read-Only Research Agent
+
+An agent that reads internal knowledge bases and summarizes documents. It cannot write data, call external APIs, or take irreversible actions.
+
+<div className="fancy-table">
+
+| Priority | Checklist items that matter most |
+|---|---|
+| Critical | Named owner, data classification (what data it can see), least-privilege read-only IAM, logging |
+| Important | Prompt injection mitigations (it sees sensitive documents), offline evaluations for accuracy |
+| Lower weight | Human approval gates (no writes), tenant isolation (if single-tenant), cost budgets (low token volume expected) |
+
+</div>
+
+The primary risk for a read-only agent is data exposure, not action abuse. Focus on IAM scoping, memory namespace isolation, and prompt injection controls.
+
+### Low-Risk Write Agent
+
+An agent that creates draft tickets, sends internal Slack notifications, or writes records to a staging system. Writes are low-blast-radius and reversible.
+
+<div className="fancy-table">
+
+| Priority | Checklist items that matter most |
+|---|---|
+| Critical | Least-privilege IAM with write scoped to specific resources, Cedar policies constraining tool calls, audit logging |
+| Important | Rollback procedure tested, evaluation gates, tenant boundaries enforced |
+| Lower weight | Human approval gates for every action (overhead exceeds risk), extensive adversarial testing before first pilot |
+
+</div>
+
+The primary risk is unintended writes accumulating over time. Cedar policies that restrict the agent to specific write targets and audit logs that capture every write are the two highest-leverage controls.
+
+### High-Impact Agent
+
+An agent that executes financial transactions, modifies production infrastructure, or sends external customer-facing communications.
+
+<div className="fancy-table">
+
+| Priority | Checklist items that matter most |
+|---|---|
+| Critical | Every item on the checklist; no exceptions |
+| Especially | Human approval gates for irreversible actions, adversarial testing before pilot, policy enforcement verified in ENFORCE mode, incident runbook exercised |
+| Additional | Legal or compliance review of agent scope before production; separate cost budget with low ceiling initially |
+
+</div>
+
+High-impact agents warrant the full checklist and then some. Consider a staged rollout that starts with a small percentage of traffic under close monitoring before full production deployment.
+
+---
+
+## Guardrails, Policy, and Evaluations: Different Tools for Different Problems
+
+It is tempting to pick one of these three and treat it as the safety solution. Each solves a distinct problem, and they need to be combined intentionally.
+
+**[Bedrock Guardrails](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html)** operate at the model input/output layer. They answer: "Is this content safe to send to or receive from the model?" They catch harmful topics, PII, and off-policy content. They do not know anything about authorization: a guardrail cannot tell you whether a specific user is allowed to call a specific tool.
+
+**[AgentCore Policy (Cedar)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-authorization-flow.html)** operates at the Gateway layer. It answers: "Is this principal authorized to perform this action on this resource?" It is deterministic: the same principal, action, and resource always produce the same allow or deny. It does not evaluate content quality or catch subtle harmful phrasing.
+
+**[Evaluations](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html)** measure quality over time. They answer: "Is the agent actually doing the right thing, correctly, and safely, across the range of real inputs it sees?" They are the only mechanism that catches quality regressions, behavioral drift, and emergent failure modes that rule-based controls cannot anticipate.
+
+The relationship is:
+
+<div className="arch-flow">
+  <span className="arch-flow-step">Guardrails: safe content</span>
+  <span className="arch-flow-arrow">+</span>
+  <span className="arch-flow-step">Policy: authorized actions</span>
+  <span className="arch-flow-arrow">+</span>
+  <span className="arch-flow-step">Evaluations: correct behavior</span>
+  <span className="arch-flow-arrow">=</span>
+  <span className="arch-flow-step">Production-safe agent</span>
+</div>
+
+An agent with only guardrails can be manipulated into unauthorized actions. An agent with only policies can produce correct-seeming but actually wrong outputs. An agent with only evaluations can pass metrics while still taking harmful actions in edge cases. Combine all three.
+
+---
+
+## Further Reading
+
+- [Agentic AI Lens — AWS Well-Architected Framework](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html)
+- [AgentCore Runtime Security Best Practices](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-security-best-practices.html)
+- [AgentCore Evaluators Catalog](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluators.html)
+- [AgentCore Identity Overview](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html)
+
+---
+
+## Related Pages
+
+<div className="tile-grid">
+  <Link to="/docs/operate/security-and-identity" className="tile-card">
+    <div className="tile-heading"><h3>Security and Identity →</h3></div>
+    <p>IAM least privilege, AgentCore Identity, tenant isolation, prompt injection, and audit logging.</p>
+  </Link>
+
+  <Link to="/docs/operate/evaluations" className="tile-card">
+    <div className="tile-heading"><h3>Evaluations →</h3></div>
+    <p>Offline and online evaluations, evaluation-gated releases, and rollback triggers.</p>
+  </Link>
+
+  <Link to="/docs/operate/cost-and-reliability" className="tile-card">
+    <div className="tile-heading"><h3>Cost and Reliability →</h3></div>
+    <p>Cost drivers, budget alerts, tagging, and reliability patterns.</p>
+  </Link>
+
+  <Link to="/docs/operate/releases-and-rollback" className="tile-card">
+    <div className="tile-heading"><h3>Releases and Rollback →</h3></div>
+    <p>Versioning, staged rollout, rollback triggers, and deprecation.</p>
+  </Link>
+</div>

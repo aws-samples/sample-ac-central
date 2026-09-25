@@ -1,0 +1,13 @@
+{
+  "name": "FirstAgent",
+  "model": {
+    "provider": "bedrock",
+    "modelId": "global.anthropic.claude-sonnet-4-6"
+  },
+  "systemPrompt": "You are a helpful assistant that answers questions about cloud computing. Be concise and accurate. If you don't know something, say so.",
+  "tools": [],
+  "skills": [],
+  "memory": {
+    "mode": "disabled"
+  }
+}

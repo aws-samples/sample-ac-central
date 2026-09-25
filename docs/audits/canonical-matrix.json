@@ -1,0 +1,297 @@
+[
+  {
+    "page": "workloads/conversational/overview.mdx",
+    "disposition": "sample-link-out",
+    "defaultTarget": {
+      "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents",
+      "expectedDomain": "github.com",
+      "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Conversational agent samples",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-22T00:21:47.000Z"
+    },
+    "alternatives": [],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "workload fit",
+      "architecture/trade-offs",
+      "related Central links"
+    ],
+    "samplePath": {
+      "expectedRepoPath": "02-use-cases/01-conversational-agents",
+      "pathExistenceVerified": true
+    },
+    "retainedCodeBlocks": []
+  },
+  {
+    "page": "workloads/conversational/quickstart.mdx",
+    "disposition": "sample-link-out",
+    "defaultTarget": {
+      "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents",
+      "expectedDomain": "github.com",
+      "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Conversational agent samples",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-22T00:21:47.000Z"
+    },
+    "alternatives": [
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/customer-support-assistant-vpc",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/customer-support-assistant-vpc",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Customer support assistant (VPC) conversational sample",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-22T00:21:47.000Z"
+        },
+        "condition": "Reader needs authenticated customer support interaction patterns"
+      },
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/A2A-multi-agent-incident-response",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/A2A-multi-agent-incident-response",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "A2A multi-agent incident response sample",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-22T00:21:47.000Z"
+        },
+        "condition": "Reader needs operational collaboration via SRE/A2A incident response"
+      },
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/market-trends-agent",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/market-trends-agent",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Market trends agent conversational sample",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-22T00:21:47.000Z"
+        },
+        "condition": "Reader needs Browser, Evaluations, or Optimization capabilities"
+      }
+    ],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "workload fit",
+      "safety",
+      "related Central links"
+    ],
+    "samplePath": {
+      "expectedRepoPath": "02-use-cases/01-conversational-agents",
+      "pathExistenceVerified": true
+    },
+    "retainedCodeBlocks": []
+  },
+  {
+    "page": "workloads/conversational/harness-quickstart.mdx",
+    "disposition": "aws-doc-link-out",
+    "defaultTarget": {
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Harness getting started",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-22T00:21:47.000Z"
+    },
+    "alternatives": [
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Conversational agent samples",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-22T00:21:47.000Z"
+        },
+        "condition": "Reader needs an application architecture rather than a managed Harness prototype"
+      }
+    ],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "workload fit",
+      "architecture/trade-offs",
+      "production readiness"
+    ],
+    "retainedCodeBlocks": []
+  },
+  {
+    "page": "workloads/workflow/quickstart.mdx",
+    "disposition": "sample-link-out",
+    "defaultTarget": {
+      "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents",
+      "expectedDomain": "github.com",
+      "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Workflow automation agent samples",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-22T00:21:47.000Z"
+    },
+    "alternatives": [
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/event-driven-claims-agent",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/event-driven-claims-agent",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Event-driven claims agent workflow sample",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-22T00:21:47.000Z"
+        },
+        "condition": "Reader needs asynchronous automation with Policy and Evaluations"
+      },
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/enterprise-web-intelligence-agent",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/enterprise-web-intelligence-agent",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Enterprise web intelligence agent workflow sample",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-22T00:21:47.000Z"
+        },
+        "condition": "Reader needs Browser-led research workflows"
+      },
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/visa-b2b-account-payable-agent",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/visa-b2b-account-payable-agent",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Visa B2B account payable agent workflow sample",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-22T00:21:47.000Z"
+        },
+        "condition": "Reader needs payment workflow automation patterns"
+      }
+    ],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "safety",
+      "architecture/trade-offs",
+      "production readiness"
+    ],
+    "samplePath": {
+      "expectedRepoPath": "02-use-cases/02-workflow-automation-agents",
+      "pathExistenceVerified": true
+    },
+    "retainedCodeBlocks": [
+      {
+        "purpose": "Cedar policy example demonstrating non-destructive default: permit triage agent to create escalation tickets only when severity is HIGH",
+        "centralOnlyRationale": "Illustrates Cedar policy-gate pattern for bounded autonomy — Central-only guidance showing how to restrict tool invocations by context attributes. Not an end-to-end implementation; demonstrates the policy design principle of condition-based gating with non-destructive defaults.",
+        "canonicalItDoesNotReplace": "No canonical sample includes inline Cedar policy authoring guidance; this is Central-unique value for the Bounded Autonomy pattern",
+        "reviewer": "agentcore-central-team"
+      },
+      {
+        "purpose": "Cedar policy example demonstrating notification delivery restricted by severity level",
+        "centralOnlyRationale": "Complements the escalation policy to show layered Cedar authorization — permits notifications at MEDIUM and HIGH while denying at LOW. Central-only guidance demonstrating least-privilege principle applied to workflow agent tool access.",
+        "canonicalItDoesNotReplace": "No canonical sample includes inline Cedar policy authoring guidance; this is Central-unique value for the Bounded Autonomy pattern",
+        "reviewer": "agentcore-central-team"
+      }
+    ]
+  },
+  {
+    "page": "workloads/workflow/harness-quickstart.mdx",
+    "disposition": "aws-doc-link-out",
+    "defaultTarget": {
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html",
+      "expectedDomain": "docs.aws.amazon.com",
+      "finalUrl": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-get-started.html",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Harness getting started",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-22T00:21:47.000Z"
+    },
+    "alternatives": [
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Workflow automation agent samples",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-22T00:21:47.000Z"
+        },
+        "condition": "Reader needs event sources, durable state, or action execution beyond Harness capabilities"
+      }
+    ],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "workload fit",
+      "architecture/trade-offs",
+      "production readiness"
+    ],
+    "retainedCodeBlocks": []
+  },
+  {
+    "page": "workloads/coding/quickstart.mdx",
+    "disposition": "sample-link-out",
+    "defaultTarget": {
+      "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/03-coding-assistants/text-to-python-ide",
+      "expectedDomain": "github.com",
+      "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/03-coding-assistants/text-to-python-ide",
+      "httpResult": 200,
+      "expectedTitleOrTopic": "Text-to-Python IDE coding assistant sample",
+      "owner": "agentcore-central-team",
+      "reviewer": "agentcore-central-team",
+      "verificationTimestamp": "2026-07-22T00:21:47.000Z"
+    },
+    "alternatives": [
+      {
+        "target": {
+          "url": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/03-coding-assistants",
+          "expectedDomain": "github.com",
+          "finalUrl": "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/03-coding-assistants",
+          "httpResult": 200,
+          "expectedTitleOrTopic": "Coding assistants sample catalog",
+          "owner": "agentcore-central-team",
+          "reviewer": "agentcore-central-team",
+          "verificationTimestamp": "2026-07-22T00:21:47.000Z"
+        },
+        "condition": "Reader needs another maintained coding pattern that is a better fit than text-to-python-ide"
+      }
+    ],
+    "procedureAudit": {
+      "noCanonicalProcedureRemains": true
+    },
+    "centralValueCategories": [
+      "safety",
+      "architecture/trade-offs",
+      "production readiness"
+    ],
+    "samplePath": {
+      "expectedRepoPath": "02-use-cases/03-coding-assistants/text-to-python-ide",
+      "pathExistenceVerified": true
+    },
+    "retainedCodeBlocks": []
+  }
+]

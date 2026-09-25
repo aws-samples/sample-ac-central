@@ -1,0 +1,109 @@
+---
+title: "Quick Start: Conversational Agent"
+sidebar_label: Quick Start
+sidebar_position: 2
+last_verified: 2026-07-22
+---
+
+import Link from '@docusaurus/Link';
+import CanonicalRecommendation from '@site/src/components/CanonicalRecommendation';
+
+# Quick Start: Conversational Agent
+
+:::tip Who this is for
+Developers ready to build a code-first conversational agent from a maintained sample. If you'd rather declare the agent as configuration without writing Runtime code, use the [Harness Quick Start](/docs/workloads/conversational/harness-quickstart). Still deciding whether conversational is the right workload? Start with the [Conversational overview](/docs/workloads/conversational/overview).
+:::
+
+Find the right conversational sample for your use case, understand the risks, and get to working code fast.
+
+---
+
+<CanonicalRecommendation
+  defaultSource={{
+    url: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents",
+    title: "Conversational Agent Catalog",
+    description: "Browse maintained conversational agent samples with identity, memory, and streaming built in. Each sample includes deployment instructions, configuration, and test scripts maintained by the AgentCore team."
+  }}
+  selectionCriteria={[
+    "A human is the primary trigger — they type a message and expect a real-time response",
+    "Multi-turn conversation state matters — the agent should remember what was said",
+    "You need identity-scoped memory so each user has their own conversation context",
+    "The agent acts on behalf of a specific user with their permissions (OAuth bearer tokens)",
+    "The primary output is natural language directed at a human, optionally with tool results"
+  ]}
+  fitRationale="The conversational catalog provides ready-to-deploy samples that handle the hardest parts of conversational AI: identity propagation, session memory, streaming responses, and tool orchestration. Start here and customize rather than building from scratch."
+  alternatives={[
+    {
+      condition: "You need an auth-scoped helpdesk with customer identity propagation and support-specific tooling",
+      destination: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/customer-support-assistant-vpc",
+      label: "Customer Support Assistant (VPC)"
+    },
+    {
+      condition: "You need operations collaboration between agents for incident triage and resolution (A2A pattern)",
+      destination: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/A2A-multi-agent-incident-response",
+      label: "SRE/A2A Incident Response"
+    },
+    {
+      condition: "You need Browser use, Evaluations, or Optimization capabilities for research and data gathering",
+      destination: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/01-conversational-agents/market-trends-agent",
+      label: "Market Trends Agent"
+    }
+  ]}
+  actionRisk={{
+    summary: "Read-only by default",
+    details: "The default catalog samples read data and return responses without mutating external state. Tool-calling alternatives (Customer Support, Incident Response, Market Trends) may invoke external APIs, execute lookups against live systems, or perform browser actions — review each sample's README for its specific action scope and any policy guards."
+  }}
+  productionReadinessLink="/docs/operate/production-readiness"
+  nextSteps={[
+    { label: "Production Readiness checklist", url: "/docs/operate/production-readiness" },
+    { label: "Architecture Guidance — Identity, Memory, Gateway deep dive", url: "/docs/workloads/conversational/enterprise-features" },
+    { label: "Session Management and Streaming", url: "/docs/workloads/conversational/session-management" },
+    { label: "Patterns and Architecture", url: "/docs/workloads/conversational/patterns-and-architecture" },
+    { label: "Prefer config over code? Try the Harness Quick Start", url: "/docs/workloads/conversational/harness-quickstart" }
+  ]}
+/>
+
+---
+
+## Identity Management
+
+- Every conversational agent must propagate end-user identity. Use OAuth bearer tokens from your IdP (Entra ID, Okta, Cognito) so the agent acts **as the user**, not as a shared service account. See [Understanding workload identities](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/understanding-agent-identities.html) for how this fits AgentCore's identity model.
+- Memory is namespaced by `actor_id` — never share one actor ID across multiple users, or their conversations will bleed together. See [Per-user memory scoping with actor ID](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/harness-memory.html).
+- Validate caller-supplied identity headers against a verified source (JWT claims from AgentCore Identity or your own auth layer) before production use. The [JWT-based identification pattern](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/get-workload-access-token.html) is recommended for production; the [JWT inbound + OAuth outbound sample](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-oauth.html) shows the full end-to-end flow.
+
+## Session Continuity
+
+- Configure both short-term (in-session) and long-term (cross-session) [memory strategies](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html) so the agent remembers context within a conversation and user preferences across sessions.
+- Use unique session IDs per conversation. Reuse a session ID only when you want to resume the same conversation thread. See [Memory organization](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-organization.html) for how strategy/actor/session namespaces work.
+- Plan context window strategies (summarization, truncation) for long conversations that approach model limits. AgentCore Memory supports [namespace-scoped long-term storage](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/specify-long-term-memory-organization.html) to retain summaries across sessions without exhausting the context window.
+
+## Safe First-Deployment Patterns
+
+- Deploy with scale-to-zero to avoid charges when idle, but remember that Memory records and CloudWatch logs still accrue cost. Review the [Runtime lifecycle settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) for idle timeout defaults and configurable values.
+- Start with the default model and tools; add capabilities incrementally after validating each works correctly.
+- Use [`agentcore dev`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-get-started-cli.html) for local iteration before deploying to AWS — local testing verifies agent logic without incurring cloud costs.
+- Review the [Production Readiness checklist](/docs/operate/production-readiness) before routing real users. Note that [CLI-generated IAM policies are not suitable for production](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-security-best-practices.html) — create scoped custom policies before serving real traffic.
+
+## Resource and Cost Awareness
+
+<div className="fancy-table">
+
+| Cost Driver | What Generates It | How to Manage |
+|---|---|---|
+| Model inference tokens | Every invocation calls the configured LLM; multi-turn conversations multiply token usage | Choose model size for your task; monitor token usage; use summarization strategies to avoid replaying full history |
+| Memory — short-term | $0.25 per 1,000 new events ingested | Set `eventExpiryDuration`; clean up test data |
+| Memory — long-term storage | $0.75 per 1,000 records stored/month (built-in strategies) | Scope retention policies; delete prototype memory resources |
+| Memory — long-term retrieval | $0.50 per 1,000 retrievals | Retrieve only when needed; avoid unnecessary recall on every turn |
+| Gateway invocations | Each tool call via Gateway is $0.005 per 1,000 invocations | Batch tool calls where possible; cache results for repeated lookups |
+| Policy authorization | $0.000025 per request + $0.13 per 1,000 input tokens processed | Negligible at tutorial volume; monitor at scale |
+| Runtime execution (CPU + memory) | $0.0895/vCPU-hour + $0.00945/GB-hour while the session is active | Scale-to-zero; set idle session timeouts; avoid long-lived idle sessions |
+| Identity token requests | $0.010 per 1,000 token requests (free when used through Runtime or Gateway) | Typically no cost for standard conversational flows |
+| Log ingestion | CloudWatch charges per GB for spans, logs, and metrics | Set retention policies; filter verbose output |
+
+</div>
+
+Scale-to-zero does not mean zero cost. Memory records and log retention continue to accrue charges even with no active traffic. Remove prototype resources when done experimenting. See [AgentCore pricing](https://aws.amazon.com/bedrock/agentcore/pricing/) for current rates.
+
+:::warning
+Everything produced by the samples on this page is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

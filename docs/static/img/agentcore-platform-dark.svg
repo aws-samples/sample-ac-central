@@ -1,0 +1,125 @@
+<svg width="3846" height="1650" xmlns="http://www.w3.org/2000/svg"
+    xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" overflow="hidden">
+    <defs>
+        <style>
+            @keyframes pulse {
+                0%, 15%, 100% { opacity: 1; transform: scale(1); }
+                7.5% { opacity: 0.75; transform: scale(1.015); }
+            }
+            @keyframes glow {
+                0%, 15%, 100% { filter: drop-shadow(0 0 0px rgba(99, 149, 237, 0)); }
+                7.5% { filter: drop-shadow(0 0 12px rgba(99, 149, 237, 0.4)); }
+            }
+
+            .section-agent-loop {
+                animation: pulse 10.5s ease-in-out infinite, glow 10.5s ease-in-out infinite;
+                animation-delay: 0s;
+                transform-origin: 743px 1213px;
+            }
+            .section-context {
+                animation: pulse 10.5s ease-in-out infinite, glow 10.5s ease-in-out infinite;
+                animation-delay: 1.5s;
+                transform-origin: 2219px 857px;
+            }
+            .section-tools {
+                animation: pulse 10.5s ease-in-out infinite, glow 10.5s ease-in-out infinite;
+                animation-delay: 3s;
+                transform-origin: 2219px 1229px;
+            }
+            .section-inference {
+                animation: pulse 10.5s ease-in-out infinite, glow 10.5s ease-in-out infinite;
+                animation-delay: 4.5s;
+                transform-origin: 1473px 1586px;
+            }
+            .section-infrastructure {
+                animation: pulse 10.5s ease-in-out infinite, glow 10.5s ease-in-out infinite;
+                animation-delay: 6s;
+                transform-origin: 2570px 1586px;
+            }
+            .section-optimization {
+                animation: pulse 10.5s ease-in-out infinite, glow 10.5s ease-in-out infinite;
+                animation-delay: 7.5s;
+                transform-origin: 3694px 1213px;
+            }
+            .section-platform {
+                animation: pulse 10.5s ease-in-out infinite, glow 10.5s ease-in-out infinite;
+                animation-delay: 9s;
+                transform-origin: 2221px 1946px;
+            }
+        </style>
+    </defs>
+    <g transform="translate(-279 -572)">
+        <!-- Background - dark charcoal matching the web page -->
+        <path d="M281 610.143C281 591.839 295.838 577 314.143 577L4089.86 577C4108.16 577 4123 591.839 4123 610.143L4123 2187.86C4123 2206.16 4108.16 2221 4089.86 2221L314.143 2221C295.838 2221 281 2206.16 281 2187.86Z" fill="#1a1a2e" fill-rule="evenodd" fill-opacity="1"/>
+
+        <!-- Section 1: Agent Loop -->
+        <g class="section-agent-loop">
+            <path d="M395 721.178C395 700.645 411.645 684 432.178 684L1054.82 684C1075.35 684 1092 700.645 1092 721.178L1092 1704.82C1092 1725.35 1075.35 1742 1054.82 1742L432.178 1742C411.645 1742 395 1725.35 395 1704.82Z" fill="#2a2a3e" fill-rule="evenodd" fill-opacity="1" stroke="#3d3d55" stroke-width="2"/>
+            <text fill="#FFFFFF" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="700" font-stretch="normal" font-size="83" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 519.728 1536)">Agent Loop</text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 493.85 910)">Strands Agents</text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 677.183 998)">SDK</text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 486.167 1162)">Managed agent </text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 576.963 1250)">harness in </text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 568.095 1338)">AgentCore</text>
+        </g>
+
+        <!-- Section 2: Context -->
+        <g class="section-context">
+            <path d="M1143 702.456C1143 692.263 1151.26 684 1161.46 684L3276.54 684C3286.74 684 3295 692.263 3295 702.456L3295 1011.54C3295 1021.74 3286.74 1030 3276.54 1030L1161.46 1030C1151.26 1030 1143 1021.74 1143 1011.54Z" fill="#2a2a3e" fill-rule="evenodd" fill-opacity="1" stroke="#3d3d55" stroke-width="2"/>
+            <text fill="#FFFFFF" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="700" font-stretch="normal" font-size="83" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 1287.88 912)">Context</text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 1845.84 910)">Memory</text>
+            <text fill="#6395ED" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="700" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 2251.51 863)">Knowledge </text>
+            <text fill="#6395ED" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="700" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 2334.58 951)">Bases*</text>
+            <text fill="#6395ED" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="700" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 2908.31 867)">Web</text>
+            <text fill="#6395ED" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="700" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 2854.75 955)">Search*</text>
+        </g>
+
+        <!-- Section 3: Tools -->
+        <g class="section-tools">
+            <path d="M1143 1075.4C1143 1065.24 1151.24 1057 1161.4 1057L3276.6 1057C3286.76 1057 3295 1065.24 3295 1075.4L3295 1383.6C3295 1393.76 3286.76 1402 3276.6 1402L1161.4 1402C1151.24 1402 1143 1393.76 1143 1383.6Z" fill="#2a2a3e" fill-rule="evenodd" fill-opacity="1" stroke="#3d3d55" stroke-width="2"/>
+            <text fill="#FFFFFF" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="700" font-stretch="normal" font-size="83" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 1281.78 1257)">Tools</text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 2129.19 1153)">Browser</text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 2584.6 1153)">Code Interpreter</text>
+            <text fill="#9090a8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 1592.57 1332)">Data Sources</text>
+            <text fill="#9090a8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 2334.1 1330)">APIs</text>
+            <text fill="#9090a8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 2891.61 1330)">SaaS</text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 1641.16 1150)">Gateway</text>
+        </g>
+
+        <!-- Section 4: Inference -->
+        <g class="section-inference">
+            <path d="M1143 1446.64C1143 1437.45 1150.45 1430 1159.64 1430L1786.36 1430C1795.55 1430 1803 1437.45 1803 1446.64L1803 1725.36C1803 1734.55 1795.55 1742 1786.36 1742L1159.64 1742C1150.45 1742 1143 1734.55 1143 1725.36Z" fill="#2a2a3e" fill-rule="evenodd" fill-opacity="1" stroke="#3d3d55" stroke-width="2"/>
+            <text fill="#FFFFFF" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="700" font-stretch="normal" font-size="83" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 1290.31 1623)">Inference</text>
+        </g>
+
+        <!-- Section 5: Infrastructure -->
+        <g class="section-infrastructure">
+            <path d="M1849 1446.64C1849 1437.45 1856.45 1430 1865.64 1430L3274.36 1430C3283.55 1430 3291 1437.45 3291 1446.64L3291 1725.36C3291 1734.55 3283.55 1742 3274.36 1742L1865.64 1742C1856.45 1742 1849 1734.55 1849 1725.36Z" fill="#2a2a3e" fill-rule="evenodd" fill-opacity="1" stroke="#3d3d55" stroke-width="2"/>
+            <text fill="#FFFFFF" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="700" font-stretch="normal" font-size="83" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 1957.24 1609)">Infrastructure</text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 2736.04 1537)">Runtime</text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 2713.41 1665)">Payments</text>
+        </g>
+
+        <!-- Section 6: Agent Optimization -->
+        <g class="section-optimization">
+            <path d="M3346 721.178C3346 700.645 3362.65 684 3383.18 684L4005.82 684C4026.35 684 4043 700.645 4043 721.178L4043 1704.82C4043 1725.35 4026.35 1742 4005.82 1742L3383.18 1742C3362.65 1742 3346 1725.35 3346 1704.82Z" fill="#2a2a3e" fill-rule="evenodd" fill-opacity="1" stroke="#3d3d55" stroke-width="2"/>
+            <text fill="#FFFFFF" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="700" font-stretch="normal" font-size="83" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 3578.35 1536)">Agent</text>
+            <text fill="#FFFFFF" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="700" font-stretch="normal" font-size="83" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 3436.56 1635)">Optimization</text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 3503.3 923)">Evaluations</text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 3460.05 1224)">Optimizations</text>
+        </g>
+
+        <!-- Section 7: Platform Controls -->
+        <g class="section-platform">
+            <path d="M400 1792.4C400 1782.24 408.239 1774 418.402 1774L4024.6 1774C4034.76 1774 4043 1782.24 4043 1792.4L4043 2100.6C4043 2110.76 4034.76 2119 4024.6 2119L418.402 2119C408.239 2119 400 2110.76 400 2100.6Z" fill="#2a2a3e" fill-rule="evenodd" fill-opacity="1" stroke="#3d3d55" stroke-width="2"/>
+            <text fill="#FFFFFF" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="700" font-stretch="normal" font-size="86" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 568.998 1917)">Platform </text>
+            <text fill="#FFFFFF" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="700" font-stretch="normal" font-size="86" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 577.889 2019)">Controls</text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 1158.05 1951)">Logs, Metrics, Traces</text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 1263.17 2039)">(observability)</text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 2094.38 1951)">Identity</text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 3470.5 1951)">Registry</text>
+            <text fill="#c8c8d8" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="400" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 2524.2 1954)">Policies</text>
+            <text fill="#6395ED" fill-opacity="1" font-family="Amazon Ember,Amazon Ember_MSFontService,sans-serif" font-style="normal" font-variant="normal" font-weight="700" font-stretch="normal" font-size="73" text-anchor="start" direction="ltr" writing-mode="lr-tb" unicode-bidi="normal" text-decoration="none" transform="matrix(1 0 0 1 2921.57 1957)">Guardrails*</text>
+        </g>
+    </g>
+</svg>

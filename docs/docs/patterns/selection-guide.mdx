@@ -1,0 +1,111 @@
+---
+title: Pattern Selection Guide
+sidebar_label: Selection Guide
+sidebar_position: 2
+last_verified: 2026-07-22
+---
+
+# Pattern Selection Guide
+
+:::tip Who this is for
+Builders who have reviewed the [pattern catalog](/docs/patterns/overview) and need to map their specific scenario to a recommended pattern combination. If you're still exploring what patterns exist, start with the overview first.
+:::
+
+Match your scenario to the recommended pattern combination.
+
+## Quick Reference
+
+<div className="fancy-table">
+
+| Scenario                      | Recommended Pattern(s)                  | Complexity      |
+|-------------------------------|-----------------------------------------|-----------------|
+| Simple FAQ / helpdesk         | Single Agent + RAG + Tools              | 🟢 Low          |
+| Multi-domain support          | Graph (router) + Agents-as-Tools        | 🟡 Medium       |
+| Complex case management       | Agents-as-Tools + Workflow + HITL       | 🔴 High         |
+| Collaborative troubleshooting | Swarm                                   | 🟠 Medium-High  |
+| Regulated / compliance        | Single Agent + Reflection + HITL        | 🟡 Medium       |
+| Multi-team platform           | Bot Factory + Graph                     | 🔴 High         |
+| Cross-platform federation     | [A2A](https://strandsagents.com/docs/user-guide/sdk/multi-agent/agent-to-agent/) + [Gateway MCP targets](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) | 🔴 High         |
+
+</div>
+
+---
+
+## Decision Tree
+
+### Start Here: How Many Domains?
+
+**Single domain** (e.g., just customer billing):
+- Start with **Single Agent + Tools**
+- Add **RAG** if you need knowledge base grounding
+- Add **[HITL](/docs/patterns/human-in-the-loop)** if actions are high-risk
+
+**Multiple domains** (e.g., billing + support + account management):
+- Use **Agents-as-Tools** for clear domain separation
+- Or **Graph** if you need structured routing logic
+- Add **Router/Dispatcher** as entry point for intent classification
+
+### Execution Path Flexibility
+
+**Deterministic flows** (you know the steps in advance):
+- Use **Workflow (DAG)** for parallel execution
+- Suits batch processing, CI/CD, data pipelines
+
+**LLM-decided flows** (agent figures out the path):
+- Use **Graph** for controlled branching with guardrails
+- Use **Swarm** for maximum agent autonomy
+
+**Hybrid** (some fixed, some dynamic):
+- Use **Agents-as-Tools** - parent LLM picks which child, but children have predictable behavior
+
+### Cross-Organization Requirements
+
+**Single team, single framework**:
+- Any pattern works; start simple
+
+**Multi-team, shared platform**:
+- Use **Bot Factory** for standardized agent templates
+- Ensures governance, approved tools, common guardrails
+
+**Cross-platform, cross-framework**:
+- Use **A2A Protocol** for interoperability
+- Each team can use their preferred framework
+
+---
+
+## Anti-Patterns to Avoid
+
+<div className="fancy-table">
+
+| Anti-Pattern                  | Why It's Bad                                        | Better Approach                                     |
+|-------------------------------|-----------------------------------------------------|-----------------------------------------------------|
+| Swarm for simple tasks        | Unpredictable, hard to debug                        | Single Agent + Tools                                |
+| Graph without clear branches  | Over-engineering, slow iteration                    | Start with single agent, add routing later          |
+| HITL on every action          | Defeats the purpose of automation                   | HITL only on high-risk/high-confidence-gap actions  |
+| A2A for internal agents       | Protocol overhead unnecessary                       | Agents-as-Tools within same runtime                 |
+| Skipping observability        | "It worked in dev" → failure in prod                | Always instrument from day one                      |
+
+</div>
+
+---
+
+## Migrating Between Patterns
+
+As your agent matures, you may need to upgrade patterns:
+
+1. **Single Agent → Agents-as-Tools** — When tool count grows large (a common heuristic is ~15+ tools), or when domains need separate guardrails and isolation
+2. **Graph → Swarm** — When branching logic becomes too complex to predefine
+3. **Agents-as-Tools → A2A** — When agents cross team/framework boundaries
+4. **Any pattern → + [HITL](/docs/patterns/human-in-the-loop)** — When deploying to regulated environments
+
+[AgentCore Runtime](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html) supports all patterns natively, so most migrations are primarily code-level changes. However, patterns that involve cross-agent communication (A2A) or platform-level standardization (Bot Factory) also require infrastructure configuration (endpoints, registries, account topology) beyond the agent code itself.
+
+---
+
+## Further Reading
+
+- [Strands Multi-Agent Patterns](https://strandsagents.com/docs/user-guide/sdk/multi-agent/multi-agent-patterns/) — implementation reference for Graph, Swarm, Workflow, and Agents-as-Tools
+- [AgentCore Runtime — How It Works](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html) — serverless execution model that hosts all patterns
+- [AgentCore Gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html) — MCP tool federation and cross-agent connectivity
+- [Well-Architected Agentic AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html) — reliability, cost, and security guidance for multi-agent systems
+- [AgentCore Samples](https://github.com/awslabs/agentcore-samples) — working implementations of each pattern tier

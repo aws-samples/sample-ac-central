@@ -1,0 +1,192 @@
+---
+title: Execution Model
+sidebar_label: Execution Model
+sidebar_position: 3
+---
+
+import Link from '@docusaurus/Link';
+
+# Execution Model
+
+Coding agents run longer than other workloads. Instead of seconds, they can take minutes to hours. AgentCore Runtime provides the session lifecycle, persistent storage, and async task tracking that long-running code tasks require.
+
+---
+
+## The Plan → Generate → Validate → Deliver Loop
+
+Every coding agent follows a consistent execution loop:
+
+<div className="arch-flow">
+  <span className="arch-flow-step">① Plan (analyze task)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">② Generate (write code)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">③ Validate (build + test)</span>
+  <span className="arch-flow-arrow">→</span>
+  <span className="arch-flow-step">④ Deliver (PR or artifact)</span>
+</div>
+
+Unlike workflow agents that run a single pass (Trigger → Act → Emit), coding agents iterate. When tests fail at step ③, the agent loops back to ② with the failure output as context. This self-correction loop is the key differentiator of the archetype.
+
+---
+
+## Trigger Sources
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Trigger Source     | Use For                                                  | Delivery Model      |
+|--------------------|----------------------------------------------------------|---------------------|
+| GitHub/GitLab webhook | PR opened, issue labeled "ready-for-dev"              | Push (API Gateway)  |
+| Jira / Linear      | Ticket moves to "Ready for Dev" or "In Progress"        | Push (EventBridge)  |
+| CI pipeline event   | Build fails, coverage drops below threshold             | Push (EventBridge)  |
+| CloudWatch schedule | Nightly dependency checks, weekly refactoring sweeps    | Push (cron)         |
+| Manual invocation   | Developer runs `agentcore invoke` with a task prompt    | Direct API call     |
+
+</div>
+
+---
+
+## Long-Running Sessions
+
+AgentCore Runtime sessions support up to **8 hours** of continuous execution. For tasks that need to run longer, require a GPU, or need persistent disk beyond the micro-VM's ephemeral storage, AgentCore Runtime Instances provide AWS-managed EC2 compute in your account with support for multi-day sessions. Key behaviors for standard micro-VM sessions:
+
+- **Session storage persists across stop/resume** (Public Preview): the microVM may terminate on idle, but `/mnt/workspace` remounts instantly when the session resumes
+- **Idle timeout is configurable**: default 15 minutes; set higher for coding tasks that pause between LLM calls
+- **Max lifetime caps total duration**: prevents runaway sessions from accumulating cost
+
+---
+
+## When Does the Session Stay Alive?
+
+The runtime tracks two independent timers:
+
+- **`idleRuntimeSessionTimeout`**: kills the session after this many seconds of *apparent* inactivity (no open request, no async task registered). This is the one most coding agents hit.
+- **`maxLifetime`**: hard cap on total session duration. Once elapsed, the session is terminated regardless of activity.
+
+If your entrypoint **blocks** until work is complete (like the quickstart's `result = agent(prompt); return {...}`), the request itself keeps the session active. No async task registration is needed, the runtime sees an open request and never starts the idle countdown.
+
+If your entrypoint **streams** via `async def` + `yield`, the request also stays open. Same effect.
+
+The async task pattern below is only needed when the entrypoint **returns immediately** while work continues in a background thread. Without it, the runtime sees a completed request, starts the idle countdown, and may terminate the session before the background thread finishes.
+
+## Async Task Pattern (Fire-and-Forget)
+
+For tasks where you want to return immediately and work in the background:
+
+```python
+import logging
+import subprocess
+import threading
+
+from strands import Agent, tool
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
+
+app = BedrockAgentCoreApp()
+log = logging.getLogger(__name__)
+
+
+@tool
+def shell(command: str) -> dict:
+    """Execute a shell command in the workspace.
+
+    Args:
+        command: The shell command to run.
+    """
+    result = subprocess.run(
+        command, shell=True, capture_output=True, text=True,
+        timeout=300, cwd="/mnt/workspace",
+    )
+    return {"stdout": result.stdout[-3000:], "exit_code": result.returncode}
+
+
+SYSTEM_PROMPT = """You are a coding agent. Read the task, plan your approach,
+implement the changes in /mnt/workspace, then run tests to validate."""
+
+
+@app.entrypoint
+def invoke(payload, context):
+    """Start a long-running coding task without blocking the health check."""
+    task_id = app.add_async_task("code-generation")
+
+    def run_task():
+        try:
+            prompt = payload.get("prompt", "")
+            log.info("Starting coding task: %s", prompt[:100])
+            agent = Agent(
+                model="global.anthropic.claude-sonnet-4-6",
+                system_prompt=SYSTEM_PROMPT,
+                tools=[shell],
+            )
+            agent(prompt)
+            log.info("Task completed successfully")
+        finally:
+            app.complete_async_task(task_id)
+
+    threading.Thread(target=run_task, daemon=True).start()
+    return {"status": "accepted", "task_id": task_id}
+
+
+if __name__ == "__main__":
+    app.run()
+```
+
+While an async task is active, the `/ping` health check returns `HealthyBusy`, keeping the session alive beyond the idle timeout. The entrypoint returns immediately with the task ID; the agent runs in a background thread.
+
+To retrieve results after the task completes: write output to session storage (`/mnt/workspace/results.json`) and fetch it with a subsequent invocation or `InvokeAgentRuntimeCommand`. Alternatively, have the background thread push results to an external system (S3, SNS, or a webhook).
+
+---
+
+## Lifecycle Configuration
+
+```json
+{
+  "runtimes": [
+    {
+      "name": "CodingAgent",
+      "build": "CodeZip",
+      "entrypoint": "main.py",
+      "codeLocation": "app/CodingAgent/",
+      "runtimeVersion": "PYTHON_3_13",
+      "protocol": "HTTP",
+      "networkMode": "PUBLIC",
+      "lifecycleConfiguration": {
+        "idleRuntimeSessionTimeout": 1800,
+        "maxLifetime": 28800
+      },
+      "filesystemConfigurations": [
+        {"sessionStorage": {"mountPath": "/mnt/workspace"}}
+      ]
+    }
+  ]
+}
+```
+
+<div className="fancy-table fancy-table--auto-first">
+
+| Use Case          | Idle Timeout | Max Lifetime | Rationale                                    |
+|-------------------|-------------|--------------|----------------------------------------------|
+| Batch refactoring | 30 min      | 8 hours      | Long tasks with pauses between files         |
+| Interactive dev   | 15 min      | 4 hours      | Developer connected, moderate session length  |
+| CI-triggered test gen | 5 min  | 30 min       | Short task, fast teardown to save cost        |
+
+</div>
+
+---
+
+## Skip the LLM for Deterministic Ops
+
+Tests, git push, dependency installs, and linting are deterministic. Use `InvokeAgentRuntimeCommand` to run them directly in the microVM with zero token cost:
+
+- run tests: `cd /mnt/workspace && npm test`
+- commit: `cd /mnt/workspace && git add -A && git commit -m "Fix"`
+- install dependencies: `pip install -r requirements.txt`
+- lint: `cd /mnt/workspace && npx eslint src/ --format json`
+
+This lets you compose an end-to-end workflow where the LLM handles reasoning (which files to change, what code to write) and deterministic commands handle execution (build, test, push).
+
+---
+
+## Related Pages
+
+- <Link to="/docs/workloads/coding/sandbox-and-tools">Sandbox & Tools — session storage and Code Interpreter →</Link>
+- <Link to="/docs/workloads/coding/patterns-and-architecture">Patterns — end-to-end production workflow →</Link>

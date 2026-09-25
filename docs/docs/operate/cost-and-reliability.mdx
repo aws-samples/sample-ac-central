@@ -1,0 +1,274 @@
+---
+title: Cost and Reliability
+sidebar_label: Cost and Reliability
+sidebar_position: 4
+last_verified: 2026-07-22
+---
+
+import Link from '@docusaurus/Link';
+
+# Cost and Reliability
+
+:::tip Who this is for
+This page is for teams optimizing cost and reliability for production agents. If you are still prototyping, come back when you are ready to deploy to real users — the [Production Readiness](./production-readiness) page is a good starting point.
+:::
+
+Agent deployments introduce cost and reliability characteristics that differ from traditional application services. Model inference costs scale with token volume rather than request count, and agent autonomy means a single runaway session can consume more resources than thousands of normal requests. This page covers where costs come from, how to attribute and control them, and the reliability patterns that keep agents stable under load.
+
+For current pricing figures, see the [Amazon Bedrock AgentCore pricing page](https://aws.amazon.com/bedrock/agentcore/pricing/).
+
+---
+
+## Cost Drivers
+
+Understanding where money goes is the prerequisite for controlling it. Agent costs come from several sources, and the dominant driver varies by workload type.
+
+### Model Inference
+
+Model inference is typically the largest cost driver for agents. Costs are denominated in tokens: input tokens (the prompt, conversation history, retrieved context, tool results) and output tokens (the model's response, including reasoning steps for chain-of-thought models).
+
+Key factors that inflate inference costs:
+
+- **Conversation history accumulation**: in long sessions, every new turn re-sends the entire history as input tokens.
+- **Large context windows**: retrieved documents, tool output, and injected context can each add thousands of input tokens per turn.
+- **Multiple reasoning steps**: agents that chain several model calls per invocation (planner, executor, summarizer) multiply inference costs by the number of steps.
+- **Output verbosity**: models prompted to explain their reasoning produce more output tokens. This is sometimes worth it for debuggability; sometimes it is just expense.
+
+### Runtime Execution
+
+AgentCore Runtime charges for the compute time your agent uses during invocation: **$0.0895/vCPU-hr** and **$0.00945/GB-hr**. For short-lived workflow agents this is often small. For long-running conversational sessions with many back-and-forth turns, runtime execution time accumulates.
+
+[Scale-to-zero](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html) between invocations means you are not paying for idle compute when no request is in flight, but "scale-to-zero" is not "zero cost." Any persistent infrastructure (memory storage, log retention, database tables, EventBridge rules) continues to incur charges between invocations. See [runtime lifecycle settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) for idle-timeout and scale-to-zero configuration.
+
+### Memory Storage and Extraction
+
+AgentCore [Memory](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-create-a-memory-store.html) persists session context and long-term memories across invocations. Costs have several components:
+
+- **Short-term (event) storage**: **$0.25 per 1,000 events**
+- **Long-term storage (built-in)**: **$0.75 per 1,000 records/month**
+- **Memory retrieval**: **$0.50 per 1,000 retrievals**
+
+For agents with many users or long-lived sessions, memory costs can become significant. Set retention policies and archive or delete stale memories on a schedule.
+
+### Tool and API Calls
+
+Every tool call the agent makes may incur cost: Lambda invocations, DynamoDB reads, third-party API calls with per-call pricing, external database queries. These costs are often invisible in agent-level monitoring because they appear in the billing of the target service, not in the agent service.
+
+AgentCore Gateway charges **$0.005 per 1,000 invocations**. An agent in a reasoning loop that makes many tool calls per invocation can generate surprising costs in connected services. Log tool call counts per invocation and set alerts when counts exceed expected ranges.
+
+### Logs and Traces
+
+CloudWatch Logs ingestion and storage, and X-Ray trace storage, scale with traffic volume and verbosity. Verbose logging (full request and response payloads) at high request rates can generate significant log costs.
+
+Practical controls:
+- Log structured summaries rather than full payloads where the full payload is not needed.
+- Set CloudWatch log group retention policies. Logs older than your compliance retention window can be archived to S3 Glacier at a fraction of the CloudWatch storage cost.
+- Sample traces rather than tracing 100% of requests at high traffic volumes, unless 100% coverage is required for compliance.
+
+### Connected AWS Services
+
+Agents in production typically interact with several AWS services: S3 for document storage, DynamoDB or Aurora for state, SQS/SNS/EventBridge for event routing, Secrets Manager for credentials. Each has its own cost model. None of these costs appear under the AgentCore or Bedrock line items in your bill, but they are caused by agent invocations.
+
+Tagging all resources created as part of an agent deployment with a consistent set of tags makes it possible to aggregate costs across services in AWS Cost Explorer.
+
+---
+
+## Budget Alerts and Cost Attribution
+
+Knowing costs happened is not enough; you need to know which agent caused them, and you need to know before the invoice arrives.
+
+### Application Inference Profiles for Cost Attribution
+
+Amazon Bedrock's [application inference profiles](https://docs.aws.amazon.com/bedrock/latest/userguide/cost-mgmt-application-inference-profiles.html) are the primary mechanism for per-agent cost attribution. An application inference profile wraps a foundation model and carries cost allocation tags. Requests that flow through the profile's ARN are billed with those tags attached.
+
+```python
+import boto3
+
+bedrock_runtime = boto3.client("bedrock-runtime")
+
+response = bedrock_runtime.converse(
+    # Use the application inference profile ARN, not the raw model ID
+    modelId="arn:aws:bedrock:us-east-1:123456789012:inference-profile/my-agent-prod",
+    messages=[{"role": "user", "content": [{"text": "Process this request"}]}],
+)
+```
+
+:::info
+Only application inference profiles support cost allocation tags. System-defined cross-region inference profiles route requests across regions but cannot be tagged for cost attribution.
+:::
+
+### Tagging Strategy
+
+A consistent tagging schema applied to all agent-related resources enables cost roll-up across services in Cost Explorer. A simple, workable schema:
+
+<div className="fancy-table">
+
+| Tag | Example value | Purpose |
+|---|---|---|
+| `AgentName` | `claims-processor` | Identify the specific agent |
+| `Environment` | `prod` / `staging` / `dev` | Separate production and non-production cost |
+| `Owner` | `platform-team` | Who is accountable for the spend |
+| `CostCenter` | `engineering-platform` | Finance roll-up for chargebacks |
+| `ModelID` | `anthropic.claude-3-5-sonnet-20241022-v2:0` | Cross-agent model cost comparison |
+
+</div>
+
+Apply these tags to: application inference profiles, Lambda functions used as tools, DynamoDB tables, S3 buckets, CloudWatch log groups, and any other resources the agent owns or creates.
+
+### AWS Budgets Alerts
+
+Set budget alerts at two levels:
+
+1. **Service-level budget**: alerts when total Bedrock or AgentCore spend crosses a monthly threshold. Catches unexpected spikes across all agents.
+2. **Per-agent budget using cost allocation tags**: alerts when spend tagged to a specific agent crosses its individual budget. Catches a single agent misbehaving without being masked by other agents' normal spend.
+
+Configure alerts to fire at 80% and 100% of budget. A 100%-only alert leaves no time to investigate before the budget is exhausted.
+
+### Per-Invocation Cost Estimation
+
+Before deploying a new agent version, estimate cost per invocation:
+
+1. Run the agent against a representative sample of inputs.
+2. Record input tokens, output tokens, and tool call counts per invocation.
+3. Multiply by current Bedrock pricing for the chosen model.
+4. Add an estimate for tool-related costs (Lambda invocations, database reads).
+5. Multiply by expected daily invocation volume.
+
+This estimate will not be exact, but it surfaces order-of-magnitude surprises before they appear in production billing.
+
+---
+
+## Scale-to-Zero Is Not Zero Cost
+
+AgentCore's event-driven execution model [scales to zero](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html) between invocations: there is no always-on compute running when the agent is idle. This is a significant advantage for cost efficiency compared to a traditionally provisioned service.
+
+Configure the idle-timeout and scale-to-zero behavior in the [runtime lifecycle settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) to match your latency budget and traffic pattern.
+
+However, "scale-to-zero compute" is not "zero cost." The following costs persist regardless of invocation volume:
+
+<div className="fancy-table">
+
+| Resource | Ongoing cost even at zero invocations |
+|---|---|
+| AgentCore Memory storage | Stored memories and session context incur storage charges ($0.75/1k records/month long-term; $0.25/1k events short-term) |
+| CloudWatch log group retention | Logs already ingested continue to incur storage charges |
+| Secrets Manager secrets | Per-secret monthly charge regardless of access frequency |
+| EventBridge rules (for workflow agents) | Rule evaluation charges apply when events are processed |
+| S3 buckets with agent data | Storage charges for any persisted data |
+| Application inference profiles | No ongoing cost; charges only on use |
+
+</div>
+
+For an agent that goes quiet (seasonal, deprecated, or a pilot that ended), review these standing costs and decommission resources that are no longer needed. The [Releases and Rollback](./releases-and-rollback) page covers the full deprecation procedure.
+
+---
+
+## Reliability Basics
+
+Agents operate in an environment of external dependencies: model inference endpoints, tool APIs, databases, and memory services. Each dependency can be slow or unavailable. Reliability engineering for agents means designing around these failure modes.
+
+### Timeouts
+
+Set explicit timeouts on every external call: model inference, tool invocations, database queries, and memory retrieval. The default behavior for most SDKs and HTTP clients is to wait indefinitely (or for a very long platform-level timeout). An agent waiting indefinitely for a slow tool holds its runtime session open and blocks the user.
+
+Practical timeout values depend on the SLA of the downstream service. For model inference, 30-60 seconds is a reasonable starting point for interactive agents; background workflow agents can tolerate longer. For tool calls, 5-10 seconds is a reasonable default; anything slower is likely a problem worth investigating.
+
+### Retries with Exponential Backoff
+
+Transient errors (network blips, throttling, short service unavailability) are normal in distributed systems. Retry logic with exponential backoff recovers from transient errors without overwhelming a struggling downstream service.
+
+```python
+import time
+import random
+
+def call_with_retry(fn, max_attempts: int = 3, base_delay: float = 1.0):
+    """Architecture guidance: exponential backoff with jitter for retriable operations."""
+    for attempt in range(max_attempts):
+        try:
+            return fn()
+        except RetriableError as e:
+            if attempt == max_attempts - 1:
+                raise
+            delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+            time.sleep(delay)
+```
+
+Do not retry non-retriable errors (authorization failures, invalid input, resource not found). Retrying these wastes time and can amplify costs.
+
+### Idempotency
+
+An agent that can be safely retried or re-invoked without side effects is much easier to operate. Design tool implementations to be idempotent where possible:
+
+- Write operations that use a client-supplied idempotency key and are no-ops on duplicate keys.
+- Read operations are inherently idempotent.
+- For operations that cannot be made idempotent (sending a notification, initiating a payment), use an idempotency key plus a deduplication check before execution.
+
+For workflow agents triggered by events, ensure the event processing pipeline delivers events at-least-once and that the agent's tool calls are idempotent, so duplicate event delivery does not cause duplicate actions.
+
+### Dead-Letter Queues
+
+For event-driven workflow agents, a dead-letter queue (DLQ) captures events that failed processing after the maximum number of retry attempts. Without a DLQ, failed events are silently dropped.
+
+Configure a DLQ on every SQS queue or EventBridge rule that feeds agent invocations. Set an alarm on the DLQ message count. A non-zero DLQ depth means events are failing; investigate before the backlog grows.
+
+### Circuit Breakers for Spend
+
+The [circuit breaker pattern](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/circuit-breaker.html) for cost is not a standard distributed-systems reliability primitive, but it is important for agents. When an agent enters a runaway reasoning loop or encounters an edge case that causes it to make many more tool calls than expected, costs can spike dramatically within a single session or a short time window.
+
+Architecture guidance for cost circuit breakers:
+
+1. Track cumulative tool call count and token consumption within a session.
+2. If either counter exceeds a defined ceiling (e.g., 20 tool calls per session, or 50,000 input tokens), abort the session and return a graceful error.
+3. Log the aborted session with the counters that triggered the ceiling for post-incident analysis.
+4. Adjust ceilings based on observed behavior in production; set them high enough that normal usage never hits them, low enough that runaway behavior is caught quickly.
+
+```python
+class SessionBudget:
+    """Architecture guidance: track per-session spend limits."""
+    def __init__(self, max_tool_calls: int = 20, max_input_tokens: int = 50_000):
+        self.max_tool_calls = max_tool_calls
+        self.max_input_tokens = max_input_tokens
+        self.tool_calls = 0
+        self.input_tokens = 0
+
+    def record_tool_call(self):
+        self.tool_calls += 1
+        if self.tool_calls > self.max_tool_calls:
+            raise BudgetExceededError(f"Session exceeded {self.max_tool_calls} tool calls")
+
+    def record_tokens(self, count: int):
+        self.input_tokens += count
+        if self.input_tokens > self.max_input_tokens:
+            raise BudgetExceededError(f"Session exceeded {self.max_input_tokens} input tokens")
+```
+
+---
+
+## Further Reading
+
+- [AgentCost06-BP03: Design cost-efficient initialization through warm pools and caching](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html)
+- [Amazon Bedrock AgentCore Pricing](https://aws.amazon.com/bedrock/agentcore/pricing/)
+- [Circuit Breaker pattern — AWS Prescriptive Guidance](https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/circuit-breaker.html)
+- [Runtime Lifecycle Settings](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html)
+- [Agentic AI Lens — AWS Well-Architected Framework](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentic-ai-lens.html)
+
+---
+
+## Related Pages
+
+<div className="tile-grid">
+  <Link to="/docs/operate/production-readiness" className="tile-card">
+    <div className="tile-heading"><h3>Production Readiness →</h3></div>
+    <p>Cost and reliability checklist items and how they fit into the broader production-readiness program.</p>
+  </Link>
+
+  <Link to="/docs/operate/releases-and-rollback" className="tile-card">
+    <div className="tile-heading"><h3>Releases and Rollback →</h3></div>
+    <p>Deprecation and decommissioning to eliminate standing costs from retired agents.</p>
+  </Link>
+
+  <Link to="/docs/agent-platform/governance" className="tile-card">
+    <div className="tile-heading"><h3>Governance and Security →</h3></div>
+    <p>Application inference profiles, cost allocation tags, and cost governance in the platform architecture.</p>
+  </Link>
+</div>

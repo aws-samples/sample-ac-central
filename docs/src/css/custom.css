@@ -1,0 +1,1554 @@
+/**
+ * AgentCore Central - Custom Theme Styles
+ * Amazon Ember font family + clean professional dark/light theme
+ */
+
+@import './themes/strands.css';
+/* @import './themes/aws-teal.css'; */
+/* @import './themes/amber-dusk.css'; */
+
+/* ==========================================================================
+   @font-face declarations — Amazon Ember family
+   ========================================================================== */
+
+/* Amazon Ember — Thin (100) */
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_Th.eot');
+  src: url('/fonts/AmazonEmber_W_Th.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_Th.woff') format('woff');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_ThIt.eot');
+  src: url('/fonts/AmazonEmber_W_ThIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_ThIt.woff') format('woff');
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember — Light (300) */
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_Lt.eot');
+  src: url('/fonts/AmazonEmber_W_Lt.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_Lt.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_LtIt.eot');
+  src: url('/fonts/AmazonEmber_W_LtIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_LtIt.woff') format('woff');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember — Regular (400) */
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_Rg.eot');
+  src: url('/fonts/AmazonEmber_W_Rg.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_Rg.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_RgIt.eot');
+  src: url('/fonts/AmazonEmber_W_RgIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_RgIt.woff') format('woff');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember — Semi-Bold (600) */
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_SBd.eot');
+  src: url('/fonts/AmazonEmber_W_SBd.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_SBd.woff') format('woff');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_SBdIt.eot');
+  src: url('/fonts/AmazonEmber_W_SBdIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_SBdIt.woff') format('woff');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember — Bold (700) */
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_Bd.eot');
+  src: url('/fonts/AmazonEmber_W_Bd.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_Bd.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_BdIt.eot');
+  src: url('/fonts/AmazonEmber_W_BdIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_BdIt.woff') format('woff');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember — Heavy (900) */
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_He.eot');
+  src: url('/fonts/AmazonEmber_W_He.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_He.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember';
+  src: url('/fonts/AmazonEmber_W_HeIt.eot');
+  src: url('/fonts/AmazonEmber_W_HeIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmber_W_HeIt.woff') format('woff');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember Display — Light (300) */
+@font-face {
+  font-family: 'Amazon Ember Display';
+  src: url('/fonts/AmazonEmberDisplay_W_Lt.eot');
+  src: url('/fonts/AmazonEmberDisplay_W_Lt.woff2') format('woff2'),
+       url('/fonts/AmazonEmberDisplay_W_Lt.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Amazon Ember Display — Regular (400) */
+@font-face {
+  font-family: 'Amazon Ember Display';
+  src: url('/fonts/AmazonEmberDisplay_W_Rg.eot');
+  src: url('/fonts/AmazonEmberDisplay_W_Rg.woff2') format('woff2'),
+       url('/fonts/AmazonEmberDisplay_W_Rg.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Amazon Ember Display — Medium (500) */
+@font-face {
+  font-family: 'Amazon Ember Display';
+  src: url('/fonts/AmazonEmberDisplay_W_Md.eot');
+  src: url('/fonts/AmazonEmberDisplay_W_Md.woff2') format('woff2'),
+       url('/fonts/AmazonEmberDisplay_W_Md.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Amazon Ember Display — Bold (700) */
+@font-face {
+  font-family: 'Amazon Ember Display';
+  src: url('/fonts/AmazonEmberDisplay_W_Bd.eot');
+  src: url('/fonts/AmazonEmberDisplay_W_Bd.woff2') format('woff2'),
+       url('/fonts/AmazonEmberDisplay_W_Bd.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Amazon Ember Display — Heavy (900) */
+@font-face {
+  font-family: 'Amazon Ember Display';
+  src: url('/fonts/AmazonEmberDisplay_W_He.eot');
+  src: url('/fonts/AmazonEmberDisplay_W_He.woff2') format('woff2'),
+       url('/fonts/AmazonEmberDisplay_W_He.woff') format('woff');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Amazon Ember Condensed — Thin (100) */
+@font-face {
+  font-family: 'Amazon Ember Condensed';
+  src: url('/fonts/AmazonEmberCd_W_Th.eot');
+  src: url('/fonts/AmazonEmberCd_W_Th.woff2') format('woff2'),
+       url('/fonts/AmazonEmberCd_W_Th.woff') format('woff');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember Condensed';
+  src: url('/fonts/AmazonEmberCd_W_ThIt.eot');
+  src: url('/fonts/AmazonEmberCd_W_ThIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmberCd_W_ThIt.woff') format('woff');
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember Condensed — Light (300) */
+@font-face {
+  font-family: 'Amazon Ember Condensed';
+  src: url('/fonts/AmazonEmberCd_W_Lt.eot');
+  src: url('/fonts/AmazonEmberCd_W_Lt.woff2') format('woff2'),
+       url('/fonts/AmazonEmberCd_W_Lt.woff') format('woff');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember Condensed';
+  src: url('/fonts/AmazonEmberCd_W_LtIt.eot');
+  src: url('/fonts/AmazonEmberCd_W_LtIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmberCd_W_LtIt.woff') format('woff');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember Condensed — Regular (400) */
+@font-face {
+  font-family: 'Amazon Ember Condensed';
+  src: url('/fonts/AmazonEmberCd_W_Rg.eot');
+  src: url('/fonts/AmazonEmberCd_W_Rg.woff2') format('woff2'),
+       url('/fonts/AmazonEmberCd_W_Rg.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember Condensed';
+  src: url('/fonts/AmazonEmberCd_W_RgIt.eot');
+  src: url('/fonts/AmazonEmberCd_W_RgIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmberCd_W_RgIt.woff') format('woff');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember Condensed — Bold (700) */
+@font-face {
+  font-family: 'Amazon Ember Condensed';
+  src: url('/fonts/AmazonEmberCd_W_Bd.eot');
+  src: url('/fonts/AmazonEmberCd_W_Bd.woff2') format('woff2'),
+       url('/fonts/AmazonEmberCd_W_Bd.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Amazon Ember Condensed';
+  src: url('/fonts/AmazonEmberCd_W_BdIt.eot');
+  src: url('/fonts/AmazonEmberCd_W_BdIt.woff2') format('woff2'),
+       url('/fonts/AmazonEmberCd_W_BdIt.woff') format('woff');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Amazon Ember Mono — Regular (400) */
+@font-face {
+  font-family: 'Amazon Ember Mono';
+  src: url('/fonts/AmazonEmberMono_W_Rg.eot');
+  src: url('/fonts/AmazonEmberMono_W_Rg.woff2') format('woff2'),
+       url('/fonts/AmazonEmberMono_W_Rg.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Amazon Ember Mono — Bold (700) */
+@font-face {
+  font-family: 'Amazon Ember Mono';
+  src: url('/fonts/AmazonEmberMono_W_Bd.eot');
+  src: url('/fonts/AmazonEmberMono_W_Bd.woff2') format('woff2'),
+       url('/fonts/AmazonEmberMono_W_Bd.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Amazon Ember Duospace — Regular (400) */
+@font-face {
+  font-family: 'Amazon Ember Duospace';
+  src: url('/fonts/AmazonEmberDuospace_W_Rg.eot');
+  src: url('/fonts/AmazonEmberDuospace_W_Rg.woff2') format('woff2'),
+       url('/fonts/AmazonEmberDuospace_W_Rg.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Amazon Ember Duospace — Bold (700) */
+@font-face {
+  font-family: 'Amazon Ember Duospace';
+  src: url('/fonts/AmazonEmberDuospace_W_Bd.eot');
+  src: url('/fonts/AmazonEmberDuospace_W_Bd.woff2') format('woff2'),
+       url('/fonts/AmazonEmberDuospace_W_Bd.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ==========================================================================
+   CSS Custom Properties — Font stacks & typography
+   ========================================================================== */
+
+html {
+  font-size: 100%; /* default 16px base */
+}
+
+:root {
+  /* Font stacks */
+  --ifm-font-family-base: 'Amazon Ember', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --ifm-font-family-monospace: 'Amazon Ember Mono', 'Amazon Ember Duospace', SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  --font-family-display: 'Amazon Ember Display', 'Amazon Ember', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-family-condensed: 'Amazon Ember Condensed', 'Amazon Ember', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Typography */
+  --ifm-code-font-size: 95%;
+  --ifm-heading-font-family: var(--font-family-display);
+  --docusaurus-highlighted-code-line-bg: var(--theme-code-highlight);
+}
+
+[data-theme='dark'] {
+  --docusaurus-highlighted-code-line-bg: var(--theme-code-highlight);
+}
+
+/* Ensure dark mode background overrides Docusaurus defaults */
+html[data-theme='dark'] {
+  background-color: var(--ifm-background-color);
+}
+
+html[data-theme='dark'] .navbar {
+  background-color: var(--ifm-background-surface-color);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Bold the active/selected navbar item */
+.navbar__link--active {
+  font-weight: 700;
+}
+
+html[data-theme='dark'] .footer {
+  background-color: var(--ifm-background-surface-color);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ==========================================================================
+   Global typography
+   ========================================================================== */
+
+html {
+  font-family: var(--ifm-font-family-base);
+}
+
+/* Headings use Display variant for larger optical sizing */
+h1, h2, h3, h4, h5, h6,
+.markdown h1, .markdown h2, .markdown h3,
+.markdown h4, .markdown h5, .markdown h6 {
+  font-family: var(--font-family-display);
+}
+
+h1, .markdown h1 {
+  font-weight: 700;
+}
+
+h2, .markdown h2 {
+  font-weight: 700;
+}
+
+h3, h4, .markdown h3, .markdown h4 {
+  font-weight: 600;
+}
+
+/* Code blocks use Mono */
+code, kbd, pre, samp,
+.prism-code,
+[class*='codeBlock'] {
+  font-family: var(--ifm-font-family-monospace);
+}
+
+/* Navbar brand uses bold */
+.navbar__title {
+  font-family: var(--font-family-display);
+  font-weight: 700;
+}
+
+/* Table of contents uses regular weight for clean readability */
+.table-of-contents {
+  font-family: var(--ifm-font-family-base);
+  font-weight: 400;
+}
+
+/* Sidebar navigation */
+.menu__link {
+  font-family: var(--ifm-font-family-base);
+  font-weight: 400;
+}
+
+.menu__link--active {
+  font-weight: 600;
+}
+
+/* Footer uses condensed for a compact look */
+.footer {
+  font-family: var(--font-family-condensed);
+}
+
+/* Badges and tags use semi-bold */
+.badge, .service-tag, .tile-badge {
+  font-family: var(--ifm-font-family-base);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   Hero Section
+   ========================================================================== */
+
+.hero--primary {
+  background: var(--theme-hero-gradient);
+}
+
+.hero__title {
+  font-family: var(--font-family-display);
+  font-weight: 900;
+}
+
+.hero__subtitle {
+  font-family: var(--ifm-font-family-base);
+  font-weight: 300;
+}
+
+/* ==========================================================================
+   Tile Cards
+   ========================================================================== */
+
+.tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.tile-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  text-decoration: none;
+  color: inherit;
+}
+
+.tile-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px var(--theme-card-hover-shadow);
+  border-color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+
+.tile-card .tile-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.tile-card .tile-heading .tile-icon-svg {
+  flex-shrink: 0;
+}
+
+.tile-card h3 {
+  font-family: var(--font-family-display);
+  font-weight: 600;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.tile-card p {
+  flex: 1;
+  color: var(--ifm-font-color-base);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.tile-card .tile-icon-svg {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  background-color: var(--ifm-color-primary);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* Standalone inline icon (outside tile-card, e.g. in customer profiles) */
+.tile-icon-svg {
+  display: inline-block;
+  width: 1.2em;
+  height: 1.2em;
+  vertical-align: middle;
+  background-color: var(--ifm-color-primary);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+/* --- Existing icons --- */
+.tile-icon--identity      { -webkit-mask-image: url('/img/icons/identity.svg');      mask-image: url('/img/icons/identity.svg'); }
+.tile-icon--memory        { -webkit-mask-image: url('/img/icons/memory.svg');        mask-image: url('/img/icons/memory.svg'); }
+.tile-icon--runtime       { -webkit-mask-image: url('/img/icons/runtime.svg');       mask-image: url('/img/icons/runtime.svg'); }
+.tile-icon--gateway       { -webkit-mask-image: url('/img/icons/gateway.svg');       mask-image: url('/img/icons/gateway.svg'); }
+.tile-icon--observability { -webkit-mask-image: url('/img/icons/observability.svg'); mask-image: url('/img/icons/observability.svg'); }
+.tile-icon--guardrails    { -webkit-mask-image: url('/img/icons/guardrails.svg');    mask-image: url('/img/icons/guardrails.svg'); }
+.tile-icon--cost          { -webkit-mask-image: url('/img/icons/cost.svg');          mask-image: url('/img/icons/cost.svg'); }
+
+/* --- New icons --- */
+.tile-icon--rocket        { -webkit-mask-image: url('/img/icons/rocket.svg');        mask-image: url('/img/icons/rocket.svg'); }
+.tile-icon--gear          { -webkit-mask-image: url('/img/icons/gear.svg');          mask-image: url('/img/icons/gear.svg'); }
+.tile-icon--terminal      { -webkit-mask-image: url('/img/icons/terminal.svg');      mask-image: url('/img/icons/terminal.svg'); }
+.tile-icon--search        { -webkit-mask-image: url('/img/icons/search.svg');        mask-image: url('/img/icons/search.svg'); }
+.tile-icon--chat          { -webkit-mask-image: url('/img/icons/chat.svg');          mask-image: url('/img/icons/chat.svg'); }
+.tile-icon--patterns      { -webkit-mask-image: url('/img/icons/patterns.svg');      mask-image: url('/img/icons/patterns.svg'); }
+.tile-icon--agent         { -webkit-mask-image: url('/img/icons/agent.svg');         mask-image: url('/img/icons/agent.svg'); }
+.tile-icon--tree          { -webkit-mask-image: url('/img/icons/tree.svg');          mask-image: url('/img/icons/tree.svg'); }
+.tile-icon--swarm         { -webkit-mask-image: url('/img/icons/swarm.svg');         mask-image: url('/img/icons/swarm.svg'); }
+.tile-icon--workflow      { -webkit-mask-image: url('/img/icons/workflow.svg');       mask-image: url('/img/icons/workflow.svg'); }
+.tile-icon--globe         { -webkit-mask-image: url('/img/icons/globe.svg');         mask-image: url('/img/icons/globe.svg'); }
+.tile-icon--hitl          { -webkit-mask-image: url('/img/icons/hitl.svg');          mask-image: url('/img/icons/hitl.svg'); }
+.tile-icon--factory       { -webkit-mask-image: url('/img/icons/factory.svg');       mask-image: url('/img/icons/factory.svg'); }
+.tile-icon--knowledge     { -webkit-mask-image: url('/img/icons/knowledge.svg');     mask-image: url('/img/icons/knowledge.svg'); }
+.tile-icon--lightbulb     { -webkit-mask-image: url('/img/icons/lightbulb.svg');     mask-image: url('/img/icons/lightbulb.svg'); }
+.tile-icon--blueprint     { -webkit-mask-image: url('/img/icons/blueprint.svg');     mask-image: url('/img/icons/blueprint.svg'); }
+.tile-icon--cube          { -webkit-mask-image: url('/img/icons/cube.svg');          mask-image: url('/img/icons/cube.svg'); }
+.tile-icon--package       { -webkit-mask-image: url('/img/icons/package.svg');       mask-image: url('/img/icons/package.svg'); }
+.tile-icon--wrench        { -webkit-mask-image: url('/img/icons/wrench.svg');        mask-image: url('/img/icons/wrench.svg'); }
+.tile-icon--scaffold      { -webkit-mask-image: url('/img/icons/scaffold.svg');      mask-image: url('/img/icons/scaffold.svg'); }
+.tile-icon--spiral        { -webkit-mask-image: url('/img/icons/spiral.svg');        mask-image: url('/img/icons/spiral.svg'); }
+.tile-icon--ghost         { -webkit-mask-image: url('/img/icons/ghost.svg');         mask-image: url('/img/icons/ghost.svg'); }
+.tile-icon--question      { -webkit-mask-image: url('/img/icons/question.svg');      mask-image: url('/img/icons/question.svg'); }
+.tile-icon--building      { -webkit-mask-image: url('/img/icons/building.svg');      mask-image: url('/img/icons/building.svg'); }
+.tile-icon--institution   { -webkit-mask-image: url('/img/icons/institution.svg');   mask-image: url('/img/icons/institution.svg'); }
+.tile-icon--lock          { -webkit-mask-image: url('/img/icons/lock.svg');          mask-image: url('/img/icons/lock.svg'); }
+.tile-icon--chart         { -webkit-mask-image: url('/img/icons/chart.svg');         mask-image: url('/img/icons/chart.svg'); }
+.tile-icon--trending      { -webkit-mask-image: url('/img/icons/trending.svg');      mask-image: url('/img/icons/trending.svg'); }
+.tile-icon--trophy        { -webkit-mask-image: url('/img/icons/trophy.svg');        mask-image: url('/img/icons/trophy.svg'); }
+.tile-icon--flask         { -webkit-mask-image: url('/img/icons/flask.svg');         mask-image: url('/img/icons/flask.svg'); }
+.tile-icon--traffic       { -webkit-mask-image: url('/img/icons/traffic.svg');       mask-image: url('/img/icons/traffic.svg'); }
+.tile-icon--target        { -webkit-mask-image: url('/img/icons/target.svg');        mask-image: url('/img/icons/target.svg'); }
+.tile-icon--broadcast     { -webkit-mask-image: url('/img/icons/broadcast.svg');     mask-image: url('/img/icons/broadcast.svg'); }
+.tile-icon--telescope     { -webkit-mask-image: url('/img/icons/telescope.svg');     mask-image: url('/img/icons/telescope.svg'); }
+.tile-icon--refresh       { -webkit-mask-image: url('/img/icons/refresh.svg');       mask-image: url('/img/icons/refresh.svg'); }
+.tile-icon--scroll        { -webkit-mask-image: url('/img/icons/scroll.svg');        mask-image: url('/img/icons/scroll.svg'); }
+.tile-icon--dna           { -webkit-mask-image: url('/img/icons/dna.svg');           mask-image: url('/img/icons/dna.svg'); }
+.tile-icon--link          { -webkit-mask-image: url('/img/icons/link.svg');          mask-image: url('/img/icons/link.svg'); }
+.tile-icon--llama         { -webkit-mask-image: url('/img/icons/llama.svg');         mask-image: url('/img/icons/llama.svg'); }
+.tile-icon--team          { -webkit-mask-image: url('/img/icons/team.svg');          mask-image: url('/img/icons/team.svg'); }
+.tile-icon--tag           { -webkit-mask-image: url('/img/icons/tag.svg');           mask-image: url('/img/icons/tag.svg'); }
+.tile-icon--book          { -webkit-mask-image: url('/img/icons/book.svg');          mask-image: url('/img/icons/book.svg'); }
+.tile-icon--check         { -webkit-mask-image: url('/img/icons/check.svg');         mask-image: url('/img/icons/check.svg'); }
+.tile-icon--star          { -webkit-mask-image: url('/img/icons/star.svg');          mask-image: url('/img/icons/star.svg'); }
+
+.tile-card .tile-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+  font-family: var(--font-family-condensed);
+}
+
+.tile-badge--ready {
+  background: rgba(46, 204, 113, 0.15);
+  color: #2ecc71;
+}
+
+.tile-badge--soon {
+  background: rgba(241, 196, 15, 0.15);
+  color: #f1c40f;
+}
+
+/* ==========================================================================
+   Stack Grid
+   ========================================================================== */
+
+.stack-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.stack-item {
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
+}
+
+.stack-item h4 {
+  font-family: var(--font-family-condensed);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--ifm-color-primary);
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.stack-item p {
+  font-size: 0.84rem;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Service Tags
+   ========================================================================== */
+
+.service-tag {
+  display: inline-block;
+  font-family: var(--font-family-condensed);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  margin-right: 6px;
+  margin-top: 6px;
+}
+
+.tag--runtime { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
+.tag--memory { background: rgba(155, 89, 182, 0.15); color: #9b59b6; }
+.tag--gateway { background: rgba(52, 152, 219, 0.15); color: #3498db; }
+.tag--identity { background: rgba(241, 196, 15, 0.15); color: #f1c40f; }
+.tag--observability { background: rgba(230, 126, 34, 0.15); color: #e67e22; }
+.tag--evaluations { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+
+/* ==========================================================================
+   Results Chips
+   ========================================================================== */
+
+.results-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+.result-chip {
+  background: var(--theme-chip-bg);
+  border: 1px solid var(--theme-chip-border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  color: var(--ifm-color-primary-light);
+  font-weight: 600;
+  font-family: var(--ifm-font-family-base);
+}
+
+/* ==========================================================================
+   Architecture Flow
+   ========================================================================== */
+
+.arch-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 1rem 0;
+}
+
+.arch-flow-step {
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-family: var(--ifm-font-family-base);
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.arch-flow-arrow {
+  color: var(--ifm-color-primary);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   Reference Architecture Cards
+   ========================================================================== */
+
+.ref-arch-card {
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  overflow: hidden;
+  background: var(--ifm-background-surface-color);
+}
+
+.ref-arch-card__header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.ref-arch-card__body {
+  padding: 1.5rem;
+}
+
+.ref-arch-card__num {
+  font-family: var(--font-family-condensed);
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: var(--ifm-color-primary);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .tile-grid {
+    grid-template-columns: 1fr;
+  }
+  .stack-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ==========================================================================
+   Landing Page
+   ========================================================================== */
+
+.landing-page {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Hero */
+.landing-hero {
+  background: var(--theme-hero-gradient);
+  padding: 6rem 2rem 5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.cosmic-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.landing-hero__content {
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.landing-hero__title {
+  font-family: var(--font-family-display);
+  font-size: 3.2rem;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 1rem;
+  letter-spacing: -0.5px;
+}
+
+.landing-hero__title span {
+  color: var(--ifm-color-primary-lightest);
+}
+
+[data-theme='dark'] .landing-hero__title span {
+  color: var(--ifm-color-primary);
+}
+
+.landing-hero__subtitle {
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 300;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.landing-hero__subtitle strong {
+  color: var(--ifm-color-primary-lightest);
+}
+
+[data-theme='dark'] .landing-hero__subtitle strong {
+  color: var(--ifm-color-primary);
+}
+
+.landing-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.landing-hero__cta {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.75rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
+}
+
+.landing-hero__cta:hover {
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.landing-hero__cta--primary {
+  background: var(--ifm-color-primary);
+  color: #fff;
+  border: 1px solid var(--ifm-color-primary);
+}
+
+.landing-hero__cta--primary:hover {
+  background: var(--ifm-color-primary-dark);
+  color: #fff;
+}
+
+.landing-hero__cta--secondary {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.landing-hero__cta--secondary:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Tiles Section */
+.landing-tiles {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
+
+.landing-tiles__heading {
+  font-family: var(--font-family-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.landing-tiles__subheading {
+  color: var(--ifm-font-color-base);
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  max-width: 700px;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.landing-tiles__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  /* Shared rows so heading / desc / best-for / arrow align across all tiles */
+  grid-template-rows: auto 1fr auto auto;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.landing-tile {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 4;
+  padding: 1.75rem;
+  border-radius: 14px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+  position: relative;
+  text-align: left;
+}
+
+.landing-tile .tile-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.landing-tile .tile-heading .tile-icon-svg {
+  flex-shrink: 0;
+}
+
+.landing-tile .tile-heading h3 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.landing-tile:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px var(--theme-card-hover-shadow);
+  border-color: var(--ifm-color-primary);
+  text-decoration: none;
+}
+
+.landing-tile__icon {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.landing-tile__title {
+  font-family: var(--font-family-display);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--ifm-color-primary);
+}
+
+.landing-tile__desc {
+  font-size: 0.92rem;
+  color: var(--ifm-font-color-base);
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+
+.landing-tile__bestfor {
+  margin: 0.9rem 0 0;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.landing-tile__bestfor span {
+  display: inline-block;
+  margin-right: 0.4rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  color: var(--ifm-color-primary);
+}
+
+.landing-tile__arrow {
+  display: block;
+  padding-top: 1rem;
+  color: var(--ifm-color-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: transform 0.2s;
+}
+
+.landing-tile:hover .landing-tile__arrow {
+  transform: translateX(4px);
+}
+
+/* Platform framing — eyebrow + CTA, now part of the stack section */
+.landing-platform__eyebrow {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ifm-color-primary);
+}
+
+.landing-platform__actions {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+}
+
+/* Stack Section */
+.landing-stack {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 2rem 4rem;
+  text-align: center;
+}
+
+.landing-stack__heading {
+  font-family: var(--font-family-display);
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+}
+
+.landing-stack__image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+/* Stack Band */
+.landing-stack-band {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 2rem 3rem;
+  text-align: center;
+}
+
+/* Outer AgentCore container — gradient border echoing the diagram */
+.stack-diagram {
+  position: relative;
+  border-radius: 16px;
+  padding: 2.5rem 1.5rem 1.75rem;
+  background: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  background-image: linear-gradient(90deg, #5b7fff, #ff5b6e);
+  background-repeat: no-repeat;
+  background-size: 100% 3px;
+  background-position: top left;
+}
+
+.stack-diagram__brand {
+  font-family: var(--font-family-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: var(--ifm-heading-color);
+  margin-bottom: 1.5rem;
+}
+
+/* Top row: three capability groups */
+.stack-diagram__groups {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.stack-group {
+  border-radius: 12px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-color);
+  padding: 1.1rem 1rem;
+}
+
+.stack-group__title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ifm-color-emphasis-700);
+  margin: 0 0 0.9rem;
+}
+
+.stack-group__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 1.25rem;
+}
+
+.stack-group__items li {
+  font-size: 0.92rem;
+  color: var(--ifm-font-color-base);
+  line-height: 1.4;
+}
+
+/* Environment + Security horizontal bands */
+.stack-band-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border-radius: 12px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-color);
+  padding: 1rem;
+  margin-top: 1rem;
+  text-align: left;
+}
+
+.stack-band-row__label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ifm-color-emphasis-700);
+  flex-shrink: 0;
+}
+
+.stack-band-row__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+/* Single-chip band (Environment): pin label left, center the chip in the band */
+.stack-band-row--centered .stack-band-row__label {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.stack-band-row--centered .stack-band-row__chips {
+  flex: 1;
+  justify-content: center;
+}
+
+.stack-service-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1.1rem;
+  border-radius: 8px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  background: var(--ifm-background-surface-color);
+  color: var(--ifm-font-color-base);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.stack-diagram__footer {
+  margin: 1.75rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  /* text-transform: uppercase; */
+  color: var(--ifm-color-emphasis-600);
+}
+
+/* Customers Strip */
+.landing-customers {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 2rem 4rem;
+  text-align: center;
+}
+
+.landing-customers__strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.landing-customer-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.6rem 1.2rem;
+  border-radius: 999px;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
+  color: var(--ifm-font-color-base);
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: border-color 0.2s, color 0.2s, transform 0.1s;
+}
+
+.landing-customer-chip:hover {
+  border-color: var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+  text-decoration: none;
+  transform: translateY(-2px);
+}
+
+.landing-customers__more {
+  font-size: 0.95rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .landing-hero__title {
+    font-size: 2.2rem;
+  }
+
+  .stack-diagram__groups {
+    grid-template-columns: 1fr;
+  }
+
+  .stack-band-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* On mobile, restore normal flow so the label stacks above the chip */
+  .stack-band-row--centered .stack-band-row__label {
+    position: static;
+    transform: none;
+  }
+
+  .stack-band-row--centered .stack-band-row__chips {
+    justify-content: flex-start;
+  }
+
+  .landing-hero__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .landing-hero__cta {
+    justify-content: center;
+  }
+
+  .landing-tiles__grid {
+    grid-template-columns: 1fr;
+    /* Single column: each tile flows normally, no shared row tracks */
+    grid-template-rows: none;
+  }
+
+  .landing-tile {
+    display: flex;
+    flex-direction: column;
+    grid-row: auto;
+  }
+
+
+}
+
+/* ==========================================================================
+   Mermaid Diagrams — render at natural size, scroll if wider than viewport
+   ========================================================================== */
+
+.docusaurus-mermaid-container {
+  overflow-x: auto;
+  padding: 1rem 0;
+}
+
+.docusaurus-mermaid-container svg {
+  min-width: 600px;
+  height: auto !important;
+  font-family: 'Amazon Ember', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  /* font-size: 1rem !important; */
+}
+
+.docusaurus-mermaid-container .node rect,
+.docusaurus-mermaid-container .node circle,
+.docusaurus-mermaid-container .node polygon {
+  font-family: 'Amazon Ember', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  /* font-size: 1rem !important; */
+}
+
+.docusaurus-mermaid-container .nodeLabel,
+.docusaurus-mermaid-container .edgeLabel,
+.docusaurus-mermaid-container .label {
+  font-family: 'Amazon Ember', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  /* font-size: 0.75rem !important; */
+}
+
+/* ==========================================================================
+   Enhanced Tables
+   Wrap a markdown table in <div className="fancy-table"> for styled variant.
+   ========================================================================== */
+
+.fancy-table {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.fancy-table > div {
+  overflow: visible !important;
+  margin: 0 !important;
+}
+
+.fancy-table table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  border-radius: 0;
+  border: none;
+  width: 100% !important;
+  display: table !important;
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+/* Shrink first column to fit content, stretch the rest */
+.fancy-table--auto-first table {
+  table-layout: auto;
+}
+
+.fancy-table--auto-first th:first-child,
+.fancy-table--auto-first td:first-child {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.fancy-table thead tr {
+  background: var(--ifm-color-emphasis-100);
+}
+
+.fancy-table thead th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  color: var(--ifm-color-emphasis-700);
+  padding: 0.85rem 1rem;
+  border-bottom: 2px solid var(--ifm-color-emphasis-200);
+  border-left: none;
+  border-right: none;
+  border-top: none;
+}
+
+.fancy-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.fancy-table tbody tr:nth-child(even) {
+  background: var(--ifm-background-surface-color);
+}
+
+.fancy-table tbody tr:hover {
+  background: var(--theme-chip-bg);
+}
+
+.fancy-table tbody td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-100);
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  vertical-align: top;
+}
+
+.fancy-table tbody td strong {
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+
+.fancy-table tbody td code,
+.fancy-table tbody td > code {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.85em;
+  color: var(--ifm-color-primary-light);
+  background: var(--theme-chip-bg);
+  border: 1px solid var(--theme-chip-border);
+  border-radius: 4px;
+  padding: 0.15em 0.4em;
+}
+
+.fancy-table thead th code {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.9em;
+  color: var(--ifm-color-primary-light);
+  background: var(--theme-chip-bg);
+  border: 1px solid var(--theme-chip-border);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.fancy-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Variant: compact (less padding, smaller text) */
+.fancy-table--compact table {
+  font-size: 0.85rem;
+}
+
+.fancy-table--compact thead th {
+  padding: 0.6rem 0.75rem;
+  font-size: 0.72rem;
+}
+
+.fancy-table--compact tbody td {
+  padding: 0.5rem 0.75rem;
+}
+
+/* Variant: primary header (colored header row) */
+.fancy-table--primary thead tr {
+  background: var(--ifm-color-primary);
+}
+
+.fancy-table--primary thead th {
+  color: #ffffff;
+  border-bottom-color: var(--ifm-color-primary-dark);
+}
+
+[data-theme='dark'] .fancy-table--primary thead th {
+  color: #111111;
+}
+
+/* Variant: borderless (no outer border, just row dividers) */
+.fancy-table--borderless {
+  border: none;
+  border-radius: 0;
+}
+
+.fancy-table--borderless thead th {
+  border-bottom: 2px solid var(--ifm-color-primary);
+}
+
+/* ==========================================================================
+   CanonicalLink component — editorial pattern for canonical source guidance
+   ========================================================================== */
+
+.canonical-link-pattern {
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-left: 4px solid var(--ifm-color-primary);
+  border-radius: var(--ifm-global-radius);
+  background: var(--ifm-color-emphasis-100);
+}
+
+[data-theme='dark'] .canonical-link-pattern {
+  background: var(--ifm-color-emphasis-100);
+  border-color: var(--ifm-color-emphasis-400);
+}
+
+.canonical-link-pattern h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  margin-top: 1rem;
+  color: var(--ifm-color-primary-darkest);
+}
+
+.canonical-link-pattern .canonical-link-section:first-child h3 {
+  margin-top: 0;
+}
+
+[data-theme='dark'] .canonical-link-pattern h3 {
+  color: var(--ifm-color-primary-lightest);
+}
+
+.canonical-link-pattern p {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+.canonical-link-pattern ul {
+  margin-bottom: 0.5rem;
+  padding-left: 1.25rem;
+}
+
+.canonical-link-pattern li {
+  margin-bottom: 0.25rem;
+}
+
+.canonical-link-section:last-child p,
+.canonical-link-section:last-child ul {
+  margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Canonical Recommendation Card
+   A visually distinct routing card that helps readers identify the right
+   sample/tutorial for their use case. Appears at the top of workload pages.
+   ========================================================================== */
+
+.canonical-recommendation {
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-left: 4px solid var(--ifm-color-primary);
+  border-radius: 8px;
+  background: var(--ifm-background-surface-color);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.canonical-recommendation h3 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ifm-color-primary);
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-100);
+}
+
+.canonical-recommendation h3:first-child,
+.canonical-recommendation-section:first-child h3 {
+  margin-top: 0;
+}
+
+.canonical-recommendation p {
+  margin-bottom: 0.5rem;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.canonical-recommendation ul {
+  margin-bottom: 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.canonical-recommendation li {
+  margin-bottom: 0.35rem;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.canonical-recommendation a {
+  color: var(--ifm-color-primary);
+  font-weight: 500;
+}
+
+.canonical-recommendation a:hover {
+  text-decoration: underline;
+}
+
+.canonical-recommendation-section {
+  margin-bottom: 0.25rem;
+}
+
+.canonical-recommendation-section:last-child {
+  margin-bottom: 0;
+}
+
+.canonical-recommendation-section:last-child p:last-child,
+.canonical-recommendation-section:last-child ul:last-child {
+  margin-bottom: 0;
+}

@@ -1,0 +1,140 @@
+---
+title: Adopt AgentCore with an Existing Agent
+sidebar_label: Existing Agent
+sidebar_position: 4
+last_verified: 2026-07-22
+---
+
+import Link from '@docusaurus/Link';
+
+# Adopt AgentCore with an Existing Agent
+
+:::tip Who this is for
+Developers migrating an existing agent—whether it uses Strands, LangGraph, CrewAI, another framework, or custom code—onto AgentCore Runtime. If you're building a new agent from scratch, see [Build from CLI](/docs/get-started/quickstart) or [First Agent (Console)](/docs/get-started/firstagent).
+:::
+
+You already have a working agent and want to adopt AgentCore services without replacing its core reasoning loop. This page helps you choose an integration model, validate assumptions your agent makes about its environment, and prepare it for AgentCore Runtime.
+
+Runtime gives each session an [isolated microVM](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) and uses [active-resource consumption pricing](https://aws.amazon.com/bedrock/agentcore/pricing/); infrequently invoked agents can [scale to zero after their sessions stop](https://docs.aws.amazon.com/wellarchitected/latest/agentic-ai-lens/agentcost06-bp03.html). Runtime can also export OpenTelemetry traces, but an existing agent may require [framework instrumentation, ADOT dependencies, and CloudWatch configuration](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html).
+
+---
+
+## Start with your integration model
+
+This page focuses on two ways to expose existing agent logic to Runtime:
+
+- [Use any agent framework](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/using-any-agent-framework.html) — adapt a Python agent with `BedrockAgentCoreApp` and an `@app.entrypoint` handler, then deploy it with the AgentCore CLI.
+- [Implement the Runtime HTTP contract](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-custom.html) — package a non-Python agent, existing HTTP application, or custom runtime as a container that exposes `/invocations` and `/ping`.
+
+These are integration models, not your only infrastructure choices. After selecting one, [compare the console, CLI, API, CloudFormation, CDK, and Terraform deployment methods](/docs/get-started/deployment-methods).
+
+If you are migrating from Bedrock Agents Classic, follow the [Classic migration guide](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-classic-maintenance-mode.html).
+
+---
+
+## Choose your integration path
+
+**`Python SDK adapter`** — use this when your existing Python agent can be called from a handler function. `BedrockAgentCoreApp` handles the Runtime server contract while your decorated entrypoint translates the request into your framework's input and returns a serializable response. AWS provides examples for Strands, LangGraph, Google ADK, and OpenAI Agents, but the adapter pattern is not limited to those frameworks.
+
+**`Custom protocol or container`** — use this for non-Python agents, existing HTTP services, custom process behavior, or direct control over the Runtime protocol and image. Your application implements the required endpoints and runs in an ARM64 container stored in Amazon ECR.
+
+Many agents need only a thin entrypoint or protocol adapter, but deployment is not always change-free. Dependencies, environment configuration, authentication, asynchronous work, networking, filesystem use, and telemetry can all require updates.
+
+### What to validate before deployment
+
+- **Architecture and dependencies** — confirm the application and any native libraries support `linux/arm64`.
+- **Process contract** — confirm the server starts without interactive input, binds to the required host and port, and reports health independently of long-running work.
+- **Configuration and secrets** — replace local profiles and developer credentials with environment configuration, AgentCore Identity, or a least-privilege Runtime execution role.
+- **State and files** — identify assumptions about local persistence and decide what belongs in session context, AgentCore Memory, S3 Files, EFS, or another durable store.
+- **Concurrency and lifecycle** — verify synchronous, asynchronous, streaming, and background operations behave correctly across session idle timeouts and maximum lifetimes.
+- **Networking** — classify dependencies as public endpoints or private VPC resources, then design routing, security groups, VPC endpoints, and NAT access accordingly.
+- **Telemetry** — confirm the framework emits the spans, metrics, and attributes you need, and configure their destination before relying on distributed traces.
+
+### Python SDK adapter: Strands example
+
+```python
+from strands import Agent
+from strands_tools import file_read, file_write, editor
+
+# Existing agent setup, abridged
+agent = Agent(tools=[file_read, file_write, editor])
+
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
+app = BedrockAgentCoreApp()
+
+@app.entrypoint
+def agent_invocation(payload, context):
+    user_message = payload.get("prompt", "No prompt provided")
+    result = agent(user_message)
+    return {"result": result.message}
+
+app.run()
+```
+
+### Python SDK adapter: LangGraph example
+
+This excerpt assumes your existing code already creates and compiles `graph`.
+
+```python
+from bedrock_agentcore.runtime import BedrockAgentCoreApp
+
+# ... your existing nodes, edges, tools, and compiled graph ...
+# graph = graph_builder.compile()
+
+app = BedrockAgentCoreApp()
+
+@app.entrypoint
+def agent_invocation(payload, context):
+    user_input = {
+        "messages": [
+            {"role": "user", "content": payload.get("prompt", "")}
+        ]
+    }
+    output = graph.invoke(user_input)
+    return {"result": output["messages"][-1].content}
+
+app.run()
+```
+
+The pattern is the same for other Python frameworks: instantiate your existing agent, create a `BedrockAgentCoreApp`, translate the Runtime payload in an `@app.entrypoint` handler, and call `app.run()`. For complete dependencies and deployment configuration, see the [official framework integration examples](https://github.com/awslabs/amazon-bedrock-agentcore-samples/tree/main/03-integrations/agentic-frameworks).
+
+---
+
+## Validate custom-container compatibility
+
+Before deploying a custom container, verify that your agent's dependencies, runtime version, and process behavior satisfy the Runtime contract.
+
+<div className="fancy-table">
+
+| Requirement | Details |
+|---|---|
+| Platform | `linux/arm64` (mandatory) |
+| Port | Application must listen on `8080` |
+| Host | Must bind to `0.0.0.0` |
+| [`/invocations`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-http-protocol-contract.html#invocation-endpoints) endpoint | `POST` — handles agent interactions (required) |
+| [`/ping`](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-http-protocol-contract.html#ping-endpoint) endpoint | `GET` — returns health status (required) |
+| Image registry | Image must be pushed to Amazon ECR |
+
+</div>
+
+Runtime provisions an isolated CPU, memory, and filesystem environment for each session. When your agent needs private databases, internal APIs, or other VPC resources, [configure Runtime VPC connectivity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agentcore-vpc.html). For a VPC-mode runtime that also needs public internet access, use private subnets with a route to a NAT gateway and follow the [Runtime network security practices](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-security-best-practices.html#security-bp-network).
+
+Runtime makes temporary execution-role credentials available through the [MicroVM Metadata Service (MMDS)](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/security-credentials-management.html). Any code running in the microVM can request those credentials, so grant the execution role only the permissions the agent requires.
+
+For implementation details, use these references:
+
+- [Get started without the AgentCore CLI](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/getting-started-custom.html) — Dockerfile, application contract, ECR push, local test, and deployment walkthrough
+- [HTTP protocol contract](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-http-protocol-contract.html) — endpoint, header, payload, and response requirements
+- [AgentCore Runtime troubleshooting](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-troubleshooting.html) — container requirements and common deployment failures
+
+---
+
+## Next steps
+
+- <Link to="/docs/operate/production-readiness">Work through the production readiness checklist</Link>
+- <Link to="/docs/get-started/deployment-methods">Compare deployment methods for your stack</Link>
+- <Link to="/docs/patterns/overview">Explore multi-agent patterns and architectures</Link>
+
+:::warning
+Everything produced by this tutorial is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::

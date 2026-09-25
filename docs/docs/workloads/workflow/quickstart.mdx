@@ -1,0 +1,187 @@
+---
+title: "Quick Start: Workflow Agent"
+sidebar_label: Quick Start
+sidebar_position: 2
+last_verified: 2026-07-22
+---
+
+import Link from '@docusaurus/Link';
+import CanonicalRecommendation from '@site/src/components/CanonicalRecommendation';
+
+# Quick Start: Workflow Agent
+
+:::tip Who this is for
+Developers ready to build an event-driven workflow agent from a sample. If you're still deciding whether this pattern is the right fit, see the [workflow overview](/docs/workloads/workflow/overview) first.
+:::
+
+---
+
+## Get running in 3 steps
+
+```bash
+# 1. Clone a maintained sample (e.g., the event-driven claims agent)
+git clone https://github.com/awslabs/agentcore-samples.git
+cd agentcore-samples/02-use-cases/02-workflow-automation-agents/event-driven-claims-agent
+
+# 2. Install and run locally
+agentcore dev
+
+# 3. Send a test event — the agent triages and acts
+```
+
+The [Workflow Automation Catalog](https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents) has maintained samples for incident triage, claims processing, document ingestion, and payment workflows. All include policy gates and non-destructive defaults.
+
+---
+
+## Choose the right sample
+
+Select the right workflow automation sample for your trigger and action model, understand the safety boundaries, and start building.
+
+<CanonicalRecommendation
+  defaultSource={{
+    url: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents",
+    title: "Workflow Automation Agent Catalog",
+    description: "Browse maintained workflow automation agent samples covering event-driven triage, document processing, and multi-step approval pipelines."
+  }}
+  selectionCriteria={[
+    "Your agent is triggered by events (EventBridge, SQS, SNS) rather than human chat",
+    "The workflow involves enriching data, reasoning over it, and taking a discrete action",
+    "You need idempotent event handling with at-least-once delivery guarantees",
+    "Actions must be gated by Cedar policies with human-approval checkpoints for high-risk operations"
+  ]}
+  fitRationale="Workflow agents follow a Trigger → Enrich → Reason → Act → Emit pattern. The canonical catalog provides maintained samples for incident triage, claims processing, document ingestion, and payment workflows — all with built-in policy gates and non-destructive defaults."
+  alternatives={[
+    {
+      condition: "You need insurance or financial event-driven claims processing",
+      destination: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/event-driven-claims-agent",
+      label: "Event-Driven Claims Agent"
+    },
+    {
+      condition: "You need document or web data ingestion and intelligence extraction",
+      destination: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/enterprise-web-intelligence-agent",
+      label: "Enterprise Web Intelligence Agent"
+    },
+    {
+      condition: "You need invoice or payment workflow automation",
+      destination: "https://github.com/awslabs/agentcore-samples/tree/main/02-use-cases/02-workflow-automation-agents/visa-b2b-account-payable-agent",
+      label: "B2B Accounts Payable Agent"
+    }
+  ]}
+  actionRisk={{
+    summary: "Non-destructive triage and ticket creation by default",
+    details: "The default workflow narrative creates tickets and sends notifications — it does not restart services, scale infrastructure, or mutate external state. Alternatives that perform write actions disclose their individual risk profiles and require Cedar policy authorization before execution."
+  }}
+  productionReadinessLink="/docs/operate/production-readiness"
+  nextSteps={[
+    { label: "Wire up event sources (EventBridge, SNS, SQS)", url: "/docs/workloads/workflow/event-processing" },
+    { label: "Add Cedar policies for bounded autonomy", url: "/docs/workloads/workflow/bounded-autonomy" },
+    { label: "Design tools and connect via Gateway", url: "/docs/workloads/workflow/tools-and-gateway" },
+    { label: "Set up continuous evaluations", url: "/docs/workloads/workflow/evaluations" },
+    { label: "Prefer config over code? Try the Harness Quick Start", url: "/docs/workloads/workflow/harness-quickstart" },
+    { label: "Production Readiness checklist", url: "/docs/operate/production-readiness" }
+  ]}
+/>
+
+---
+
+### Event Handling Patterns
+
+Workflow agents process events from multiple sources. Design your event handler to:
+
+- **Normalize the event envelope** — Extract the business payload regardless of whether it arrives via EventBridge, SQS, or direct HTTP invocation. The canonical samples demonstrate payload unwrapping for each source type.
+- **Classify before acting** — Use the enrichment phase to determine severity, category, and required action before the agent reasons over next steps.
+- **Emit structured results** — Return machine-readable summaries (ticket IDs, notification confirmations, classification labels) so downstream systems can consume them programmatically.
+
+### Idempotency
+
+Events may be delivered more than once. Protect your workflow with:
+
+- **Deduplication keys** — Use a combination of event source, event ID, and timestamp to detect redelivered events. Skip processing if the event was already handled.
+- **Idempotent tool design** — Tools should produce the same outcome when called multiple times with identical inputs (e.g., "create ticket if not exists" rather than "create ticket").
+- **Dead-letter handling** — Route events that fail after bounded retries to a dead-letter queue for manual review rather than retrying indefinitely.
+
+### Policy Gates and Cedar Authorization
+
+Cedar policies control which actions an agent can execute and under what conditions. The example below uses the documented Cedar entity types — `AgentCore::OAuthUser` or IAM principal as the principal, `AgentCore::Action::"Gateway___tool_name"` for actions, and `AgentCore::Gateway::"arn:..."` for the resource. This is illustrative; adapt entity types and ARNs to your deployment.
+
+```cedar
+// Allow the triage agent to create escalation tickets
+// only when the incident severity warrants escalation
+permit(
+  principal is AgentCore::OAuthUser,
+  action == AgentCore::Action::"Gateway___create_escalation_ticket",
+  resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-east-1:123456789012:gateway/incident-gateway"
+) when {
+  context.input.incident_severity == "HIGH" &&
+  context.input.has_enrichment_data == true
+};
+```
+
+```cedar
+// Allow notification delivery for MEDIUM or HIGH severity
+permit(
+  principal is AgentCore::OAuthUser,
+  action == AgentCore::Action::"Gateway___notify_oncall",
+  resource == AgentCore::Gateway::"arn:aws:bedrock-agentcore:us-east-1:123456789012:gateway/incident-gateway"
+) when {
+  context.input.incident_severity in ["MEDIUM", "HIGH"]
+};
+```
+
+Key policy design principles:
+
+- **Least privilege** — Grant only the specific tool actions the agent needs for its workflow stage.
+- **Condition-based gating** — Use context attributes (severity, time window, enrichment completeness) to restrict when actions fire.
+- **Deny by default** — If no `permit` policy matches, the action is denied. Explicitly authorize each tool invocation.
+- **Audit trail** — Every policy evaluation is logged, providing a complete record of what was allowed and denied.
+
+See [Bounded Autonomy](/docs/workloads/workflow/bounded-autonomy) for complete Cedar policy patterns.
+
+### Human-Approval Patterns
+
+For actions that cross a risk threshold, require explicit human confirmation before execution:
+
+- **Asynchronous approval** — The agent creates an approval request (ticket, Slack message, email) and pauses. A separate event resumes the workflow when approval is granted.
+- **Time-bounded approval** — Approval requests expire after a configured window. Expired requests route to a fallback path (escalation or cancellation).
+- **Approval context** — Include the agent's reasoning, enrichment data, and proposed action in the approval request so reviewers have full context.
+- **Rejection handling** — When approval is denied, the agent records the denial reason and routes to an alternative non-destructive path.
+
+### Action Risk Awareness
+
+Every tool in a workflow agent has a risk profile. Classify tools into tiers:
+
+<div className="fancy-table">
+
+| Tier | Examples | Policy Requirement |
+|------|----------|-------------------|
+| **Read-only** | `get_service_health`, `lookup_account`, `fetch_document` | Minimal — log access for audit |
+| **Non-destructive write** | `create_ticket`, `send_notification`, `add_comment` | Standard Cedar policy gate |
+| **State-mutating** | `scale_fleet`, `update_config`, `modify_permissions` | Cedar policy + human approval + maintenance window |
+
+</div>
+
+Default workflows should operate at the **non-destructive write** tier. Escalate to state-mutating actions only with explicit policy authorization and human-in-the-loop confirmation.
+
+### Resource and Cost Awareness
+
+Workflow agents consume resources proportional to event volume and reasoning complexity:
+
+- **Token consumption** — Each event triggers an LLM invocation. Batch low-priority events or implement severity-based routing to control costs.
+- **Tool call chains** — Complex reasoning may chain multiple tool calls per event. Set `maxIterations` to bound reasoning depth.
+- **Concurrent execution** — High event volumes trigger parallel agent executions. Monitor concurrent invocation counts and set concurrency limits appropriate to your downstream tool APIs.
+- **Scale-to-zero billing** — AgentCore Runtimes [scale to zero](https://aws.amazon.com/bedrock/agentcore/pricing/) between events, but log retention and staged assets continue to accrue charges.
+
+---
+
+## What's Next?
+
+- <Link to="/docs/workloads/workflow/harness-quickstart">Prefer config over code? Try the Harness Quick Start →</Link>
+- <Link to="/docs/workloads/workflow/event-processing">Wire up event sources (EventBridge, SNS, SQS) →</Link>
+- <Link to="/docs/workloads/workflow/bounded-autonomy">Add Cedar policies for bounded autonomy →</Link>
+- <Link to="/docs/workloads/workflow/tools-and-gateway">Design tools and connect via Gateway →</Link>
+- <Link to="/docs/workloads/workflow/evaluations">Set up continuous evaluations →</Link>
+- <Link to="/docs/operate/production-readiness">Production Readiness checklist →</Link>
+
+:::warning
+Everything produced by the samples on this page is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+:::
