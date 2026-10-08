@@ -1,0 +1,32 @@
+---
+title: "GitHub Project Board to PRs, with Rework through comments"
+sidebar_label: "Board to PRs"
+sidebar_position: 8.5
+last_verified: 2026-10-07
+description: Reference implementation of a coding agent that turns GitHub issues on a Projects board into tested pull requests with AgentCore Runtime and Claude Code on Amazon Bedrock.
+---
+
+import Link from '@docusaurus/Link';
+
+# GitHub Project Board to PRs, with Rework
+
+Many teams carry a long tail of small, well-defined issues. This reference implementation turns them into tested pull requests: move an issue to **In Progress** on a GitHub Projects board, and an [AgentCore Runtime](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agents-tools-runtime.html) session runs Claude Code on Amazon Bedrock to plan, implement, test, and open the PR. A human reviews and merges, and a `/agent fix <what failed>` comment on the PR adds new commits to the same branch.
+
+## What it demonstrates
+
+- **A GitHub trigger with no stored keys.** GitHub Actions sign in to AWS with OIDC, a dispatcher Lambda mints a 1-hour GitHub App token scoped to one repository, and Claude is called through the runtime's IAM role.
+- **One session per job.** Each issue or fix comment gets its own AgentCore session, using the <Link to="/docs/workloads/coding/execution-model">async task pattern</Link>, and the session stops when the job ends.
+- **Guardrails in code, not prompts.** The orchestrator validates every plan, limits each sub-task to a few declared files, and rejects acceptance tests that still pass without the code change.
+
+Acceptance tests run repository code inside the runtime container with credentials removed, not in Code Interpreter. Review agent PRs like any other contribution.
+
+## Resources
+
+- [GitHub issues to PRs with AgentCore](https://builder.aws.com/content/3D3N36mItBxfGxSpbKdxPvG5NFN/github-issues-to-prs-with-agentcore): walkthrough covering architecture, the GitHub–AWS handshake, setup, and troubleshooting
+- [Sample code](https://github.com/kaushalavardhanam/kaushalavardhanam/tree/main/.github): runtime, orchestrator, and Terraform under `agentcore/`; GitHub Actions workflows and kickoff scripts under `workflows/` and `scripts/`
+
+## Related Pages
+
+- <Link to="/docs/workloads/coding/execution-model">Execution Model — trigger sources and long-running sessions →</Link>
+- <Link to="/docs/workloads/coding/source-control">Source Control — GitHub App authentication →</Link>
+- <Link to="/docs/workloads/coding/patterns-and-architecture">Patterns & Architecture — human review gate before merge →</Link>
