@@ -1,0 +1,44 @@
+version: 2
+updates:
+  # Docs site
+  - package-ecosystem: "npm"
+    directory: "/docs"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      docs-dependencies:
+        patterns:
+          - "*"
+
+  # Docs publish-gate scripts
+  - package-ecosystem: "npm"
+    directory: "/docs/scripts/publish-gate"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      publish-gate-dependencies:
+        patterns:
+          - "*"
+
+  # First-agent CDK sample
+  - package-ecosystem: "npm"
+    directory: "/test-code/firstagent/agentcore/cdk"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      firstagent-cdk-dependencies:
+        patterns:
+          - "*"
+
+  # Keep GitHub Actions versions current too (grouped)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
