@@ -65,6 +65,7 @@ const sidebars: SidebarsConfig = {
             'workloads/coding/memory-and-context',
             'workloads/coding/evaluations',
             'workloads/coding/patterns-and-architecture',
+            'workloads/coding/github-issues-to-prs',
             'workloads/coding/hosted-agents',
           ],
         },
