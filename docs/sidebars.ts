@@ -31,6 +31,7 @@ const sidebars: SidebarsConfig = {
             'workloads/conversational/harness-quickstart',
             'workloads/conversational/enterprise-features',
             'workloads/conversational/session-management',
+            'workloads/conversational/omnichannel',
             'workloads/conversational/patterns-and-architecture',
             'workloads/conversational/challenges',
           ],
