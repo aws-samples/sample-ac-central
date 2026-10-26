@@ -15,7 +15,7 @@ Developers who have a working conversational agent and now need it to reach cust
 
 :::
 
-A conversational agent on AgentCore handles the reasoning, memory, and tool use. The Omnichannel Hub bridges that agentic core to the channels your customers live on, so a single agent can hold a continuous, context-aware conversation whether the customer is on web chat, SMS, RCS, WhatsApp, or email. The agent focuses on the decision; the Hub handles the talking.
+A conversational agent on AgentCore handles the reasoning, memory, and tool use. You can build and Omnichannel Hub to bridge that agentic core to the channels your customers live on, so a single agent can hold a continuous, context-aware conversation whether the customer is on web chat, SMS, RCS, WhatsApp, or email. The agent focuses on the decision; the Hub handles the talking.
 
 ---
 
@@ -37,7 +37,7 @@ The proactive pattern is where omnichannel delivery earns its keep. Consider an 
 
 ## The Omnichannel Hub Architecture
 
-The Omnichannel Hub is a set of open-source samples — reference implementations you own and deploy, not a managed service. They provide the core channel-orchestration infrastructure; your team, augmented by AI coding agents such as Kiro or Claude Code, customizes it for your specific business logic, compliance rules, and routing preferences. Three components make up the Hub: 
+Your Omnichannel Hub design can leverage a set of open-source samples — reference implementations you own and deploy, not a managed service. They provide the core channel-orchestration infrastructure; your team, augmented by AI coding agents such as Kiro or Claude Code, customizes it for your specific business logic, compliance rules, and routing preferences. Three components make up the Hub: 
 
 The **Chat Orchestrator** gives your agent a single, channel-agnostic API for sending and receiving messages: the agent does not need to know whether it is talking to a customer on SMS, WhatsApp, RCS, or web chat, because the orchestrator handles the routing, the per-channel formatting, and the conversation state. When a customer responds, the orchestrator passes the full conversation history back to the agent for its next decision — the send-respond-reason-send loop that makes multi-turn conversations work.
 
