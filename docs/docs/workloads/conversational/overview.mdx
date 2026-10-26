@@ -13,13 +13,13 @@ import Link from '@docusaurus/Link';
 Developers evaluating whether a conversational workload fits their use case, or looking for the right entry point into building a chat agent on AgentCore. If you've already decided and want to start coding, jump to the [Quick Start](/docs/workloads/conversational/quickstart) or [Harness Quick Start](/docs/workloads/conversational/harness-quickstart).
 :::
 
-Human-initiated chat agents that respond in real-time with [multi-turn memory](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html), [enterprise identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html), and [streaming](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-http-protocol-contract.html). AgentCore handles the platform complexity so you focus on the agent's intelligence.
+Conversational agents that engage humans in real-time across various messaging platforms with [multi-turn memory](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/memory-types.html), [enterprise identity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/identity.html), and [streaming](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-http-protocol-contract.html). Agents can respond to human-initiated messages or proactively initiate conversations. AgentCore handles the platform complexity so you focus on the agent's intelligence.
 
 ---
 
 ## What Is It?
 
-A conversational agent is an AI that interacts directly with humans through natural language. The user input is received by the agent, which reasons and responds, optionally calling tools along the way. Input channels include chat interfaces, messaging platforms (Slack, WhatsApp, Teams), phone/voice systems, and custom UIs. Unlike traditional chatbots with scripted flows, conversational agents on AgentCore use LLM reasoning to handle open-ended queries, maintain context across turns, and take actions on behalf of the user. See [How AgentCore Runtime works](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html) for the underlying execution model.
+A conversational agent is an AI that interacts directly with humans through natural language. The user input is received by the agent, which reasons and responds, optionally calling tools along the way. Input channels include chat interfaces, messaging platforms (Slack, WhatsApp, email, Teams), phone/voice systems (SMS, RCS), and custom UIs. Unlike traditional chatbots with scripted flows, conversational agents on AgentCore use LLM reasoning to handle open-ended queries, maintain context across turns, and take actions on behalf of the user. See [How AgentCore Runtime works](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-how-it-works.html) for the underlying execution model.
 
 ---
 
@@ -32,6 +32,10 @@ A conversational agent is an AI that interacts directly with humans through natu
 - **Onboarding concierge** — New customers or employees are guided through multi-step setup processes with personalized, context-aware assistance.
 - **Technical troubleshooting** — Developers or IT staff describe issues. The agent correlates logs, suggests fixes, and can execute diagnostic commands.
 - **Voice agents** — Phone or voice-first interactions (IVR replacement, contact center, accessibility). The agent receives audio input, reasons over the transcript, and responds with synthesized speech.
+- **Proactive customer notifications** — The agent initiates a conversation when a business event occurs (flight delay, shipping exception, appointment reminder, payment due). It contacts the customer via the optimal channel (SMS, RCS, WhatsApp, or email) based on preference, cost, and deliverability — then handles follow-up questions, rebooking, or issue resolution in a multi-turn exchange. Where the traditional approach sends a one-way notification, the agent turns it into a customer-satisfying interaction.
+- **Outbound marketing engagement** — The agent reaches out to customers with personalized offers via messaging channels. The customer can ask questions, browse products, and complete purchases within the conversation — no app switch required. Example: a retailer welcomes new customers with a promotional offer via RCS, then assists with product selection and checkout.
+- **Multi-channel journey orchestration** — A single conversational agent manages customer interactions that span SMS, RCS, WhatsApp, email, and web chat. The agent autonomously selects the optimal channel for each message and maintains full conversation context across channel switches. An engagement database tracks channel preferences, resolution rates, and conversation analytics.
+- **Inbound email triage and response** — A Bedrock agent automatically categorizes, prioritizes, and routes incoming customer emails, then drafts or sends intelligent responses. For most enterprises, inbound email remains the highest-volume customer channel — agentic triage turns a queue-and-wait process into an AI-resolved interaction.
 
 ---
 
@@ -40,10 +44,12 @@ A conversational agent is an AI that interacts directly with humans through natu
 Choose this workload when:
 
 - A human is the primary trigger (they type a message)
+- A business event triggers proactive communications to contact a human (e.g., a flight delay, order update, or promotional offer that becomes a multi-turn exchange)
 - The agent needs to respond in real-time with token-by-token [streaming](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-http-protocol-contract.html)
 - Multi-turn conversation state matters (the agent should remember what was said)
 - The agent acts on behalf of a specific user with their identity and permissions
 - The primary output is natural language directed at a human
+- The conversations span across multiple messaging platforms (web chat, SMS, RCS, WhatsApp, email)
 
 For a side-by-side comparison with Workflow and Coding patterns, see the [Workloads overview comparison table](/docs/workloads/overview#how-they-compare).
 
@@ -53,13 +59,15 @@ For a side-by-side comparison with Workflow and Coding patterns, see the [Worklo
 
 <div className="fancy-table">
 
+
 | Strengths                                            | Design Considerations                                                        |
 |------------------------------------------------------|--------------------------------------------------------------------|
 | Real-time streaming for responsive UX                | Plan for per-session cost; use [scale-to-zero](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-lifecycle-settings.html) and session timeouts to manage spend |
 | Multi-turn memory with session + long-term recall    | Long conversations need [context window strategies](/docs/workloads/conversational/session-management) (summarization, truncation) |
 | End-user identity propagation (zero-trust)           | Requires IdP integration (Entra ID, Okta, Cognito) — plan this early         |
 | Natural fit for human-facing applications            | Human-facing surface needs [input guardrails](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy-guardrails-in-policies.html) (content filters, prompt boundaries) |
-| Rich UI feedback (typing indicators, tool activity)  | [Session affinity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-sessions.html) means scaling per user; size infrastructure accordingly      |
+| Rich UI feedback (typing indicators, tool activity)  | [Session affinity](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-sessions.html) means scaling per user; size infrastructure accordingly      | Delivery across multiple messaging platforms         | Requires a channel orchestration layer (e.g., the Agentic AI Comms Hub samples) to handle routing, formatting, and conversation state across channels. Channel costs and deliverability vary by market |
+
 
 </div>
 
