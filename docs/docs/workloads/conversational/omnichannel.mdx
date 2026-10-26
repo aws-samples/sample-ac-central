@@ -1,0 +1,81 @@
+---
+title: Omnichannel Hub
+sidebar_label: Omnichannel Hub
+sidebar_position: 8
+last_verified: 2026-10-15
+---
+
+import Link from '@docusaurus/Link';
+
+# Omnichannel Hub
+
+:::tip Who this is for
+
+Developers who have a working conversational agent and now need it to reach customers on the messaging channels they actually use — SMS, RCS, WhatsApp, and email — not just web chat. If you are still deciding whether a conversational workload fits your use case, start with the [Overview](/docs/workloads/conversational/overview).
+
+:::
+
+A conversational agent on AgentCore handles the reasoning, memory, and tool use. You can build and Omnichannel Hub to bridge that agentic core to the channels your customers live on, so a single agent can hold a continuous, context-aware conversation whether the customer is on web chat, SMS, RCS, WhatsApp, or email. The agent focuses on the decision; the Hub handles the talking.
+
+---
+
+## Why Omnichannel
+
+Customer journeys no longer begin and end in one place. A single conversation now spans SMS, RCS, WhatsApp, and email, with web chat converging into messaging — a customer can start an interaction on your website and continue it on WhatsApp without losing context. At the same time, engagement is shifting from one-directional, templated notifications toward proactive, context-aware conversations that an agent conducts in real time across whichever channel suits the moment.
+
+That shift reframes what an extra message costs. When an agent exchanges four to six messages to turn a customer-impacting event into a resolved outcome, those additional exchanges are not overhead — they are the better outcome, and they are both operationally and commercially more efficient than the single notification that left the customer to solve the problem alone.
+
+---
+
+## Reactive and Proactive Engagement
+
+Conversational agents engage in two complementary modes. **Reactive** engagement is human-initiated: the customer starts the conversation — asking a question, making a request — and the agent reasons and responds, exactly as described in the [Overview](/docs/workloads/conversational/overview). **Proactive** engagement is business-logic-triggered: an event in a backend system — a flight cancellation, a delivery exception, a subscription renewal, a fraud alert — triggers the agent to reach out first.
+
+The proactive pattern is where omnichannel delivery earns its keep. Consider an airline whose operations system flags a cancellation: the agent proactively messages each affected traveler over their preferred channel, offers to rebook, confirms the new booking, and sends a receipt — a multi-turn exchange that resolves the disruption, rather than a single "your flight is canceled" alert. The same shape applies to delivery exceptions, appointment changes, renewals, and account alerts across any industry.
+
+---
+
+## The Omnichannel Hub Architecture
+
+Your Omnichannel Hub design can leverage a set of open-source samples — reference implementations you own and deploy, not a managed service. They provide the core channel-orchestration infrastructure; your team, augmented by AI coding agents such as Kiro or Claude Code, customizes it for your specific business logic, compliance rules, and routing preferences. Three components make up the Hub: 
+
+The **Chat Orchestrator** gives your agent a single, channel-agnostic API for sending and receiving messages: the agent does not need to know whether it is talking to a customer on SMS, WhatsApp, RCS, or web chat, because the orchestrator handles the routing, the per-channel formatting, and the conversation state. When a customer responds, the orchestrator passes the full conversation history back to the agent for its next decision — the send-respond-reason-send loop that makes multi-turn conversations work.
+
+The **Engagement Database** logs every conversation, channel event, and customer preference. It is what lets you measure which channels customers prefer, what resolution rates look like, and where conversations drop off — and it feeds the Channel Finder with the preference data that informs routing. 
+
+The **Email Categorization** component uses its own Amazon Bedrock agent to automatically categorize, prioritize, and route inbound email, so the conversational agent responds intelligently instead of dumping everything into a single queue. 
+
+Underneath these components, the Hub maps each channel to the corresponding AWS communication service: **Amazon SES** for email, **AWS End User Messaging** for SMS, MMS, and RCS, and **AWS End User Messaging Social** for WhatsApp. You can add third-party channels or your own proprietary channel. The agent interacts only with the Chat Orchestrator's channel-agnostic API; the service bindings sit below that abstraction.
+
+---
+
+## Strengths and Design Considerations
+
+The strength of the omnichannel approach is reach: a single conversational agent delivers across SMS, RCS, WhatsApp, email, and web chat, meeting customers wherever they are and following them as a conversation moves between channels. The main design consideration is that this reach depends on a channel-orchestration layer — the Omnichannel Hub samples — to handle routing, per-channel formatting, and conversation state; this is infrastructure your team owns and operates. Plan, too, for channel economics: cost and deliverability vary by market and by channel, which is precisely why the Channel Finder bases its routing on cost and deliverability as well as customer preference.
+
+---
+
+## Cross-Channel Continuity
+
+Because AgentCore sessions are server-side and identified by `runtimeSessionId` together with the user's identity, a single conversation holds together as it moves across channels. A customer can begin on web chat, continue on WhatsApp, and receive a follow-up summary by email — all as one continuous session. The same user and the same session ID means continuation regardless of channel, and AgentCore Identity links the user across channels through their identity-provider token rather than a device cookie, so the agent recognizes the person, not just the device.
+
+The Chat Orchestrator abstracts the routing, formatting, and conversation state that make this continuity possible, while the Channel Finder selects the right channel for each message along the way. Conversations can span web chat, SMS, RCS, WhatsApp, email, and collaboration surfaces such as Slack and Teams without the agent having to manage channel-specific mechanics itself.
+
+---
+
+## When to Use the Omnichannel Hub
+
+Reach for the Omnichannel Hub when your customers live on messaging channels, when proactive outreach is part of the experience, or when a journey needs to span more than one channel without losing context. If your agent is web-chat-only, or interactions are single-turn and stateless, you likely do not need the orchestration layer.
+
+---
+
+## Start Building
+
+The Omnichannel Hub samples are open-source reference implementations for [chat orchestration](https://github.com/aws-samples/sample-chat-orchestrator-for-generative-ai-conversations), [engagement tracking]( https://github.com/aws-samples/Engagement-Database-And-Analytics-Sample-For-End-User-Messaging-And-SES), and [email categorization](https://github.com/aws-samples/sample-gen-ai-email-categorization-using-ses-mail-manager). Deploy them as your starting point, then customize the business logic, compliance rules, and routing for your use case.
+
+:::warning
+
+Everything produced by the Omnichannel Hub samples is a prototype until you have applied the controls in [Preparing for production](/docs/operate/production-readiness). Do not use a prototype endpoint to serve real user traffic.
+
+:::
+
